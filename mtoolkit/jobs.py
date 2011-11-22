@@ -178,3 +178,8 @@ def processing_workflow_setup_gen(context):
             _check_polygon(polygon)
             filtered_eq = _filter_eq_entries(context, polygon)
             yield sm, filtered_eq
+
+
+@logged_job
+def recurrence(context):
+    pass

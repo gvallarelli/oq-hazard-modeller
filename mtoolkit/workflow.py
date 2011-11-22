@@ -25,8 +25,7 @@ order. The order is determined by the queue of jobs.
 
 import yaml
 
-from mtoolkit.jobs import read_eq_catalog, gardner_knopoff, stepp, \
-create_catalog_matrix
+from mtoolkit.jobs import gardner_knopoff, stepp, recurrence
 
 from mtoolkit.declustering import gardner_knopoff_decluster
 from mtoolkit.completeness import stepp_analysis
@@ -75,16 +74,19 @@ class PipeLine(object):
 class PipeLineBuilder(object):
     """
     PipeLineBuilder allows to build a PipeLine
-    by assembling all the required jobs/steps
+    by assembling all the required jobs
     specified in the config file.
     """
 
-    def __init__(self, name):
-        self.name = name
-        self.map_step_callable = {'GardnerKnopoff': gardner_knopoff,
-                                  'Stepp': stepp}
+    PREPROCESSING_JOBS_CONFIG_KEY = 'preprocessing_jobs'
+    PROCESSING_JOBS_CONFIG_KEY = 'processing_jobs'
 
-    def build(self, config):
+    def __init__(self):
+        self.map_job_callable = {'GardnerKnopoff': gardner_knopoff,
+                                  'Stepp': stepp,
+                                  'Recurrence': recurrence}
+
+    def build(self, config, pipeline_type, compulsory_jobs=[]):
         """
         Build method creates the pipeline by
         assembling all the steps required.
@@ -93,14 +95,16 @@ class PipeLineBuilder(object):
         steps.
         """
 
-        pipeline = PipeLine(self.name)
-        pipeline.add_job(read_eq_catalog)
-        pipeline.add_job(create_catalog_matrix)
-        for step in config['preprocessing_steps']:
-            try:
-                pipeline.add_job(self.map_step_callable[step])
-            except KeyError:
-                raise RuntimeError('Invalid step: %s' % step)
+        pipeline = PipeLine(pipeline_type)
+        for job in compulsory_jobs:
+            pipeline.add_job(job)
+
+        for job in config[pipeline_type]:
+            if job in self.map_job_callable:
+                pipeline.add_job(self.map_job_callable[job])
+            else:
+                raise RuntimeError('Invalid job: %s' % job)
+
         return pipeline
 
 

@@ -10,7 +10,7 @@
 eq_catalog_file: tests/data/ISC_correct.csv 
 
 # Path to the file defining the transformed 
-# eq catalog after the preprocessing steps.
+# eq catalog after the preprocessing jobs.
 # If not defined no file will be written.
 pprocessing_result_file: path_to_file
 
@@ -22,25 +22,39 @@ source_model_file: path_to_file
 result_file: path_to_file
 
 # Boolean flag to declare
-# if processing steps are needed.
-apply_processing_steps: #yes/no
+# if processing jobs are needed.
+apply_processing_jobs: #yes/no
 
 # =========================================================
-# List of preprocessing steps
+# List of preprocessing jobs
 # =========================================================
 
 
-# Choose one algorithm per preprocessing step,
+# Choose one algorithm per preprocessing job,
 # algorithms will be executed in the specified
 # order.
-preprocessing_steps:
+preprocessing_jobs:
 - GardnerKnopoff
+- Stepp
+
 
 # =========================================================
-# Preprocessing steps in detail
+# List of processing jobs
 # =========================================================
 
-# Declustering Steps
+
+# Choose one algorithm per preprocessing job,
+# algorithms will be executed in the specified
+# order.
+processing_jobs:
+- Recurrence
+
+
+# =========================================================
+# Preprocessing jobs in detail
+# =========================================================
+
+# Declustering jobs
 
 GardnerKnopoff: {
   # Possible values: GardnerKnopoff, Uhrhammer, Gruenthal.
@@ -51,7 +65,7 @@ GardnerKnopoff: {
   foreshock_time_window: 0
 }
 
-# Completeness Steps
+# Completeness jobs
 
 Stepp: {
   # Time Window of each step (in years)
@@ -66,4 +80,41 @@ Stepp: {
   # Increment Lock (fixes that the completeness magnitude
   # will always increase further back in time)
   increment_lock: True 
-}  
+} 
+
+
+# =========================================================
+# Processing jobs in detail
+# =========================================================
+
+# Recurrence job
+
+Recurrence: {
+    
+    # Width of magnitude window positive float
+    magnitude_window: 0.2,
+    
+    # Choose one among Wiechart or MLE
+    recurrence_algorithm: Wiechart,
+
+    Wiechart: {
+        
+        # A float
+        reference_magnitude: 1.0,
+
+        # Greater than zero (flaot)
+        magnitude_window: 0.3,
+        
+        # Greater than zero (float)
+        time_window: 0.2,
+    },
+
+    MLE: {
+        
+        # A float
+        reference_magnitude: 1.1,
+
+        # Greater than zero (flaot)
+        magnitude_window: 0.1,
+    }
+}
