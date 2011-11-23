@@ -97,24 +97,9 @@ Recurrence: {
     # Choose one among Wiechart or MLE
     recurrence_algorithm: Wiechart,
 
-    Wiechart: {
-        
-        # A float
-        reference_magnitude: 1.0,
+    # A float
+    reference_magnitude: 1.1,
 
-        # Greater than zero (flaot)
-        magnitude_window: 0.3,
-        
-        # Greater than zero (float)
-        time_window: 0.2,
-    },
-
-    MLE: {
-        
-        # A float
-        reference_magnitude: 1.1,
-
-        # Greater than zero (flaot)
-        magnitude_window: 0.1,
-    }
+    # Greater than zero (float), used only with Wiechart
+    time_window: 0.2
 }

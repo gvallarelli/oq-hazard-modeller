@@ -25,7 +25,7 @@ from shapely.geometry import Polygon
 from mtoolkit.workflow import Context
 from mtoolkit.jobs import read_eq_catalog, read_source_model, \
 create_catalog_matrix, gardner_knopoff, stepp, _check_polygon, \
-processing_workflow_setup_gen
+processing_workflow_setup_gen, recurrence
 from mtoolkit.utils import get_data_path, DATA_DIR
 
 
@@ -33,7 +33,7 @@ class JobsTestCase(unittest.TestCase):
 
     def setUp(self):
         self.context = Context(get_data_path(
-            'config_preprocessing.yml', DATA_DIR))
+            'config_processing.yml', DATA_DIR))
         self.eq_catalog_filename = get_data_path(
             'ISC_small_data.csv', DATA_DIR)
         self.smodel_filename = get_data_path(
@@ -161,8 +161,7 @@ class JobsTestCase(unittest.TestCase):
                 'GardnerKnopoff'
         self.context.config['GardnerKnopoff']['foreshock_time_window'] = 0.5
 
-        read_eq_catalog(self.context)
-        create_catalog_matrix(self.context)
+        self.context.catalog_matrix = []
 
         def mock(data, time_dist_windows, foreshock_time_window):
             self.assertEquals("GardnerKnopoff", time_dist_windows)
@@ -227,3 +226,21 @@ class JobsTestCase(unittest.TestCase):
 
         self.context.map_sc['stepp'] = mock
         stepp(self.context)
+
+    def test_parameters_recurrence(self):
+        self.context.config['Recurrence']['magnitude_window'] = 0.5
+        self.context.config['Recurrence']['recurrence_algorithm'] = 'Wiechart'
+        self.context.config['Recurrence']['referece_magnitude'] = 1.1
+        self.context.config['Recurrence']['time_window'] = 0.3
+
+        def mock(year_col, magnitude_col, flag_vector, completeness_table,
+            magnitude_window, recurrence_algorithm, reference_magnitude, time_window):
+
+            self.assertEqual(magnitude_window, 0.5)
+            self.assertEqual(recurrence_algorithm, 'Wiechart')
+            self.assertEqual(reference_magnitude, 1.1)
+            self.assertEqual(time_window, 0.3)
+            return None, None, None, None
+
+        self.context.map_sc['recurrence'] = mock
+        recurrence(self.context)

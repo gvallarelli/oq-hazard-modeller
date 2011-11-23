@@ -182,4 +182,13 @@ def processing_workflow_setup_gen(context):
 
 @logged_job
 def recurrence(context):
-    pass
+    context.bval, context.sigb, context.a_m, context.siga_m = \
+        context.map_sc['recurrence'](
+            'year_col',
+            'magnitude_col',
+            'flag_vector',
+            'completeness_table',
+            context.config['Recurrence']['magnitude_window'],
+            context.config['Recurrence']['recurrence_algorithm'],
+            context.config['Recurrence']['reference_magnitude'],
+            context.config['Recurrence']['time_window'])

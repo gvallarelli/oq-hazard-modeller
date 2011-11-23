@@ -19,7 +19,46 @@
 
 
 import numpy as np
-import matplotlib.pyplot as plt
+
+
+def recurrence_analysis(year_col, magnitude_col, flag_vector,
+                        completeness_table, magnitude_window, recurrence_algorithm,
+                        reference_magnitude, time_window):
+    if recurrence_algorithm is 'Wiechart':
+        cent_mag, t_per, n_obs = wiechert_prep(
+            year_col,
+            magnitude_col,
+            completeness_table[:, 1],
+            completeness_table[:, 0],
+            magnitude_window,
+            time_window,
+            magnitude_window,
+            time_window)
+
+        bval, sigb, a_m, siga_m = wiechart(
+            t_per,
+            cent_mag,
+            n_obs,
+            reference_magnitude)
+    else:
+        output_flag = completeness_flag(
+            year_col,
+            magnitude_col,
+            completeness_table[:,0],
+            completeness_table[:,1],
+            flag_vector)
+
+        id0 = output_flag == 0
+
+        bval, sigb, a_m, siga_m = b_maxlike_time(
+                year_col[id0],
+                magnitude_col[id0],
+                completeness_table[:, 1],
+                completeness_table[:, 0],
+                magnitude_window,
+                reference_magnitude)
+
+    return bval, sigb, a_m, siga_m
 
 
 def recurrence_table(mag, dmag, year):
@@ -73,6 +112,47 @@ def b_max_likelihood(mval, number_obs, dmag=0.1, m_c=0.0):
     sigma_b = 2.3 * (bval ** 2.0) * np.sqrt(sigma_b)
     return bval, sigma_b
 
+def b_maxlike_time(year, mag, ctime, cmag, dmag, ref_mag = 0.0):
+    '''Function to get a profile of b-value varying with time
+    for calculation of the b-value of the catalogue from MLE
+    The "final" b-value is the weighted average of the various
+    subsets - weighted according to the number of events in the subset
+    '''
+
+    ival = 0
+    while ival < np.shape(ctime)[0]:
+        id0 = np.abs(ctime - ctime[ival]) < 1E-5
+        m_c = np.min(cmag[id0])
+        # Find events later than cut-off year, and with magnitude
+        # greater than or equal to the corresponding completeness magnitude
+        id1 = np.logical_and(year >= ctime[ival], mag >= m_c)
+
+        # Get a- and b- value for the selected events
+        temp_rec_table = recurrence_table(mag[id1], dmag, year[id1])
+        bval, sigma_b = b_max_likelihood(temp_rec_table[:, 0],
+                                         temp_rec_table[:, 1], dmag, m_c)
+        aval = np.log10(np.sum(id1)) + bval * ref_mag
+        sigma_a = np.abs(np.log10(np.sum(id1)) +
+                       (bval + sigma_b) * ref_mag - aval)
+        if ival == 0:
+            gr_pars = np.hstack([bval, sigma_b, aval, sigma_a])
+            neq = np.sum(id1) # Number of events
+        else:
+            gr_pars = np.vstack([gr_pars, np.hstack([bval, sigma_b, aval,
+                                                     sigma_a])])
+            neq = np.hstack([neq, np.sum(id1)])
+        ival = ival + np.sum(id0)
+
+    # The nextapproach is to work out the average values of the G-R parameters
+    # from these periods, weighted by the number of events in each period
+    neq = neq.astype(float) / np.sum(neq)
+    print neq
+    bval = np.sum(neq * gr_pars[:, 0])
+    sigma_b = np.sum(neq * gr_pars[:, 1])
+    aval = np.sum(neq * gr_pars[:, 2])
+    sigma_a = np.sum(neq * gr_pars[:, 3])
+
+    return bval, sigma_b, aval, sigma_a
 
 def b_least_squares(mval, n_c, m_c=0):
     ''' Calculate b-value from least squares approach
@@ -102,7 +182,7 @@ def b_least_squares(mval, n_c, m_c=0):
         return aval, sig_a, bval, sig_b, rsq
 
 
-def completeness_flag(year, fmag, ctime, cmag, flag_vector=False):
+def completeness_flag(year, fmag, ctime, cmag, flag_vector):
     '''This is a quick function to return a flag vector that indicates
     events outside the range of completeness. It takes as input the
     year and magnitude of the event, and the completeness time and
@@ -118,18 +198,16 @@ def completeness_flag(year, fmag, ctime, cmag, flag_vector=False):
         temp_flag[id0] = 1
         i += 1
 
-    if np.size(flag_vector) == np.size(year):
-        # Flag vector is input for the catalogue and has the same
-        # length as the catalogue - merge the two
-        output_flag = np.zeros(neq, dtype=int)
-        id0 = np.logical_or(temp_flag != 0, flag_vector != 0)
-        output_flag[id0] = 1
-    else:
-        output_flag = np.copy(temp_flag)
+    # Flag vector is input for the catalogue and has the same
+    # length as the catalogue - merge the two
+    output_flag = np.zeros(neq, dtype=int)
+    id0 = np.logical_or(temp_flag != 0, flag_vector != 0)
+    output_flag[id0] = 1
+
     return output_flag
 
 
-def wiechert_prep(year, fmag, ctime, cmag, d_m, d_t, countplot=False):
+def wiechert_prep(year, fmag, ctime, cmag, d_m, d_t):
     '''Function to prepare table input for Wiechart algorithm:
     year, fMag = year and magnitude respectively (from catalogue)
     ctime = time period of completeness interval (from Completeness output)
@@ -176,16 +254,10 @@ def wiechert_prep(year, fmag, ctime, cmag, d_m, d_t, countplot=False):
             t_per[i] = np.max(year) - ctime[dummy1[0]] + 1
         i += 1
 
-    if countplot:
-        # Create a colour plot to visualise count density
-        extent = [mag_int[0], mag_int[-1], time_int[0], time_int[-1]]
-        plt.imshow(fullcount1, extent=extent, interpolation='nearest')
-        plt.colorbar(orientation='horizontal')
-
     return cent_mag, t_per, n_obs
 
 
-def wiechert(tper, fmag, nobs, mrate=0, beta=1.5, itstab=1E-5):
+def wiechart(tper, fmag, nobs, mrate=0, beta=1.5, itstab=1E-5):
     '''Quick implementation of the Wiechart method for estimating
     Gutenberg & Richter (1944) recurrence parameters
     tper: Length of observation period corresponding to magniutde
