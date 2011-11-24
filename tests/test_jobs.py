@@ -25,7 +25,7 @@ from shapely.geometry import Polygon
 from mtoolkit.workflow import Context
 from mtoolkit.jobs import read_eq_catalog, read_source_model, \
 create_catalog_matrix, gardner_knopoff, stepp, _check_polygon, \
-processing_workflow_setup_gen, recurrence
+processing_workflow_setup_gen, recurrence, create_default_values_processing
 from mtoolkit.utils import get_data_path, DATA_DIR
 
 
@@ -227,11 +227,47 @@ class JobsTestCase(unittest.TestCase):
         self.context.map_sc['stepp'] = mock
         stepp(self.context)
 
+    def test_recurrence(self):
+        self.context.config['eq_catalog_file'] = get_data_path(
+            'completeness_input_test.csv', DATA_DIR)
+
+        self.context.config['Recurrence']['magnitude_window'] = 0.5
+        self.context.config['Recurrence']['recurrence_algorithm'] = 'Wiechart'
+        self.context.config['Recurrence']['referece_magnitude'] = 1.1
+        self.context.config['Recurrence']['time_window'] = 0.3
+
+        read_eq_catalog(self.context)
+        create_catalog_matrix(self.context)
+        create_default_values_processing(self.context)
+        recurrence(self.context)
+
+        places=5
+
+        self.assertAlmostEqual(self.context.bval, 0.588108, places)
+        self.assertAlmostEqual(self.context.sigb, 0.015200, places)
+        self.assertAlmostEqual(self.context.a_m, 914.17172, places)
+        self.assertAlmostEqual(self.context.siga_m, 21.541251, places)
+
+
+        self.context.config['Recurrence']['magnitude_window'] = 0.5
+        self.context.config['Recurrence']['recurrence_algorithm'] = 'MLE'
+        self.context.config['Recurrence']['referece_magnitude'] = 1.1
+
+        recurrence(self.context)
+        self.assertAlmostEqual(self.context.bval, 0.580133, places)
+        self.assertAlmostEqual(self.context.sigb, 0.009978, places)
+        self.assertAlmostEqual(self.context.a_m, 3.893660, places)
+        self.assertAlmostEqual(self.context.siga_m, 0.010976, places)
+
     def test_parameters_recurrence(self):
         self.context.config['Recurrence']['magnitude_window'] = 0.5
         self.context.config['Recurrence']['recurrence_algorithm'] = 'Wiechart'
         self.context.config['Recurrence']['referece_magnitude'] = 1.1
         self.context.config['Recurrence']['time_window'] = 0.3
+
+        read_eq_catalog(self.context)
+        create_catalog_matrix(self.context)
+        create_default_values_processing(self.context)
 
         def mock(year_col, magnitude_col, flag_vector, completeness_table,
             magnitude_window, recurrence_algorithm, reference_magnitude, time_window):

@@ -19,19 +19,21 @@
 
 
 import numpy as np
+import logging
+
+logger = logging.getLogger('mt_logger')
 
 
 def recurrence_analysis(year_col, magnitude_col, flag_vector,
                         completeness_table, magnitude_window, recurrence_algorithm,
                         reference_magnitude, time_window):
+    print completeness_table.shape
     if recurrence_algorithm is 'Wiechart':
         cent_mag, t_per, n_obs = wiechert_prep(
             year_col,
             magnitude_col,
-            completeness_table[:, 1],
             completeness_table[:, 0],
-            magnitude_window,
-            time_window,
+            completeness_table[:, 1],
             magnitude_window,
             time_window)
 
@@ -53,8 +55,8 @@ def recurrence_analysis(year_col, magnitude_col, flag_vector,
         bval, sigb, a_m, siga_m = b_maxlike_time(
                 year_col[id0],
                 magnitude_col[id0],
-                completeness_table[:, 1],
                 completeness_table[:, 0],
+                completeness_table[:, 1],
                 magnitude_window,
                 reference_magnitude)
 
@@ -135,7 +137,7 @@ def b_maxlike_time(year, mag, ctime, cmag, dmag, ref_mag = 0.0):
         sigma_a = np.abs(np.log10(np.sum(id1)) +
                        (bval + sigma_b) * ref_mag - aval)
         if ival == 0:
-            gr_pars = np.hstack([bval, sigma_b, aval, sigma_a])
+            gr_pars = np.array([np.hstack([bval, sigma_b, aval, sigma_a])])
             neq = np.sum(id1) # Number of events
         else:
             gr_pars = np.vstack([gr_pars, np.hstack([bval, sigma_b, aval,
@@ -145,8 +147,11 @@ def b_maxlike_time(year, mag, ctime, cmag, dmag, ref_mag = 0.0):
 
     # The nextapproach is to work out the average values of the G-R parameters
     # from these periods, weighted by the number of events in each period
+    logger.info(neq)
     neq = neq.astype(float) / np.sum(neq)
+
     print neq
+    logger.info(gr_pars)
     bval = np.sum(neq * gr_pars[:, 0])
     sigma_b = np.sum(neq * gr_pars[:, 1])
     aval = np.sum(neq * gr_pars[:, 2])

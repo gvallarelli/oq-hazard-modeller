@@ -31,7 +31,8 @@ from mtoolkit.smodel        import NRMLReader
 from mtoolkit.utils import get_data_path, SCHEMA_DIR
 
 NRML_SCHEMA_PATH = get_data_path('nrml.xsd', SCHEMA_DIR)
-
+CATALOG_MATRIX_YEAR_INDEX = 0
+CATALOG_MATRIX_MW_INDEX = 5
 
 def logged_job(job):
     """
@@ -86,6 +87,18 @@ def create_catalog_matrix(context):
 
 
 @logged_job
+def create_default_values_processing(context):
+    """
+    Create default values for attributes to be used in different
+    kinds of workflows
+    """
+    context.flag_vector = np.zeros(len(context.catalog_matrix))
+    min_year = context.catalog_matrix[:, 0].min()
+    min_magnitude = context.catalog_matrix[:, 5].min()
+    context.completeness_table = np.array([[min_year, min_magnitude]])
+
+
+@logged_job
 def gardner_knopoff(context):
     """Apply gardner_knopoff declustering algorithm to the eq catalog"""
 
@@ -107,12 +120,9 @@ def stepp(context):
     declustering algorithm
     """
 
-    year_index = 0
-    mw_index = 5
-
     context.completeness_table = context.map_sc['stepp'](
-        context.catalog_matrix[:, year_index],
-        context.catalog_matrix[:, mw_index],
+        context.catalog_matrix[:, CATALOG_MATRIX_YEAR_INDEX],
+        context.catalog_matrix[:, CATALOG_MATRIX_MW_INDEX],
         context.config['Stepp']['magnitude_windows'],
         context.config['Stepp']['time_window'],
         context.config['Stepp']['sensitivity'],
@@ -184,10 +194,10 @@ def processing_workflow_setup_gen(context):
 def recurrence(context):
     context.bval, context.sigb, context.a_m, context.siga_m = \
         context.map_sc['recurrence'](
-            'year_col',
-            'magnitude_col',
-            'flag_vector',
-            'completeness_table',
+            context.catalog_matrix[:, CATALOG_MATRIX_YEAR_INDEX],
+            context.catalog_matrix[:, CATALOG_MATRIX_MW_INDEX],
+            context.flag_vector,
+            context.completeness_table,
             context.config['Recurrence']['magnitude_window'],
             context.config['Recurrence']['recurrence_algorithm'],
             context.config['Recurrence']['reference_magnitude'],
