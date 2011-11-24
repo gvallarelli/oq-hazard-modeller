@@ -236,6 +236,13 @@ class JobsTestCase(unittest.TestCase):
         self.context.config['Recurrence']['referece_magnitude'] = 1.1
         self.context.config['Recurrence']['time_window'] = 0.3
 
+        self.context.current_sm = {'rupture_rate_model': [{'max_magnitude': '',
+                                    'a_value_cumulative': '',
+                                    'name': '',
+                                    'min_magnitude': '',
+                                    'b_value': ''}]}
+
+
         read_eq_catalog(self.context)
         create_catalog_matrix(self.context)
         create_default_values_processing(self.context)
@@ -243,27 +250,42 @@ class JobsTestCase(unittest.TestCase):
 
         places=5
 
-        self.assertAlmostEqual(self.context.bval, 0.588108, places)
-        self.assertAlmostEqual(self.context.sigb, 0.015200, places)
-        self.assertAlmostEqual(self.context.a_m, 914.17172, places)
-        self.assertAlmostEqual(self.context.siga_m, 21.541251, places)
-
+        self.assertAlmostEqual(
+            self.context.current_sm['rupture_rate_model'][0]['b_value'], 0.588108, places)
+        self.assertAlmostEqual(
+            self.context.current_sm['Recurrence_sigb'], 0.015200, places)
+        self.assertAlmostEqual(
+            self.context.current_sm['rupture_rate_model'][0]['a_value_cumulative'], 914.17172, places)
+        self.assertAlmostEqual(
+            self.context.current_sm['Recurrence_siga_m'], 21.541251, places)
 
         self.context.config['Recurrence']['magnitude_window'] = 0.5
         self.context.config['Recurrence']['recurrence_algorithm'] = 'MLE'
         self.context.config['Recurrence']['referece_magnitude'] = 1.1
 
         recurrence(self.context)
-        self.assertAlmostEqual(self.context.bval, 0.580133, places)
-        self.assertAlmostEqual(self.context.sigb, 0.009978, places)
-        self.assertAlmostEqual(self.context.a_m, 3.893660, places)
-        self.assertAlmostEqual(self.context.siga_m, 0.010976, places)
+
+        self.assertAlmostEqual(
+            self.context.current_sm['rupture_rate_model'][0]['b_value'], 0.580133, places)
+        self.assertAlmostEqual(
+            self.context.current_sm['Recurrence_sigb'], 0.009978, places)
+        self.assertAlmostEqual(
+            self.context.current_sm['rupture_rate_model'][0]['a_value_cumulative'], 3.893660, places)
+        self.assertAlmostEqual(
+            self.context.current_sm['Recurrence_siga_m'], 0.010976, places)
 
     def test_parameters_recurrence(self):
         self.context.config['Recurrence']['magnitude_window'] = 0.5
         self.context.config['Recurrence']['recurrence_algorithm'] = 'Wiechart'
         self.context.config['Recurrence']['referece_magnitude'] = 1.1
         self.context.config['Recurrence']['time_window'] = 0.3
+
+        self.context.current_sm = {'rupture_rate_model': [{'max_magnitude': '',
+                                    'a_value_cumulative': '',
+                                    'name': '',
+                                    'min_magnitude': '',
+                                    'b_value': ''}]}
+
 
         read_eq_catalog(self.context)
         create_catalog_matrix(self.context)

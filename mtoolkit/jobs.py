@@ -192,7 +192,7 @@ def processing_workflow_setup_gen(context):
 
 @logged_job
 def recurrence(context):
-    context.bval, context.sigb, context.a_m, context.siga_m = \
+    bval, sigb, a_m, siga_m = \
         context.map_sc['recurrence'](
             context.catalog_matrix[:, CATALOG_MATRIX_YEAR_INDEX],
             context.catalog_matrix[:, CATALOG_MATRIX_MW_INDEX],
@@ -202,3 +202,11 @@ def recurrence(context):
             context.config['Recurrence']['recurrence_algorithm'],
             context.config['Recurrence']['reference_magnitude'],
             context.config['Recurrence']['time_window'])
+
+    context.current_sm['rupture_rate_model'][0]['a_value_cumulative'] = a_m
+    context.current_sm['rupture_rate_model'][0]['b_value'] = bval
+    context.current_sm['rupture_rate_model'][0]['min_magnitude'] = \
+        context.config['Recurrence']['reference_magnitude']
+    context.current_sm['Recurrence_sigb'] = sigb
+    context.current_sm['Recurrence_siga_m'] = siga_m
+
