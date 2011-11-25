@@ -119,6 +119,6 @@ def stepp_analysis(year, mw, dm=0.1, dt=1, ttol=0.2, iloc=True):
 
         ii = ii + 1
 
-    completeness_table = np.column_stack([mbin[:-1].T, endT - comp_length])
+    completeness_table = np.column_stack([endT - comp_length, mbin[:-1].T])
 
     return completeness_table

@@ -184,18 +184,18 @@ class JobsTestCase(unittest.TestCase):
         create_catalog_matrix(self.context)
 
         filtered_eq_events = np.array([
-                    [4.0, 1994.], [4.1, 1994.], [4.2, 1994.],
-                    [4.3, 1994.], [4.4, 1994.], [4.5, 1964.],
-                    [4.6, 1964.], [4.7, 1964.], [4.8, 1964.],
-                    [4.9, 1964.], [5.0, 1964.], [5.1, 1964.],
-                    [5.2, 1964.], [5.3, 1964.], [5.4, 1964.],
-                    [5.5, 1919.], [5.6, 1919.], [5.7, 1919.],
-                    [5.8, 1919.], [5.9, 1919.], [6.0, 1919.],
-                    [6.1, 1919.], [6.2, 1919.], [6.3, 1919.],
-                    [6.4, 1919.], [6.5, 1919.], [6.6, 1919.],
-                    [6.7, 1919.], [6.8, 1919.], [6.9, 1919.],
-                    [7.0, 1919.], [7.1, 1919.], [7.2, 1919.],
-                    [7.3, 1919.]])
+                    [1994., 4.0], [1994., 4.1], [1994., 4.2],
+                    [1994., 4.3], [1994., 4.4], [1964., 4.5],
+                    [1964., 4.6], [1964., 4.7], [1964., 4.8],
+                    [1964., 4.9], [1964., 5.0], [1964., 5.1],
+                    [1964., 5.2], [1964., 5.3], [1964., 5.4],
+                    [1919., 5.5], [1919., 5.6], [1919., 5.7],
+                    [1919., 5.8], [1919., 5.9], [1919., 6.0],
+                    [1919., 6.1], [1919., 6.2], [1919., 6.3],
+                    [1919., 6.4], [1919., 6.5], [1919., 6.6],
+                    [1919., 6.7], [1919., 6.8], [1919., 6.9],
+                    [1919., 7.0], [1919., 7.1], [1919., 7.2],
+                    [1919., 7.3]])
 
         stepp(self.context)
         self.assertTrue(np.allclose(filtered_eq_events,
@@ -230,33 +230,39 @@ class JobsTestCase(unittest.TestCase):
     def test_recurrence(self):
         self.context.config['eq_catalog_file'] = get_data_path(
             'completeness_input_test.csv', DATA_DIR)
+        self.context.config['source_model_file'] = get_data_path(
+            'area_source_model_processing.xml', DATA_DIR)
+
+        self.context.config['apply_processing_jobs'] = True
 
         self.context.config['Recurrence']['magnitude_window'] = 0.5
         self.context.config['Recurrence']['recurrence_algorithm'] = 'Wiechart'
         self.context.config['Recurrence']['referece_magnitude'] = 1.1
         self.context.config['Recurrence']['time_window'] = 0.3
 
-        self.context.current_sm = {'rupture_rate_model': [{'max_magnitude': '',
-                                    'a_value_cumulative': '',
-                                    'name': '',
-                                    'min_magnitude': '',
-                                    'b_value': ''}]}
 
         read_eq_catalog(self.context)
+        read_source_model(self.context)
         create_catalog_matrix(self.context)
         create_default_values(self.context)
+        sm, filtered_eq = processing_workflow_setup_gen(self.context).next()
+        self.context.current_sm = sm
+        self.context.current_filtered_eq = filtered_eq
+
         recurrence(self.context)
 
         places=5
 
         self.assertAlmostEqual(
-            self.context.current_sm['rupture_rate_model'][0]['b_value'], 0.588108, places)
+            self.context.current_sm['rupture_rate_model'][0]['b_value'],
+            0.569790, places)
         self.assertAlmostEqual(
-            self.context.current_sm['Recurrence_sigb'], 0.015200, places)
+            self.context.current_sm['Recurrence_sigb'], 0.041210, places)
         self.assertAlmostEqual(
-            self.context.current_sm['rupture_rate_model'][0]['a_value_cumulative'], 914.17172, places)
+            self.context.current_sm['rupture_rate_model'][0]['a_value_cumulative'],
+            132.051268, places)
         self.assertAlmostEqual(
-            self.context.current_sm['Recurrence_siga_m'], 21.541251, places)
+            self.context.current_sm['Recurrence_siga_m'], 7.701386, places)
 
         self.context.config['Recurrence']['magnitude_window'] = 0.5
         self.context.config['Recurrence']['recurrence_algorithm'] = 'MLE'
@@ -265,13 +271,15 @@ class JobsTestCase(unittest.TestCase):
         recurrence(self.context)
 
         self.assertAlmostEqual(
-            self.context.current_sm['rupture_rate_model'][0]['b_value'], 0.580133, places)
+            self.context.current_sm['rupture_rate_model'][0]['b_value'],
+            0.595256, places)
         self.assertAlmostEqual(
-            self.context.current_sm['Recurrence_sigb'], 0.009978, places)
+            self.context.current_sm['Recurrence_sigb'], 0.024816, places)
         self.assertAlmostEqual(
-            self.context.current_sm['rupture_rate_model'][0]['a_value_cumulative'], 3.893660, places)
+            self.context.current_sm['rupture_rate_model'][0]['a_value_cumulative'],
+            3.123129, places)
         self.assertAlmostEqual(
-            self.context.current_sm['Recurrence_siga_m'], 0.010976, places)
+            self.context.current_sm['Recurrence_siga_m'], 0.027298, places)
 
     def test_parameters_recurrence(self):
         self.context.config['Recurrence']['magnitude_window'] = 0.5

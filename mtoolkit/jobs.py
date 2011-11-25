@@ -192,6 +192,8 @@ def processing_workflow_setup_gen(context):
 
 @logged_job
 def recurrence(context):
+    logger = logging.getLogger('mt_logger')
+    logger.debug(context.current_filtered_eq)
     bval, sigb, a_m, siga_m = \
         context.map_sc['recurrence'](
             context.current_filtered_eq[:, CATALOG_MATRIX_YEAR_INDEX],
@@ -208,4 +210,3 @@ def recurrence(context):
         context.config['Recurrence']['reference_magnitude']
     context.current_sm['Recurrence_sigb'] = sigb
     context.current_sm['Recurrence_siga_m'] = siga_m
-
