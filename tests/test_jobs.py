@@ -290,6 +290,7 @@ class JobsTestCase(unittest.TestCase):
         read_eq_catalog(self.context)
         create_catalog_matrix(self.context)
         create_default_values(self.context)
+        self.context.current_filtered_eq = np.array([[1, 2, 3, 4, 5, 6]])
 
         def mock(year_col, magnitude_col, completeness_table,
             magnitude_window, recurrence_algorithm, reference_magnitude, time_window):
