@@ -25,7 +25,7 @@ from shapely.geometry import Polygon
 from mtoolkit.workflow import Context
 from mtoolkit.jobs import read_eq_catalog, read_source_model, \
 create_catalog_matrix, gardner_knopoff, stepp, _check_polygon, \
-processing_workflow_setup_gen, recurrence, create_default_values_processing
+processing_workflow_setup_gen, recurrence, create_default_values
 from mtoolkit.utils import get_data_path, DATA_DIR
 
 
@@ -104,14 +104,14 @@ class JobsTestCase(unittest.TestCase):
         self.assertRaises(RuntimeError, _check_polygon, polygon)
 
     def test_processing_workflow_setup(self):
-        self.context.config['apply_processing_steps'] = True
+        self.context.config['apply_processing_jobs'] = True
 
         eq_internal_point = [2000, 1, 2, -0.25, 0.25]
         eq_side_point = [2000, 1, 2, -0.5, 0.25]
         eq_external_point = [2000, 1, 2, 0.5, 0.25]
         eq_events = np.array([eq_internal_point,
                 eq_side_point, eq_external_point])
-        self.context.vmain_shock = eq_events
+        self.context.catalog_matrix = eq_events
 
         sm = {'area_boundary':
             [-0.5, 0.0, -0.5, 0.5, 0.0, 0.5, 0.0, 0.0]}
@@ -245,7 +245,7 @@ class JobsTestCase(unittest.TestCase):
 
         read_eq_catalog(self.context)
         create_catalog_matrix(self.context)
-        create_default_values_processing(self.context)
+        create_default_values(self.context)
         recurrence(self.context)
 
         places=5
@@ -289,7 +289,7 @@ class JobsTestCase(unittest.TestCase):
 
         read_eq_catalog(self.context)
         create_catalog_matrix(self.context)
-        create_default_values_processing(self.context)
+        create_default_values(self.context)
 
         def mock(year_col, magnitude_col, flag_vector, completeness_table,
             magnitude_window, recurrence_algorithm, reference_magnitude, time_window):

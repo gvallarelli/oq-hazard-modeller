@@ -23,6 +23,7 @@ to process a series of jobs in a predetermined
 order. The order is determined by the queue of jobs.
 """
 
+import logging
 import yaml
 
 from mtoolkit.jobs import gardner_knopoff, stepp, \

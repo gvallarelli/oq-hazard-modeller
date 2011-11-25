@@ -87,7 +87,7 @@ def create_catalog_matrix(context):
 
 
 @logged_job
-def create_default_values_processing(context):
+def create_default_values(context):
     """
     Create default values for attributes to be used in different
     kinds of workflows
@@ -132,7 +132,7 @@ def stepp(context):
 def _processing_steps_required(context):
     """Return bool which states if processing steps are required"""
 
-    return context.config['apply_processing_steps']
+    return context.config['apply_processing_jobs']
 
 
 def _create_polygon(source_model):
@@ -165,7 +165,7 @@ def _filter_eq_entries(context, polygon):
     filtered_eq = []
     longitude = 3
     latitude = 4
-    for eq in context.vmain_shock:
+    for eq in context.catalog_matrix:
         eq_point = Point(eq[longitude], eq[latitude])
         if polygon.contains(eq_point):
             filtered_eq.append(eq)

@@ -20,9 +20,9 @@
 import logging
 
 from mtoolkit.console import cmd_line, build_logger
-from mtoolkit.workflow import Context, PipeLineBuilder
+from mtoolkit.workflow import Context, PipeLineBuilder, PipeLineManager
 from mtoolkit.jobs import read_eq_catalog, create_catalog_matrix,\
-create_default_values_processing
+create_default_values, read_source_model
 
 
 if __name__ == '__main__':
@@ -31,12 +31,20 @@ if __name__ == '__main__':
         CONTEXT = Context(INPUT_CONFIG_FILENAME)
         build_logger()
 
-        PIPELINE = PipeLineBuilder().build(
+        PIPELINE_PREPROCESSING = PipeLineBuilder().build(
                 CONTEXT.config,
                 PipeLineBuilder.PREPROCESSING_JOBS_CONFIG_KEY,
-                [read_eq_catalog, create_catalog_matrix,
-                create_default_values_processing])
-        PIPELINE.run(CONTEXT)
+                [read_eq_catalog, read_source_model, create_catalog_matrix,
+                create_default_values])
+
+        PIPELINE_PROCESSING = PipeLineBuilder().build(
+                CONTEXT.config,
+                PipeLineBuilder.PROCESSING_JOBS_CONFIG_KEY)
+
+        PIPELINE_MANAGER = PipeLineManager(CONTEXT, PIPELINE_PREPROCESSING,
+                PIPELINE_PROCESSING)
+
+        PIPELINE_MANAGER.start()
 
         LOGGER = logging.getLogger('mt_logger')
         LOGGER.debug(CONTEXT.vcl)

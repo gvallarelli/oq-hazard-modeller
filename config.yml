@@ -15,7 +15,7 @@ eq_catalog_file: tests/data/ISC_correct.csv
 pprocessing_result_file: path_to_file
 
 # Path to the file defining the source model.
-source_model_file: path_to_file
+source_model_file: tests/data/area_source_model.xml
 
 # Path to the file defining the results 
 # of computation.
@@ -23,7 +23,7 @@ result_file: path_to_file
 
 # Boolean flag to declare
 # if processing jobs are needed.
-apply_processing_jobs: #yes/no
+apply_processing_jobs: yes
 
 # =========================================================
 # List of preprocessing jobs
