@@ -24,7 +24,7 @@ import logging
 logger = logging.getLogger('mt_logger')
 
 
-def recurrence_analysis(year_col, magnitude_col, flag_vector,
+def recurrence_analysis(year_col, magnitude_col,
                         completeness_table, magnitude_window, recurrence_algorithm,
                         reference_magnitude, time_window):
     print completeness_table.shape
@@ -43,18 +43,10 @@ def recurrence_analysis(year_col, magnitude_col, flag_vector,
             n_obs,
             reference_magnitude)
     else:
-        output_flag = completeness_flag(
-            year_col,
-            magnitude_col,
-            completeness_table[:,0],
-            completeness_table[:,1],
-            flag_vector)
-
-        id0 = output_flag == 0
 
         bval, sigb, a_m, siga_m = b_maxlike_time(
-                year_col[id0],
-                magnitude_col[id0],
+                year_col,
+                magnitude_col,
                 completeness_table[:, 0],
                 completeness_table[:, 1],
                 magnitude_window,

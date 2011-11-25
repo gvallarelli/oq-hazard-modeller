@@ -291,7 +291,7 @@ class JobsTestCase(unittest.TestCase):
         create_catalog_matrix(self.context)
         create_default_values(self.context)
 
-        def mock(year_col, magnitude_col, flag_vector, completeness_table,
+        def mock(year_col, magnitude_col, completeness_table,
             magnitude_window, recurrence_algorithm, reference_magnitude, time_window):
 
             self.assertEqual(magnitude_window, 0.5)

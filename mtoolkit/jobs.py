@@ -194,9 +194,8 @@ def processing_workflow_setup_gen(context):
 def recurrence(context):
     bval, sigb, a_m, siga_m = \
         context.map_sc['recurrence'](
-            context.catalog_matrix[:, CATALOG_MATRIX_YEAR_INDEX],
-            context.catalog_matrix[:, CATALOG_MATRIX_MW_INDEX],
-            context.flag_vector,
+            context.current_filtered_eq[:, CATALOG_MATRIX_YEAR_INDEX],
+            context.current_filtered_eq[:, CATALOG_MATRIX_MW_INDEX],
             context.completeness_table,
             context.config['Recurrence']['magnitude_window'],
             context.config['Recurrence']['recurrence_algorithm'],
