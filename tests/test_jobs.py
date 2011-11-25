@@ -242,7 +242,6 @@ class JobsTestCase(unittest.TestCase):
                                     'min_magnitude': '',
                                     'b_value': ''}]}
 
-
         read_eq_catalog(self.context)
         create_catalog_matrix(self.context)
         create_default_values(self.context)
@@ -280,16 +279,13 @@ class JobsTestCase(unittest.TestCase):
         self.context.config['Recurrence']['referece_magnitude'] = 1.1
         self.context.config['Recurrence']['time_window'] = 0.3
 
+        # Fake values for used attributes
         self.context.current_sm = {'rupture_rate_model': [{'max_magnitude': '',
                                     'a_value_cumulative': '',
                                     'name': '',
                                     'min_magnitude': '',
                                     'b_value': ''}]}
-
-
-        read_eq_catalog(self.context)
-        create_catalog_matrix(self.context)
-        create_default_values(self.context)
+        self.context.completeness_table = []
         self.context.current_filtered_eq = np.array([[1, 2, 3, 4, 5, 6]])
 
         def mock(year_col, magnitude_col, completeness_table,
