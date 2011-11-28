@@ -18,10 +18,12 @@
 # <http://www.gnu.org/licenses/lgpl-3.0.txt> for a copy of the LGPLv3 License.
 
 import unittest
+import numpy as np
 
 from mtoolkit.workflow import PipeLine, PipeLineBuilder, Context
-from mtoolkit.jobs import read_eq_catalog, create_catalog_matrix, \
-gardner_knopoff, stepp, recurrence
+from mtoolkit.workflow import PipeLineManager
+from mtoolkit.jobs import read_eq_catalog, create_catalog_matrix
+from mtoolkit.jobs import gardner_knopoff, stepp, recurrence
 from mtoolkit.utils import get_data_path, DATA_DIR
 
 
@@ -136,3 +138,48 @@ class PipeLineBuilderTestCase(unittest.TestCase):
         self.assertRaises(RuntimeError, self.pipeline_builder.build,
                 self.context_processing.config,
                 PipeLineBuilder.PROCESSING_JOBS_CONFIG_KEY)
+
+    def test_manager_execute_preprocessing_pipeline(self):
+        context = Context()
+        context.sm_definitions = []
+        context.config["apply_processing_jobs"] = True
+
+        def run(context):
+            context.run = True
+
+        preprocessing = PipeLine("preprocessing")
+        preprocessing.add_job(run)
+
+        manager = PipeLineManager(context, preprocessing, None)
+        manager.start()
+
+        self.assertTrue(context.run)
+
+    def test_manager_execute_processing_pipeline(self):
+        context = Context()
+
+        context.config['apply_processing_jobs'] = True
+
+        eq_internal_point = [2000, 1, 2, -0.25, 0.25]
+        eq_side_point = [2000, 1, 2, -0.5, 0.25]
+        eq_external_point = [2000, 1, 2, 0.5, 0.25]
+        eq_events = np.array([eq_internal_point,
+                eq_side_point, eq_external_point])
+        context.catalog_matrix = eq_events
+        sm = {'area_boundary':
+            [-0.5, 0.0, -0.5, 0.5, 0.0, 0.5, 0.0, 0.0]}
+        context.sm_definitions = [sm]
+
+        def run(context):
+            self.assertEqual(sm, context.current_sm)
+            self.assertTrue(np.array_equal(np.array([eq_internal_point]),
+                context.current_filtered_eq))
+
+        pipeline_preprocessing = PipeLine(None)
+        pipeline_processing = PipeLine(None)
+        pipeline_processing.add_job(run)
+
+        pipeline_manager = PipeLineManager(context,
+            pipeline_preprocessing, pipeline_processing)
+
+        pipeline_manager.start()

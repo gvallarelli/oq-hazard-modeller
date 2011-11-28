@@ -23,7 +23,6 @@ to process a series of jobs in a predetermined
 order. The order is determined by the queue of jobs.
 """
 
-import logging
 import yaml
 
 from mtoolkit.jobs import gardner_knopoff, stepp, \
@@ -32,7 +31,6 @@ processing_workflow_setup_gen, recurrence
 from mtoolkit.declustering import gardner_knopoff_decluster
 from mtoolkit.completeness import stepp_analysis
 from mtoolkit.recurrence import recurrence_analysis
-
 
 
 class PipeLine(object):
@@ -119,12 +117,15 @@ class Context(object):
     intermediate results.
     """
 
-    def __init__(self, config_filename):
-        config_file = open(config_filename, 'r')
-        self.config = yaml.load(config_file)
+    def __init__(self, config_filename=None):
+        self.config = dict()
         self.map_sc = {'gardner_knopoff': gardner_knopoff_decluster,
                         'stepp': stepp_analysis,
                         'recurrence': recurrence_analysis}
+
+        if config_filename:
+            config_file = open(config_filename, 'r')
+            self.config = yaml.load(config_file)
 
 
 class PipeLineManager(object):
@@ -136,6 +137,6 @@ class PipeLineManager(object):
     def start(self):
         self.preprocessing_pipeline.run(self.context)
         for sm, filtered_eq in processing_workflow_setup_gen(self.context):
-                self.context.current_sm = sm
-                self.context.current_filtered_eq = filtered_eq
-                self.processing_pipeline.run(self.context)
+            self.context.current_sm = sm
+            self.context.current_filtered_eq = filtered_eq
+            self.processing_pipeline.run(self.context)
