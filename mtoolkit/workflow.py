@@ -26,7 +26,7 @@ order. The order is determined by the queue of jobs.
 import yaml
 
 from mtoolkit.jobs import gardner_knopoff, stepp, \
-processing_workflow_setup_gen, recurrence
+recurrence
 
 from mtoolkit.declustering import gardner_knopoff_decluster
 from mtoolkit.completeness import stepp_analysis
@@ -128,15 +128,16 @@ class Context(object):
             self.config = yaml.load(config_file)
 
 
-class PipeLineManager(object):
-    def __init__(self, context, preprocessing_pipeline, processing_pipeline):
-        self.context = context
+class Workflow(object):
+    def __init__(self, preprocessing_pipeline, processing_pipeline):
         self.preprocessing_pipeline = preprocessing_pipeline
         self.processing_pipeline = processing_pipeline
 
-    def start(self):
-        self.preprocessing_pipeline.run(self.context)
-        for sm, filtered_eq in processing_workflow_setup_gen(self.context):
-            self.context.current_sm = sm
-            self.context.current_filtered_eq = filtered_eq
-            self.processing_pipeline.run(self.context)
+    def start(self, context, source_model_filter):
+        self.preprocessing_pipeline.run(context)
+        if context.config['apply_processing_jobs']:
+            for sm, filtered_eq in \
+                    source_model_filter.filter_eqs(context.sm_definitions):
+                context.current_sm = sm
+                context.current_filtered_eq = filtered_eq
+                self.processing_pipeline.run(context)

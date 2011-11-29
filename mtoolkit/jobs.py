@@ -24,7 +24,7 @@ which tackle specific job.
 
 import logging
 import numpy as np
-from shapely.geometry import Polygon, Point
+from shapely.geometry import Point, Polygon
 
 from mtoolkit.eqcatalog     import EqEntryReader
 from mtoolkit.smodel        import NRMLReader
@@ -33,6 +33,7 @@ from mtoolkit.utils import get_data_path, SCHEMA_DIR
 NRML_SCHEMA_PATH = get_data_path('nrml.xsd', SCHEMA_DIR)
 CATALOG_MATRIX_YEAR_INDEX = 0
 CATALOG_MATRIX_MW_INDEX = 5
+
 
 def logged_job(job):
     """
@@ -135,59 +136,52 @@ def _processing_steps_required(context):
     return context.config['apply_processing_jobs']
 
 
-def _create_polygon(source_model):
-    """
-    Return a polygon object which is built
-    using a list of points contained in
-    the source model geometry
-    """
+class SourceModelCatalogFilter(object):
 
-    area_boundary_plist = source_model['area_boundary']
-    points_list = [(area_boundary_plist[i], area_boundary_plist[i + 1])
-            for i in xrange(0, len(area_boundary_plist), 2)]
-    return Polygon(points_list)
+    def __init__(self, a_filter):
+        self.a_filter = a_filter
+
+    def filter_eqs(self, sm_definitions):
+        for sm in sm_definitions:
+            yield sm, self.a_filter.filter_eqs(sm)
 
 
-def _check_polygon(polygon):
-    """Check polygon validity"""
+class AreaSourceCatalogFilter(object):
 
-    if not polygon.is_valid:
-        raise RuntimeError('Polygon invalid wkt: %s' % polygon.wkt)
+    POINT_LATITUDE_INDEX = 4
+    POINT_LONGITUDE_INDEX = 3
 
+    def __init__(self, eq_catalog):
+        self.eq_catalog = eq_catalog
 
-def _filter_eq_entries(context, polygon):
-    """
-    Return a numpy matrix of filtered eq events.
-    The matrix contains all eq entries
-    contained in the given polygon
-    """
+    def filter_eqs(self, source_model):
+        polygon = self._extract_polygon(source_model)
+        self._check_polygon(polygon)
+        return self._filter(polygon)
 
-    filtered_eq = []
-    longitude = 3
-    latitude = 4
-    for eq in context.catalog_matrix:
-        eq_point = Point(eq[longitude], eq[latitude])
-        if polygon.contains(eq_point):
-            filtered_eq.append(eq)
-    return np.array(filtered_eq)
+    def _filter(self, polygon):
+        filtered_eq = []
 
+        for eq in self.eq_catalog:
+            eq_point = Point(eq[self.POINT_LONGITUDE_INDEX],
+                    eq[self.POINT_LATITUDE_INDEX])
 
-def processing_workflow_setup_gen(context):
-    """
-    Return the necessary input to start
-    the processing pipeline. The input
-    is constituted by a source model and
-    the eq events related to the source
-    model geometry in the form of a numpy
-    matrix
-    """
+            if polygon.contains(eq_point):
+                filtered_eq.append(eq)
 
-    if _processing_steps_required(context):
-        for sm in context.sm_definitions:
-            polygon = _create_polygon(sm)
-            _check_polygon(polygon)
-            filtered_eq = _filter_eq_entries(context, polygon)
-            yield sm, filtered_eq
+        return np.array(filtered_eq)
+
+    def _check_polygon(self, polygon):
+        if not polygon.is_valid:
+            raise RuntimeError('Polygon invalid wkt: %s' % polygon.wkt)
+
+    def _extract_polygon(self, source_model):
+        area_boundary = source_model['area_boundary']
+
+        points = [(area_boundary[i], area_boundary[i + 1])
+            for i in xrange(0, len(area_boundary), 2)]
+
+        return Polygon(points)
 
 
 @logged_job

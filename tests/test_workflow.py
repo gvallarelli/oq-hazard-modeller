@@ -18,12 +18,13 @@
 # <http://www.gnu.org/licenses/lgpl-3.0.txt> for a copy of the LGPLv3 License.
 
 import unittest
-import numpy as np
+from mock import Mock
 
 from mtoolkit.workflow import PipeLine, PipeLineBuilder, Context
-from mtoolkit.workflow import PipeLineManager
+from mtoolkit.workflow import Workflow
 from mtoolkit.jobs import read_eq_catalog, create_catalog_matrix
 from mtoolkit.jobs import gardner_knopoff, stepp, recurrence
+from mtoolkit.jobs import AreaSourceCatalogFilter, SourceModelCatalogFilter
 from mtoolkit.utils import get_data_path, DATA_DIR
 
 
@@ -141,45 +142,38 @@ class PipeLineBuilderTestCase(unittest.TestCase):
 
     def test_manager_execute_preprocessing_pipeline(self):
         context = Context()
-        context.sm_definitions = []
-        context.config["apply_processing_jobs"] = True
+        context.config['apply_processing_jobs'] = False
+        pipeline_preprocessing = PipeLine('preprocessing')
+        pipeline_preprocessing.run = Mock()
 
-        def run(context):
-            context.run = True
+        workflow = Workflow(pipeline_preprocessing, None)
+        workflow.start(context, None)
 
-        preprocessing = PipeLine("preprocessing")
-        preprocessing.add_job(run)
-
-        manager = PipeLineManager(context, preprocessing, None)
-        manager.start()
-
-        self.assertTrue(context.run)
+        self.assertTrue(workflow.preprocessing_pipeline.run.called)
 
     def test_manager_execute_processing_pipeline(self):
         context = Context()
-
         context.config['apply_processing_jobs'] = True
-
-        eq_internal_point = [2000, 1, 2, -0.25, 0.25]
-        eq_side_point = [2000, 1, 2, -0.5, 0.25]
-        eq_external_point = [2000, 1, 2, 0.5, 0.25]
-        eq_events = np.array([eq_internal_point,
-                eq_side_point, eq_external_point])
-        context.catalog_matrix = eq_events
-        sm = {'area_boundary':
-            [-0.5, 0.0, -0.5, 0.5, 0.0, 0.5, 0.0, 0.0]}
-        context.sm_definitions = [sm]
-
-        def run(context):
-            self.assertEqual(sm, context.current_sm)
-            self.assertTrue(np.array_equal(np.array([eq_internal_point]),
-                context.current_filtered_eq))
+        context.sm_definitions = [dict(a=1), dict(b=2)]
 
         pipeline_preprocessing = PipeLine(None)
         pipeline_processing = PipeLine(None)
-        pipeline_processing.add_job(run)
+        pipeline_processing.run = Mock()
 
-        pipeline_manager = PipeLineManager(context,
-            pipeline_preprocessing, pipeline_processing)
+        workflow = Workflow(pipeline_preprocessing, pipeline_processing)
 
-        pipeline_manager.start()
+        as_filter = AreaSourceCatalogFilter(None)
+        as_filter.filter_eqs = Mock()
+        as_filter.filter_eqs.return_value = [1, 2, 3]
+        sm_filter = SourceModelCatalogFilter(as_filter)
+
+        sm_filtered_eq_gen = sm_filter.filter_eqs([dict(a=1), dict(b=2)])
+
+        workflow.start(context, sm_filter)
+
+        self.assertTrue(pipeline_processing.run.called)
+        self.assertTrue(as_filter.filter_eqs.called)
+        self.assertEqual(2, as_filter.filter_eqs.call_count)
+
+        self.assertEqual((dict(a=1), [1, 2, 3]), sm_filtered_eq_gen.next())
+        self.assertEqual((dict(b=2), [1, 2, 3]), sm_filtered_eq_gen.next())

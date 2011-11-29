@@ -20,12 +20,13 @@
 
 import unittest
 import numpy as np
-from shapely.geometry import Polygon
+from mock import Mock
 
 from mtoolkit.workflow import Context
 from mtoolkit.jobs import read_eq_catalog, read_source_model, \
-create_catalog_matrix, gardner_knopoff, stepp, _check_polygon, \
-processing_workflow_setup_gen, recurrence, create_default_values
+create_catalog_matrix, gardner_knopoff, stepp, AreaSourceCatalogFilter, \
+recurrence, create_default_values, \
+SourceModelCatalogFilter
 from mtoolkit.utils import get_data_path, DATA_DIR
 
 
@@ -97,33 +98,6 @@ class JobsTestCase(unittest.TestCase):
         self.assertEqual(2, len(self.context.sm_definitions))
         self.assertEqual(expected_first_sm_definition,
                 self.context.sm_definitions[0])
-
-    def test_a_bad_polygon_raises_exception(self):
-        polygon = Polygon([(1, 1), (1, 2), (2, 1), (2, 2)])
-
-        self.assertRaises(RuntimeError, _check_polygon, polygon)
-
-    def test_processing_workflow_setup(self):
-        self.context.config['apply_processing_jobs'] = True
-
-        eq_internal_point = [2000, 1, 2, -0.25, 0.25]
-        eq_side_point = [2000, 1, 2, -0.5, 0.25]
-        eq_external_point = [2000, 1, 2, 0.5, 0.25]
-        eq_events = np.array([eq_internal_point,
-                eq_side_point, eq_external_point])
-        self.context.catalog_matrix = eq_events
-
-        sm = {'area_boundary':
-            [-0.5, 0.0, -0.5, 0.5, 0.0, 0.5, 0.0, 0.0]}
-        self.context.sm_definitions = [sm]
-
-        first_sm, filtered_eq_sm = \
-            processing_workflow_setup_gen(self.context).next()
-
-        expected_eq_events = np.array([eq_internal_point])
-
-        self.assertTrue(np.array_equal(expected_eq_events, filtered_eq_sm))
-        self.assertEqual(sm, first_sm)
 
     def test_gardner_knopoff(self):
 
@@ -240,26 +214,31 @@ class JobsTestCase(unittest.TestCase):
         self.context.config['Recurrence']['referece_magnitude'] = 1.1
         self.context.config['Recurrence']['time_window'] = 0.3
 
-
         read_eq_catalog(self.context)
         read_source_model(self.context)
         create_catalog_matrix(self.context)
         create_default_values(self.context)
-        sm, filtered_eq = processing_workflow_setup_gen(self.context).next()
+
+        as_filter = AreaSourceCatalogFilter(self.context.catalog_matrix)
+        sm_filter = SourceModelCatalogFilter(as_filter)
+        sm, filtered_eq = sm_filter.filter_eqs(
+            self.context.sm_definitions).next()
+
         self.context.current_sm = sm
         self.context.current_filtered_eq = filtered_eq
 
         recurrence(self.context)
 
-        places=5
+        places = 5
 
         self.assertAlmostEqual(
             self.context.current_sm['rupture_rate_model'][0]['b_value'],
             0.569790, places)
         self.assertAlmostEqual(
             self.context.current_sm['Recurrence_sigb'], 0.041210, places)
+        key = 'rupture_rate_model'
         self.assertAlmostEqual(
-            self.context.current_sm['rupture_rate_model'][0]['a_value_cumulative'],
+            self.context.current_sm[key][0]['a_value_cumulative'],
             132.051268, places)
         self.assertAlmostEqual(
             self.context.current_sm['Recurrence_siga_m'], 7.701386, places)
@@ -276,7 +255,7 @@ class JobsTestCase(unittest.TestCase):
         self.assertAlmostEqual(
             self.context.current_sm['Recurrence_sigb'], 0.024816, places)
         self.assertAlmostEqual(
-            self.context.current_sm['rupture_rate_model'][0]['a_value_cumulative'],
+            self.context.current_sm[key][0]['a_value_cumulative'],
             3.123129, places)
         self.assertAlmostEqual(
             self.context.current_sm['Recurrence_siga_m'], 0.027298, places)
@@ -297,7 +276,8 @@ class JobsTestCase(unittest.TestCase):
         self.context.current_filtered_eq = np.array([[1, 2, 3, 4, 5, 6]])
 
         def mock(year_col, magnitude_col, completeness_table,
-            magnitude_window, recurrence_algorithm, reference_magnitude, time_window):
+            magnitude_window, recurrence_algorithm, reference_magnitude,
+            time_window):
 
             self.assertEqual(magnitude_window, 0.5)
             self.assertEqual(recurrence_algorithm, 'Wiechart')
@@ -307,3 +287,61 @@ class JobsTestCase(unittest.TestCase):
 
         self.context.map_sc['recurrence'] = mock
         recurrence(self.context)
+
+
+class AreaSourceCatalogFilterTestCase(unittest.TestCase):
+
+    def setUp(self):
+        self.sm = {'area_boundary':
+            [-0.5, 0.0, -0.5, 0.5, 0.0, 0.5, 0.0, 0.0]}
+        self.empty_catalog = np.array([])
+
+    def test_filtering_an_empty_eq_catalog(self):
+        as_filter = AreaSourceCatalogFilter(self.empty_catalog)
+        self.assertTrue(np.allclose
+                (self.empty_catalog, as_filter.filter_eqs(self.sm)))
+
+    def test_filtering_non_empty_eq_catalog(self):
+        eq_internal_point = [2000, 1, 2, -0.25, 0.25]
+        eq_side_point = [2000, 1, 2, -0.5, 0.25]
+        eq_external_point = [2000, 1, 2, 0.5, 0.25]
+        eq_catalog = np.array([eq_internal_point,
+                eq_side_point, eq_external_point])
+
+        as_filter = AreaSourceCatalogFilter(eq_catalog)
+
+        expected_catalog = np.array([eq_internal_point])
+        self.assertTrue(np.array_equal(expected_catalog,
+                as_filter.filter_eqs(self.sm)))
+
+    def test_a_bad_polygon_raises_exception(self):
+        self.sm = {'area_boundary': [1, 1, 1, 2, 2, 1, 2, 2]}
+        as_filter = AreaSourceCatalogFilter(self.empty_catalog)
+
+        self.assertRaises(RuntimeError, as_filter.filter_eqs, self.sm)
+
+
+class SourceModelCatalogFilterTestCase(unittest.TestCase):
+
+    def setUp(self):
+        pass
+
+    def test_empty_source_model(self):
+        smodel_filter = SourceModelCatalogFilter(None)
+        self.assertRaises(StopIteration, smodel_filter.filter_eqs([]).next)
+
+    def test_source_model_calling_a_filter(self):
+        asource_filter = AreaSourceCatalogFilter(None)
+        asource_filter.filter_eqs = Mock()
+        asource_filter.filter_eqs.return_value = []
+
+        smodel_filter = SourceModelCatalogFilter(asource_filter)
+
+        smodel = smodel_filter.filter_eqs([dict(a=1), dict(b=2)])
+        self.assertEqual((dict(a=1), []), smodel.next())
+        self.assertEqual((dict(b=2), []), smodel.next())
+
+        self.assertEqual(dict(a=1),
+                asource_filter.filter_eqs.call_args_list[0][0][0])
+        self.assertEqual(dict(b=2),
+                asource_filter.filter_eqs.call_args_list[1][0][0])
