@@ -141,9 +141,9 @@ class SourceModelCatalogFilter(object):
     def __init__(self, a_filter):
         self.a_filter = a_filter
 
-    def filter_eqs(self, sm_definitions):
+    def filter_eqs(self, sm_definitions, eq_catalog):
         for sm in sm_definitions:
-            yield sm, self.a_filter.filter_eqs(sm)
+            yield sm, self.a_filter.filter_eqs(sm, eq_catalog)
 
 
 class AreaSourceCatalogFilter(object):
@@ -151,18 +151,15 @@ class AreaSourceCatalogFilter(object):
     POINT_LATITUDE_INDEX = 4
     POINT_LONGITUDE_INDEX = 3
 
-    def __init__(self, eq_catalog):
-        self.eq_catalog = eq_catalog
-
-    def filter_eqs(self, source_model):
+    def filter_eqs(self, source_model, eq_catalog):
         polygon = self._extract_polygon(source_model)
         self._check_polygon(polygon)
-        return self._filter(polygon)
+        return self._filter(eq_catalog, polygon)
 
-    def _filter(self, polygon):
+    def _filter(self, eq_catalog, polygon):
         filtered_eq = []
 
-        for eq in self.eq_catalog:
+        for eq in eq_catalog:
             eq_point = Point(eq[self.POINT_LONGITUDE_INDEX],
                     eq[self.POINT_LATITUDE_INDEX])
 

@@ -219,10 +219,10 @@ class JobsTestCase(unittest.TestCase):
         create_catalog_matrix(self.context)
         create_default_values(self.context)
 
-        as_filter = AreaSourceCatalogFilter(self.context.catalog_matrix)
+        as_filter = AreaSourceCatalogFilter()
         sm_filter = SourceModelCatalogFilter(as_filter)
         sm, filtered_eq = sm_filter.filter_eqs(
-            self.context.sm_definitions).next()
+            self.context.sm_definitions, self.context.catalog_matrix).next()
 
         self.context.current_sm = sm
         self.context.current_filtered_eq = filtered_eq
@@ -297,9 +297,9 @@ class AreaSourceCatalogFilterTestCase(unittest.TestCase):
         self.empty_catalog = np.array([])
 
     def test_filtering_an_empty_eq_catalog(self):
-        as_filter = AreaSourceCatalogFilter(self.empty_catalog)
-        self.assertTrue(np.allclose
-                (self.empty_catalog, as_filter.filter_eqs(self.sm)))
+        as_filter = AreaSourceCatalogFilter()
+        self.assertTrue(np.allclose(
+            self.empty_catalog, as_filter.filter_eqs(self.sm, self.empty_catalog)))
 
     def test_filtering_non_empty_eq_catalog(self):
         eq_internal_point = [2000, 1, 2, -0.25, 0.25]
@@ -308,17 +308,18 @@ class AreaSourceCatalogFilterTestCase(unittest.TestCase):
         eq_catalog = np.array([eq_internal_point,
                 eq_side_point, eq_external_point])
 
-        as_filter = AreaSourceCatalogFilter(eq_catalog)
+        as_filter = AreaSourceCatalogFilter()
 
         expected_catalog = np.array([eq_internal_point])
         self.assertTrue(np.array_equal(expected_catalog,
-                as_filter.filter_eqs(self.sm)))
+                as_filter.filter_eqs(self.sm, eq_catalog)))
 
     def test_a_bad_polygon_raises_exception(self):
         self.sm = {'area_boundary': [1, 1, 1, 2, 2, 1, 2, 2]}
-        as_filter = AreaSourceCatalogFilter(self.empty_catalog)
+        as_filter = AreaSourceCatalogFilter()
 
-        self.assertRaises(RuntimeError, as_filter.filter_eqs, self.sm)
+        self.assertRaises(RuntimeError,
+            as_filter.filter_eqs, self.sm, self.empty_catalog)
 
 
 class SourceModelCatalogFilterTestCase(unittest.TestCase):
@@ -328,16 +329,16 @@ class SourceModelCatalogFilterTestCase(unittest.TestCase):
 
     def test_empty_source_model(self):
         smodel_filter = SourceModelCatalogFilter(None)
-        self.assertRaises(StopIteration, smodel_filter.filter_eqs([]).next)
+        self.assertRaises(StopIteration, smodel_filter.filter_eqs([], []).next)
 
     def test_source_model_calling_a_filter(self):
-        asource_filter = AreaSourceCatalogFilter(None)
+        asource_filter = AreaSourceCatalogFilter()
         asource_filter.filter_eqs = Mock()
         asource_filter.filter_eqs.return_value = []
 
         smodel_filter = SourceModelCatalogFilter(asource_filter)
 
-        smodel = smodel_filter.filter_eqs([dict(a=1), dict(b=2)])
+        smodel = smodel_filter.filter_eqs([dict(a=1), dict(b=2)], [])
         self.assertEqual((dict(a=1), []), smodel.next())
         self.assertEqual((dict(b=2), []), smodel.next())
 

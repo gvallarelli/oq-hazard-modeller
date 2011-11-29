@@ -162,12 +162,12 @@ class PipeLineBuilderTestCase(unittest.TestCase):
 
         workflow = Workflow(pipeline_preprocessing, pipeline_processing)
 
-        as_filter = AreaSourceCatalogFilter(None)
+        as_filter = AreaSourceCatalogFilter()
         as_filter.filter_eqs = Mock()
         as_filter.filter_eqs.return_value = [1, 2, 3]
         sm_filter = SourceModelCatalogFilter(as_filter)
 
-        sm_filtered_eq_gen = sm_filter.filter_eqs([dict(a=1), dict(b=2)])
+        sm_filtered_eq_gen = sm_filter.filter_eqs([dict(a=1), dict(b=2)], None)
 
         workflow.start(context, sm_filter)
 

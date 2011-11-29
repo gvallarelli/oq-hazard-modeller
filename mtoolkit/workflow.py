@@ -126,6 +126,7 @@ class Context(object):
         if config_filename:
             config_file = open(config_filename, 'r')
             self.config = yaml.load(config_file)
+        self.catalog_matrix = None
 
 
 class Workflow(object):
@@ -137,7 +138,8 @@ class Workflow(object):
         self.preprocessing_pipeline.run(context)
         if context.config['apply_processing_jobs']:
             for sm, filtered_eq in \
-                    source_model_filter.filter_eqs(context.sm_definitions):
+                    source_model_filter.filter_eqs(
+                    context.sm_definitions, context.catalog_matrix):
                 context.current_sm = sm
                 context.current_filtered_eq = filtered_eq
                 self.processing_pipeline.run(context)
