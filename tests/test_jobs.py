@@ -299,7 +299,8 @@ class AreaSourceCatalogFilterTestCase(unittest.TestCase):
     def test_filtering_an_empty_eq_catalog(self):
         as_filter = AreaSourceCatalogFilter()
         self.assertTrue(np.allclose(
-            self.empty_catalog, as_filter.filter_eqs(self.sm, self.empty_catalog)))
+            self.empty_catalog,
+            as_filter.filter_eqs(self.sm, self.empty_catalog)))
 
     def test_filtering_non_empty_eq_catalog(self):
         eq_internal_point = [2000, 1, 2, -0.25, 0.25]
