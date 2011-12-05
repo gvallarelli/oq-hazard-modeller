@@ -18,14 +18,13 @@
 # <http://www.gnu.org/licenses/lgpl-3.0.txt> for a copy of the LGPLv3 License.
 
 import unittest
-from mock import Mock
+from mock import Mock, MagicMock
 
-from mtoolkit.workflow import PipeLine, PipeLineBuilder, Context
-from mtoolkit.workflow import Workflow
-from mtoolkit.jobs import read_eq_catalog, create_catalog_matrix
-from mtoolkit.jobs import gardner_knopoff, stepp, recurrence
-from mtoolkit.jobs import AreaSourceCatalogFilter, SourceModelCatalogFilter
-from mtoolkit.utils import get_data_path, DATA_DIR
+from mtoolkit.workflow  import PipeLine, PipeLineBuilder, Context
+from mtoolkit.workflow  import Workflow
+from mtoolkit.jobs      import read_eq_catalog, create_catalog_matrix
+from mtoolkit.jobs      import gardner_knopoff, stepp, recurrence
+from mtoolkit.utils     import get_data_path, DATA_DIR
 
 
 class ContextTestCase(unittest.TestCase):
@@ -140,40 +139,26 @@ class PipeLineBuilderTestCase(unittest.TestCase):
                 self.context_processing.config,
                 PipeLineBuilder.PROCESSING_JOBS_CONFIG_KEY)
 
-    def test_manager_execute_preprocessing_pipeline(self):
-        context = Context()
-        context.config['apply_processing_jobs'] = False
-        pipeline_preprocessing = PipeLine('preprocessing')
-        pipeline_preprocessing.run = Mock()
-
-        workflow = Workflow(pipeline_preprocessing, None)
-        workflow.start(context, None)
-
-        self.assertTrue(workflow.preprocessing_pipeline.run.called)
-
-    def test_manager_execute_processing_pipeline(self):
+    def test_workflow_execute_pipelines(self):
         context = Context()
         context.config['apply_processing_jobs'] = True
-        context.sm_definitions = [dict(a=1), dict(b=2)]
+        context.sm_definitions = None
 
         pipeline_preprocessing = PipeLine(None)
+        pipeline_preprocessing.run = Mock()
         pipeline_processing = PipeLine(None)
         pipeline_processing.run = Mock()
 
         workflow = Workflow(pipeline_preprocessing, pipeline_processing)
 
-        as_filter = AreaSourceCatalogFilter()
-        as_filter.filter_eqs = Mock()
-        as_filter.filter_eqs.return_value = [1, 2, 3]
-        sm_filter = SourceModelCatalogFilter(as_filter)
-
-        sm_filtered_eq_gen = sm_filter.filter_eqs([dict(a=1), dict(b=2)], None)
+        # Mocking a generator method
+        sm_filter = MagicMock()
+        sm_filter.filter_eqs.return_value.__iter__.return_value = \
+            iter([(dict(a=1), [1]), ((dict(b=2), [2]))])
 
         workflow.start(context, sm_filter)
 
+        self.assertTrue(workflow.preprocessing_pipeline.run.called)
+        self.assertTrue(sm_filter.filter_eqs.called)
         self.assertTrue(pipeline_processing.run.called)
-        self.assertTrue(as_filter.filter_eqs.called)
-        self.assertEqual(2, as_filter.filter_eqs.call_count)
-
-        self.assertEqual((dict(a=1), [1, 2, 3]), sm_filtered_eq_gen.next())
-        self.assertEqual((dict(b=2), [1, 2, 3]), sm_filtered_eq_gen.next())
+        self.assertEqual(2, pipeline_processing.run.call_count)

@@ -130,11 +130,20 @@ class Context(object):
 
 
 class Workflow(object):
+    """
+    Workflow is the object responsible
+    for dealing with preprocessing and
+    processing pipelines
+    """
+
     def __init__(self, preprocessing_pipeline, processing_pipeline):
         self.preprocessing_pipeline = preprocessing_pipeline
         self.processing_pipeline = processing_pipeline
 
     def start(self, context, source_model_filter):
+        """
+        Execute the main workflow
+        """
         self.preprocessing_pipeline.run(context)
         if context.config['apply_processing_jobs']:
             for sm, filtered_eq in \
