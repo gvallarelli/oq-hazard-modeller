@@ -94,8 +94,8 @@ def create_default_values(context):
     kinds of workflows
     """
     context.flag_vector = np.zeros(len(context.catalog_matrix))
-    min_year = context.catalog_matrix[:, 0].min()
-    min_magnitude = context.catalog_matrix[:, 5].min()
+    min_year = context.catalog_matrix[:, CATALOG_MATRIX_YEAR_INDEX].min()
+    min_magnitude = context.catalog_matrix[:, CATALOG_MATRIX_MW_INDEX].min()
     context.completeness_table = np.array([[min_year, min_magnitude]])
 
 
@@ -138,12 +138,14 @@ def _processing_steps_required(context):
 
 class SourceModelCatalogFilter(object):
 
-    def __init__(self, a_filter):
-        self.a_filter = a_filter
+    def __init__(self, sm_filter=None):
+        self.sm_filter = sm_filter
+        if sm_filter is None:
+            self.sm_filter = AreaSourceCatalogFilter()
 
     def filter_eqs(self, sm_definitions, eq_catalog):
         for sm in sm_definitions:
-            yield sm, self.a_filter.filter_eqs(sm, eq_catalog)
+            yield sm, self.sm_filter.filter_eqs(sm, eq_catalog)
 
 
 class AreaSourceCatalogFilter(object):
@@ -151,8 +153,8 @@ class AreaSourceCatalogFilter(object):
     POINT_LATITUDE_INDEX = 4
     POINT_LONGITUDE_INDEX = 3
 
-    def filter_eqs(self, source_model, eq_catalog):
-        polygon = self._extract_polygon(source_model)
+    def filter_eqs(self, source, eq_catalog):
+        polygon = self._extract_polygon(source)
         self._check_polygon(polygon)
         return self._filter(eq_catalog, polygon)
 
@@ -183,8 +185,6 @@ class AreaSourceCatalogFilter(object):
 
 @logged_job
 def recurrence(context):
-    logger = logging.getLogger('mt_logger')
-    logger.debug(context.current_filtered_eq)
     bval, sigb, a_m, siga_m = \
         context.map_sc['recurrence'](
             context.current_filtered_eq[:, CATALOG_MATRIX_YEAR_INDEX],

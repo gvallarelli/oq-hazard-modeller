@@ -21,9 +21,8 @@ import logging
 
 from mtoolkit.console import cmd_line, build_logger
 from mtoolkit.workflow import Context, PipeLineBuilder, Workflow
-from mtoolkit.jobs import read_eq_catalog, create_catalog_matrix,\
-create_default_values, read_source_model, AreaSourceCatalogFilter, \
-SourceModelCatalogFilter
+from mtoolkit.jobs import read_eq_catalog, create_catalog_matrix, \
+create_default_values, read_source_model, SourceModelCatalogFilter
 
 
 if __name__ == '__main__':
@@ -42,8 +41,7 @@ if __name__ == '__main__':
                 CONTEXT.config,
                 PipeLineBuilder.PROCESSING_JOBS_CONFIG_KEY)
 
-        AS_CATALOG_FILTER = AreaSourceCatalogFilter()
-        SM_CATALOG_FILTER = SourceModelCatalogFilter(AS_CATALOG_FILTER)
+        SM_CATALOG_FILTER = SourceModelCatalogFilter()
 
         WORKFLOW = Workflow(PIPELINE_PREPROCESSING, PIPELINE_PROCESSING)
 
