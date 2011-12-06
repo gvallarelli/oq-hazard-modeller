@@ -22,12 +22,24 @@ import unittest
 import numpy as np
 from mock import Mock
 
-from mtoolkit.workflow import Context
+from mtoolkit.workflow import Context, PipeLineBuilder, Workflow
 from mtoolkit.jobs import read_eq_catalog, read_source_model, \
-create_catalog_matrix, gardner_knopoff, stepp, AreaSourceCatalogFilter, \
+create_catalog_matrix, gardner_knopoff, AreaSourceCatalogFilter, \
 recurrence, create_default_values, \
 SourceModelCatalogFilter
 from mtoolkit.utils import get_data_path, DATA_DIR
+
+
+def create_workflow(config, compulsory_jobs):
+    builder = PipeLineBuilder()
+    preprocessing_pipeline = builder.build(config,
+        PipeLineBuilder.PREPROCESSING_JOBS_CONFIG_KEY,
+         compulsory_jobs)
+
+    processing_pipeline = builder.build(config,
+        PipeLineBuilder.PROCESSING_JOBS_CONFIG_KEY)
+
+    return Workflow(preprocessing_pipeline, processing_pipeline)
 
 
 class JobsTestCase(unittest.TestCase):
@@ -35,6 +47,10 @@ class JobsTestCase(unittest.TestCase):
     def setUp(self):
         self.context = Context(get_data_path(
             'config_processing.yml', DATA_DIR))
+
+        self.context_recur_mle = Context(
+            get_data_path('config_recurrence_mle.yml', DATA_DIR))
+
         self.eq_catalog_filename = get_data_path(
             'ISC_small_data.csv', DATA_DIR)
         self.smodel_filename = get_data_path(
@@ -99,16 +115,16 @@ class JobsTestCase(unittest.TestCase):
         self.assertEqual(expected_first_sm_definition,
                 self.context.sm_definitions[0])
 
+    @unittest.skip
     def test_gardner_knopoff(self):
 
-        self.context.config['eq_catalog_file'] = get_data_path(
-            'declustering_input_test.csv', DATA_DIR)
-        self.context.config['GardnerKnopoff']['time_dist_windows'] = \
-                'GardnerKnopoff'
-        self.context.config['GardnerKnopoff']['foreshock_time_window'] = 0.5
+        context = Context(
+            get_data_path('config_gardner_knopoff.yml', DATA_DIR))
 
-        read_eq_catalog(self.context)
-        create_catalog_matrix(self.context)
+        workflow = create_workflow(context.config,
+                [read_eq_catalog, create_catalog_matrix])
+
+        workflow.start(context, SourceModelCatalogFilter())
 
         expected_vmain_shock = np.delete(
             self.context.catalog_matrix, [4, 10, 19], 0)
@@ -119,43 +135,35 @@ class JobsTestCase(unittest.TestCase):
         expected_flag_vector = np.array([0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0,
             0, 0, 0, 0, 0, 0, 1])
 
-        gardner_knopoff(self.context)
-
         self.assertTrue(np.array_equal(expected_vmain_shock,
-                self.context.catalog_matrix))
-        self.assertTrue(np.array_equal(expected_vcl, self.context.vcl))
+                context.catalog_matrix))
+        self.assertTrue(np.array_equal(expected_vcl, context.vcl))
         self.assertTrue(np.array_equal(expected_flag_vector,
-                self.context.flag_vector))
+                context.flag_vector))
+
 
     def test_parameters_gardner_knopoff(self):
 
-        self.context.config['eq_catalog_file'] = get_data_path(
-            'declustering_input_test.csv', DATA_DIR)
-        self.context.config['GardnerKnopoff']['time_dist_windows'] = \
-                'GardnerKnopoff'
-        self.context.config['GardnerKnopoff']['foreshock_time_window'] = 0.5
+        context = Context(
+            get_data_path('config_gardner_knopoff.yml', DATA_DIR))
 
-        self.context.catalog_matrix = []
+        context.catalog_matrix = []
 
-        def mock(data, time_dist_windows, foreshock_time_window):
+        def assert_parameters(data, time_dist_windows, foreshock_time_window):
             self.assertEquals("GardnerKnopoff", time_dist_windows)
             self.assertEquals(0.5, foreshock_time_window)
             return None, None, None
 
-        self.context.map_sc['gardner_knopoff'] = mock
-        gardner_knopoff(self.context)
+        context.map_sc['gardner_knopoff'] = assert_parameters
+        gardner_knopoff(context)
 
     def test_stepp(self):
-        self.context.config['eq_catalog_file'] = get_data_path(
-            'completeness_input_test.csv', DATA_DIR)
+        context = Context(
+            get_data_path('config_stepp.yml', DATA_DIR))
 
-        self.context.config['Stepp']['time_window'] = 5
-        self.context.config['Stepp']['magnitude_windows'] = 0.1
-        self.context.config['Stepp']['sensitivity'] = 0.2
-        self.context.config['Stepp']['increment_lock'] = True
-
-        read_eq_catalog(self.context)
-        create_catalog_matrix(self.context)
+        workflow = create_workflow(context.config,
+            [read_eq_catalog, create_catalog_matrix])
+        workflow.start(context, SourceModelCatalogFilter())
 
         filtered_eq_events = np.array([
                     [1994., 4.0], [1994., 4.1], [1994., 4.2],
@@ -171,94 +179,71 @@ class JobsTestCase(unittest.TestCase):
                     [1919., 7.0], [1919., 7.1], [1919., 7.2],
                     [1919., 7.3]])
 
-        stepp(self.context)
         self.assertTrue(np.allclose(filtered_eq_events,
-                self.context.completeness_table))
-
-        gardner_knopoff(self.context)
-        stepp(self.context)
-        self.assertTrue(np.allclose(filtered_eq_events,
-                self.context.completeness_table))
+                context.completeness_table))
 
     def test_parameters_stepp(self):
-        self.context.config['eq_catalog_file'] = get_data_path(
-            'completeness_input_test.csv', DATA_DIR)
+        context = Context(
+            get_data_path('config_stepp.yml', DATA_DIR))
 
-        self.context.config['Stepp']['time_window'] = 5
-        self.context.config['Stepp']['magnitude_windows'] = 0.1
-        self.context.config['Stepp']['sensitivity'] = 0.2
-        self.context.config['Stepp']['increment_lock'] = True
+        workflow = create_workflow(context.config,
+            [read_eq_catalog, create_catalog_matrix])
 
-        read_eq_catalog(self.context)
-        create_catalog_matrix(self.context)
-
-        def mock(year, mw, magnitude_windows, time_window, sensitivity, iloc):
+        def assert_parameters(year, mw, magnitude_windows, time_window, sensitivity, iloc):
             self.assertEqual(time_window, 5)
             self.assertEqual(magnitude_windows, 0.1)
             self.assertEqual(sensitivity, 0.2)
             self.assertTrue(iloc)
 
-        self.context.map_sc['stepp'] = mock
-        stepp(self.context)
+        context.map_sc['stepp'] = assert_parameters
 
-    def test_recurrence(self):
-        self.context.config['eq_catalog_file'] = get_data_path(
-            'completeness_input_test.csv', DATA_DIR)
-        self.context.config['source_model_file'] = get_data_path(
-            'area_source_model_processing.xml', DATA_DIR)
+        workflow.start(context, SourceModelCatalogFilter())
 
-        self.context.config['apply_processing_jobs'] = True
-
-        self.context.config['Recurrence']['magnitude_window'] = 0.5
-        self.context.config['Recurrence']['recurrence_algorithm'] = 'Wiechart'
-        self.context.config['Recurrence']['referece_magnitude'] = 1.1
-        self.context.config['Recurrence']['time_window'] = 0.3
-
-        read_eq_catalog(self.context)
-        read_source_model(self.context)
-        create_catalog_matrix(self.context)
-        create_default_values(self.context)
-
-        as_filter = AreaSourceCatalogFilter()
-        sm_filter = SourceModelCatalogFilter(as_filter)
-        sm, filtered_eq = sm_filter.filter_eqs(
-            self.context.sm_definitions, self.context.catalog_matrix).next()
-
-        self.context.current_sm = sm
-        self.context.current_filtered_eq = filtered_eq
-
-        recurrence(self.context)
+    def test_recurrence_wiechart_algorithm(self):
+        context = Context(
+            get_data_path('config_recurrence_wiechart.yml', DATA_DIR))
+        compulsory_jobs = [read_eq_catalog, read_source_model,
+            create_catalog_matrix, create_default_values]
+        workflow = create_workflow(context.config,
+                compulsory_jobs)
+        workflow.start(context, SourceModelCatalogFilter())
 
         places = 5
 
         self.assertAlmostEqual(
-            self.context.current_sm['rupture_rate_model'][0]['b_value'],
+            context.sm_definitions[0]['rupture_rate_model'][0]['b_value'],
             0.569790, places)
         self.assertAlmostEqual(
-            self.context.current_sm['Recurrence_sigb'], 0.041210, places)
-        key = 'rupture_rate_model'
+            context.sm_definitions[0]['Recurrence_sigb'], 0.041210, places)
         self.assertAlmostEqual(
-            self.context.current_sm[key][0]['a_value_cumulative'],
+            context.sm_definitions[0]['rupture_rate_model'][0]['a_value_cumulative'],
             132.051268, places)
         self.assertAlmostEqual(
-            self.context.current_sm['Recurrence_siga_m'], 7.701386, places)
+            context.sm_definitions[0]['Recurrence_siga_m'], 7.701386, places)
 
-        self.context.config['Recurrence']['magnitude_window'] = 0.5
-        self.context.config['Recurrence']['recurrence_algorithm'] = 'MLE'
-        self.context.config['Recurrence']['referece_magnitude'] = 1.1
+    def test_recurrence_MLE_algorithm(self):
+        context = Context(
+            get_data_path('config_recurrence_mle.yml', DATA_DIR))
 
-        recurrence(self.context)
+        compulsory_jobs = [read_eq_catalog, read_source_model,
+            create_catalog_matrix, create_default_values]
+        workflow = create_workflow(self.context_recur_mle.config,
+                compulsory_jobs)
+        workflow.start(context, SourceModelCatalogFilter())
+
+        places = 5
 
         self.assertAlmostEqual(
-            self.context.current_sm['rupture_rate_model'][0]['b_value'],
+            context.sm_definitions[0]['rupture_rate_model'][0]['b_value'],
             0.595256, places)
         self.assertAlmostEqual(
-            self.context.current_sm['Recurrence_sigb'], 0.024816, places)
+            context.sm_definitions[0]['Recurrence_sigb'], 0.024816, places)
         self.assertAlmostEqual(
-            self.context.current_sm[key][0]['a_value_cumulative'],
+            context.sm_definitions[0]['rupture_rate_model'][0]['a_value_cumulative'],
             3.123129, places)
         self.assertAlmostEqual(
-            self.context.current_sm['Recurrence_siga_m'], 0.027298, places)
+            context.sm_definitions[0]['Recurrence_siga_m'], 0.027298,
+            places)
 
     def test_parameters_recurrence(self):
         self.context.config['Recurrence']['magnitude_window'] = 0.5
@@ -275,7 +260,7 @@ class JobsTestCase(unittest.TestCase):
         self.context.completeness_table = []
         self.context.current_filtered_eq = np.array([[1, 2, 3, 4, 5, 6]])
 
-        def mock(year_col, magnitude_col, completeness_table,
+        def assert_parameters(year_col, magnitude_col, completeness_table,
             magnitude_window, recurrence_algorithm, reference_magnitude,
             time_window):
 
@@ -285,7 +270,7 @@ class JobsTestCase(unittest.TestCase):
             self.assertEqual(time_window, 0.3)
             return None, None, None, None
 
-        self.context.map_sc['recurrence'] = mock
+        self.context.map_sc['recurrence'] = assert_parameters
         recurrence(self.context)
 
 

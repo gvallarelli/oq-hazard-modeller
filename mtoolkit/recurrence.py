@@ -27,7 +27,7 @@ logger = logging.getLogger('mt_logger')
 def recurrence_analysis(year_col, magnitude_col,
                         completeness_table, magnitude_window, recurrence_algorithm,
                         reference_magnitude, time_window):
-    if recurrence_algorithm is 'Wiechart':
+    if recurrence_algorithm == 'Wiechart':
         cent_mag, t_per, n_obs = wiechert_prep(
             year_col,
             magnitude_col,

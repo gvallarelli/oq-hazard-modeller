@@ -53,6 +53,14 @@ class PipeLine(object):
         return self.name == other.name \
                 and self.jobs == other.jobs
 
+    def __str__(self):
+        job_pipeline = ''
+        for job in self.jobs:
+            job_pipeline += " %s" % job.func_name
+
+        return  "Pipeline name: %s" % self.name + \
+                " jobs: %s" % job_pipeline
+
     def add_job(self, a_job):
         """Append a new job the to queue"""
 
@@ -101,11 +109,12 @@ class PipeLineBuilder(object):
         for job in compulsory_jobs:
             pipeline.add_job(job)
 
-        for job in config[pipeline_type]:
-            if job in self.map_job_callable:
-                pipeline.add_job(self.map_job_callable[job])
-            else:
-                raise RuntimeError('Invalid job: %s' % job)
+        if config[pipeline_type] != None:
+            for job in config[pipeline_type]:
+                if job in self.map_job_callable:
+                    pipeline.add_job(self.map_job_callable[job])
+                else:
+                    raise RuntimeError('Invalid job: %s' % job)
 
         return pipeline
 
