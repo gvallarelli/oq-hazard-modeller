@@ -19,18 +19,17 @@
 
 """
 The purpose of this module is to provide objects
-to process a series of jobs in a predetermined
+to process a series of jobs in a sequential
 order. The order is determined by the queue of jobs.
 """
 
 import yaml
 
-from mtoolkit.jobs import gardner_knopoff, stepp, \
-recurrence
-
-from mtoolkit.declustering import gardner_knopoff_decluster
-from mtoolkit.completeness import stepp_analysis
-from mtoolkit.recurrence import recurrence_analysis
+from mtoolkit.jobs          import gardner_knopoff, stepp
+from mtoolkit.jobs          import recurrence
+from mtoolkit.declustering  import gardner_knopoff_decluster
+from mtoolkit.completeness  import stepp_analysis
+from mtoolkit.recurrence    import recurrence_analysis
 
 
 class PipeLine(object):
@@ -50,16 +49,15 @@ class PipeLine(object):
         self.jobs = []
 
     def __eq__(self, other):
+        """Equal operator for pipeline"""
+
         return self.name == other.name \
                 and self.jobs == other.jobs
 
-    def __str__(self):
-        job_pipeline = ''
-        for job in self.jobs:
-            job_pipeline += " %s" % job.func_name
+    def __ne__(self, other):
+        """Not equal operator for pipeline"""
 
-        return  "Pipeline name: %s" % self.name + \
-                " jobs: %s" % job_pipeline
+        return not self.__eq__(other)
 
     def add_job(self, a_job):
         """Append a new job the to queue"""

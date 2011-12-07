@@ -20,17 +20,23 @@
 
 import unittest
 import numpy as np
-from mock import Mock
+from mock               import Mock
 
-from mtoolkit.workflow import Context, PipeLineBuilder, Workflow
-from mtoolkit.jobs import read_eq_catalog, read_source_model, \
-create_catalog_matrix, gardner_knopoff, AreaSourceCatalogFilter, \
-recurrence, create_default_values, \
-SourceModelCatalogFilter
-from mtoolkit.utils import get_data_path, DATA_DIR
+from mtoolkit.workflow  import Context, PipeLineBuilder, Workflow
+from mtoolkit.jobs      import read_eq_catalog, read_source_model
+from mtoolkit.jobs      import create_catalog_matrix, gardner_knopoff
+from mtoolkit.jobs      import recurrence, create_default_values
+from mtoolkit.jobs      import SourceModelCatalogFilter
+from mtoolkit.jobs      import AreaSourceCatalogFilter
+
+from mtoolkit.utils     import get_data_path, DATA_DIR
+
+DECIMAL_PLACES = 5
+RUPTURE_KEY = 'rupture_rate_model'
 
 
 def create_workflow(config, compulsory_jobs):
+    """test utilty function"""
     builder = PipeLineBuilder()
     preprocessing_pipeline = builder.build(config,
         PipeLineBuilder.PREPROCESSING_JOBS_CONFIG_KEY,
@@ -142,7 +148,6 @@ class JobsTestCase(unittest.TestCase):
         self.assertTrue(np.array_equal(expected_flag_vector,
                 context.flag_vector))
 
-
     def test_parameters_gardner_knopoff(self):
 
         context = Context(
@@ -190,7 +195,8 @@ class JobsTestCase(unittest.TestCase):
         workflow = create_workflow(context.config,
             [read_eq_catalog, create_catalog_matrix])
 
-        def assert_parameters(year, mw, magnitude_windows, time_window, sensitivity, iloc):
+        def assert_parameters(year, mw, magnitude_windows, time_window,
+                sensitivity, iloc):
             self.assertEqual(time_window, 5)
             self.assertEqual(magnitude_windows, 0.1)
             self.assertEqual(sensitivity, 0.2)
@@ -209,20 +215,27 @@ class JobsTestCase(unittest.TestCase):
                 compulsory_jobs)
         workflow.start(context, SourceModelCatalogFilter())
 
-        places = 5
+        self.assertAlmostEqual(
+            context.sm_definitions[0][RUPTURE_KEY][0]['b_value'],
+            0.569790,
+            DECIMAL_PLACES)
 
         self.assertAlmostEqual(
-            context.sm_definitions[0]['rupture_rate_model'][0]['b_value'],
-            0.569790, places)
-        self.assertAlmostEqual(
-            context.sm_definitions[0]['Recurrence_sigb'], 0.041210, places)
-        self.assertAlmostEqual(
-            context.sm_definitions[0]['rupture_rate_model'][0]['a_value_cumulative'],
-            132.051268, places)
-        self.assertAlmostEqual(
-            context.sm_definitions[0]['Recurrence_siga_m'], 7.701386, places)
+            context.sm_definitions[0]['Recurrence_sigb'],
+            0.041210,
+            DECIMAL_PLACES)
 
-    def test_recurrence_MLE_algorithm(self):
+        self.assertAlmostEqual(
+            context.sm_definitions[0][RUPTURE_KEY][0]['a_value_cumulative'],
+            132.051268,
+            DECIMAL_PLACES)
+
+        self.assertAlmostEqual(
+            context.sm_definitions[0]['Recurrence_siga_m'],
+            7.701386,
+            DECIMAL_PLACES)
+
+    def test_recurrence_mle_algorithm(self):
         context = Context(
             get_data_path('config_recurrence_mle.yml', DATA_DIR))
 
@@ -232,19 +245,25 @@ class JobsTestCase(unittest.TestCase):
                 compulsory_jobs)
         workflow.start(context, SourceModelCatalogFilter())
 
-        places = 5
+        self.assertAlmostEqual(
+            context.sm_definitions[0][RUPTURE_KEY][0]['b_value'],
+            0.595256,
+            DECIMAL_PLACES)
 
         self.assertAlmostEqual(
-            context.sm_definitions[0]['rupture_rate_model'][0]['b_value'],
-            0.595256, places)
+            context.sm_definitions[0]['Recurrence_sigb'],
+            0.024816,
+            DECIMAL_PLACES)
+
         self.assertAlmostEqual(
-            context.sm_definitions[0]['Recurrence_sigb'], 0.024816, places)
+            context.sm_definitions[0][RUPTURE_KEY][0]['a_value_cumulative'],
+            3.123129,
+            DECIMAL_PLACES)
+
         self.assertAlmostEqual(
-            context.sm_definitions[0]['rupture_rate_model'][0]['a_value_cumulative'],
-            3.123129, places)
-        self.assertAlmostEqual(
-            context.sm_definitions[0]['Recurrence_siga_m'], 0.027298,
-            places)
+            context.sm_definitions[0]['Recurrence_siga_m'],
+            0.027298,
+            DECIMAL_PLACES)
 
     def test_parameters_recurrence(self):
         self.context.config['Recurrence']['magnitude_window'] = 0.5
@@ -278,7 +297,7 @@ class JobsTestCase(unittest.TestCase):
 class AreaSourceCatalogFilterTestCase(unittest.TestCase):
 
     def setUp(self):
-        self.sm = {'area_boundary':
+        self.sm_geometry = {'area_boundary':
             [-0.5, 0.0, -0.5, 0.5, 0.0, 0.5, 0.0, 0.0]}
         self.empty_catalog = np.array([])
 
@@ -286,7 +305,7 @@ class AreaSourceCatalogFilterTestCase(unittest.TestCase):
         as_filter = AreaSourceCatalogFilter()
         self.assertTrue(np.allclose(
             self.empty_catalog,
-            as_filter.filter_eqs(self.sm, self.empty_catalog)))
+            as_filter.filter_eqs(self.sm_geometry, self.empty_catalog)))
 
     def test_filtering_non_empty_eq_catalog(self):
         eq_internal_point = [2000, 1, 2, -0.25, 0.25]
@@ -299,14 +318,14 @@ class AreaSourceCatalogFilterTestCase(unittest.TestCase):
 
         expected_catalog = np.array([eq_internal_point])
         self.assertTrue(np.array_equal(expected_catalog,
-                as_filter.filter_eqs(self.sm, eq_catalog)))
+                as_filter.filter_eqs(self.sm_geometry, eq_catalog)))
 
     def test_a_bad_polygon_raises_exception(self):
-        self.sm = {'area_boundary': [1, 1, 1, 2, 2, 1, 2, 2]}
+        self.sm_geometry = {'area_boundary': [1, 1, 1, 2, 2, 1, 2, 2]}
         as_filter = AreaSourceCatalogFilter()
 
         self.assertRaises(RuntimeError,
-            as_filter.filter_eqs, self.sm, self.empty_catalog)
+            as_filter.filter_eqs, self.sm_geometry, self.empty_catalog)
 
 
 class SourceModelCatalogFilterTestCase(unittest.TestCase):

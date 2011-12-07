@@ -24,11 +24,11 @@ which tackle specific job.
 
 import logging
 import numpy as np
-from shapely.geometry import Point, Polygon
+from shapely.geometry       import Point, Polygon
 
 from mtoolkit.eqcatalog     import EqEntryReader
 from mtoolkit.smodel        import NRMLReader
-from mtoolkit.utils import get_data_path, SCHEMA_DIR
+from mtoolkit.utils         import get_data_path, SCHEMA_DIR
 
 NRML_SCHEMA_PATH = get_data_path('nrml.xsd', SCHEMA_DIR)
 CATALOG_MATRIX_YEAR_INDEX = 0
@@ -149,16 +149,23 @@ class SourceModelCatalogFilter(object):
 
 
 class AreaSourceCatalogFilter(object):
+    """
+    AreaSourceCatalogFilter allows to filter
+    out eq events within a geometry defined
+    in an area source model
+    """
 
     POINT_LATITUDE_INDEX = 4
     POINT_LONGITUDE_INDEX = 3
 
     def filter_eqs(self, source, eq_catalog):
+        """
+        Filter eq events contained in
+        the polygon
+        """
+
         polygon = self._extract_polygon(source)
         self._check_polygon(polygon)
-        return self._filter(eq_catalog, polygon)
-
-    def _filter(self, eq_catalog, polygon):
         filtered_eq = []
 
         for eq in eq_catalog:
@@ -167,14 +174,22 @@ class AreaSourceCatalogFilter(object):
 
             if polygon.contains(eq_point):
                 filtered_eq.append(eq)
-
         return np.array(filtered_eq)
 
     def _check_polygon(self, polygon):
+        """
+        Check polygon validity
+        """
+
         if not polygon.is_valid:
             raise RuntimeError('Polygon invalid wkt: %s' % polygon.wkt)
 
     def _extract_polygon(self, source_model):
+        """
+        Create polygon using geomtry data
+        defined in the source model area boundary
+        """
+
         area_boundary = source_model['area_boundary']
 
         points = [(area_boundary[i], area_boundary[i + 1])
@@ -185,6 +200,11 @@ class AreaSourceCatalogFilter(object):
 
 @logged_job
 def recurrence(context):
+    """
+    Apply recurrence algorithm to the filtered catalog
+    matrix and completeness table
+    """
+
     bval, sigb, a_m, siga_m = \
         context.map_sc['recurrence'](
             context.current_filtered_eq[:, CATALOG_MATRIX_YEAR_INDEX],
