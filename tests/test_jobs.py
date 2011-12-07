@@ -35,12 +35,12 @@ DECIMAL_PLACES = 5
 RUPTURE_KEY = 'rupture_rate_model'
 
 
-def create_workflow(config, compulsory_jobs):
-    """test utilty function"""
+def create_workflow(config):
     builder = PipeLineBuilder()
     preprocessing_pipeline = builder.build(config,
         PipeLineBuilder.PREPROCESSING_JOBS_CONFIG_KEY,
-         compulsory_jobs)
+         [read_eq_catalog, read_source_model,
+            create_catalog_matrix, create_default_values])
 
     processing_pipeline = builder.build(config,
         PipeLineBuilder.PROCESSING_JOBS_CONFIG_KEY)
@@ -48,14 +48,18 @@ def create_workflow(config, compulsory_jobs):
     return Workflow(preprocessing_pipeline, processing_pipeline)
 
 
+def create_context(filename=None):
+    return Context(get_data_path(filename, DATA_DIR))
+
+
+def run(workflow, context):
+    return workflow.start(context, SourceModelCatalogFilter())
+
+
 class JobsTestCase(unittest.TestCase):
 
     def setUp(self):
-        self.context = Context(get_data_path(
-            'config_processing.yml', DATA_DIR))
-
-        self.context_recur_mle = Context(
-            get_data_path('config_recurrence_mle.yml', DATA_DIR))
+        self.context = create_context('config_processing.yml')
 
         self.eq_catalog_filename = get_data_path(
             'ISC_small_data.csv', DATA_DIR)
@@ -123,13 +127,10 @@ class JobsTestCase(unittest.TestCase):
 
     def test_gardner_knopoff(self):
 
-        context = Context(
-            get_data_path('config_gardner_knopoff.yml', DATA_DIR))
+        context = create_context('config_gardner_knopoff.yml')
 
-        workflow = create_workflow(context.config,
-                [read_eq_catalog, create_catalog_matrix])
-
-        workflow.start(context, SourceModelCatalogFilter())
+        workflow = create_workflow(context.config)
+        run(workflow, context)
 
         expected_vmain_shock = np.delete(
             context.catalog_matrix, [4, 10, 19], 0)
@@ -150,8 +151,7 @@ class JobsTestCase(unittest.TestCase):
 
     def test_parameters_gardner_knopoff(self):
 
-        context = Context(
-            get_data_path('config_gardner_knopoff.yml', DATA_DIR))
+        context = create_context('config_gardner_knopoff.yml')
 
         context.catalog_matrix = []
 
@@ -164,12 +164,11 @@ class JobsTestCase(unittest.TestCase):
         gardner_knopoff(context)
 
     def test_stepp(self):
-        context = Context(
-            get_data_path('config_stepp.yml', DATA_DIR))
+        context = create_context('config_stepp.yml')
 
-        workflow = create_workflow(context.config,
-            [read_eq_catalog, create_catalog_matrix])
-        workflow.start(context, SourceModelCatalogFilter())
+        workflow = create_workflow(context.config)
+
+        run(workflow, context)
 
         filtered_eq_events = np.array([
                     [1994., 4.0], [1994., 4.1], [1994., 4.2],
@@ -189,11 +188,9 @@ class JobsTestCase(unittest.TestCase):
                 context.completeness_table))
 
     def test_parameters_stepp(self):
-        context = Context(
-            get_data_path('config_stepp.yml', DATA_DIR))
+        context = create_context('config_stepp.yml')
 
-        workflow = create_workflow(context.config,
-            [read_eq_catalog, create_catalog_matrix])
+        workflow = create_workflow(context.config)
 
         def assert_parameters(year, mw, magnitude_windows, time_window,
                 sensitivity, iloc):
@@ -204,16 +201,13 @@ class JobsTestCase(unittest.TestCase):
 
         context.map_sc['stepp'] = assert_parameters
 
-        workflow.start(context, SourceModelCatalogFilter())
+        run(workflow, context)
 
     def test_recurrence_wiechart_algorithm(self):
-        context = Context(
-            get_data_path('config_recurrence_wiechart.yml', DATA_DIR))
-        compulsory_jobs = [read_eq_catalog, read_source_model,
-            create_catalog_matrix, create_default_values]
-        workflow = create_workflow(context.config,
-                compulsory_jobs)
-        workflow.start(context, SourceModelCatalogFilter())
+        context = create_context('config_recurrence_wiechart.yml')
+        workflow = create_workflow(context.config)
+
+        run(workflow, context)
 
         self.assertAlmostEqual(
             context.sm_definitions[0][RUPTURE_KEY][0]['b_value'],
@@ -236,14 +230,10 @@ class JobsTestCase(unittest.TestCase):
             DECIMAL_PLACES)
 
     def test_recurrence_mle_algorithm(self):
-        context = Context(
-            get_data_path('config_recurrence_mle.yml', DATA_DIR))
+        context = create_context('config_recurrence_mle.yml')
 
-        compulsory_jobs = [read_eq_catalog, read_source_model,
-            create_catalog_matrix, create_default_values]
-        workflow = create_workflow(self.context_recur_mle.config,
-                compulsory_jobs)
-        workflow.start(context, SourceModelCatalogFilter())
+        workflow = create_workflow(context.config)
+        run(workflow, context)
 
         self.assertAlmostEqual(
             context.sm_definitions[0][RUPTURE_KEY][0]['b_value'],
