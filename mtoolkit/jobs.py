@@ -137,6 +137,11 @@ def _processing_steps_required(context):
 
 
 class SourceModelCatalogFilter(object):
+    """
+    SourceModelCatalogFilter allows to filter
+    out eq events within a geometry defined
+    in a generic source model
+    """
 
     def __init__(self, sm_filter=None):
         self.sm_filter = sm_filter
@@ -144,6 +149,10 @@ class SourceModelCatalogFilter(object):
             self.sm_filter = AreaSourceCatalogFilter()
 
     def filter_eqs(self, sm_definitions, eq_catalog):
+        """
+        Apply filtering to eq catalog
+        """
+
         for sm in sm_definitions:
             yield sm, self.sm_filter.filter_eqs(sm, eq_catalog)
 
