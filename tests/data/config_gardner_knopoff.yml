@@ -34,7 +34,6 @@ apply_processing_jobs: no
 # algorithms will be executed in the specified
 # order.
 preprocessing_jobs:
-- GardnerKnopoff
 
 # =========================================================
 # List of processing jobs

@@ -115,7 +115,6 @@ class JobsTestCase(unittest.TestCase):
         self.assertEqual(expected_first_sm_definition,
                 self.context.sm_definitions[0])
 
-    @unittest.skip
     def test_gardner_knopoff(self):
 
         context = Context(
@@ -127,13 +126,15 @@ class JobsTestCase(unittest.TestCase):
         workflow.start(context, SourceModelCatalogFilter())
 
         expected_vmain_shock = np.delete(
-            self.context.catalog_matrix, [4, 10, 19], 0)
+            context.catalog_matrix, [4, 10, 19], 0)
 
         expected_vcl = np.array([0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0,
             0, 0, 0, 0, 6])
 
         expected_flag_vector = np.array([0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0,
             0, 0, 0, 0, 0, 0, 1])
+
+        gardner_knopoff(context)
 
         self.assertTrue(np.array_equal(expected_vmain_shock,
                 context.catalog_matrix))
