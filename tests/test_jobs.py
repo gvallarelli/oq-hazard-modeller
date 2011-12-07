@@ -126,7 +126,6 @@ class JobsTestCase(unittest.TestCase):
                 self.context.sm_definitions[0])
 
     def test_gardner_knopoff(self):
-
         context = create_context('config_gardner_knopoff.yml')
 
         workflow = create_workflow(context.config)
@@ -150,7 +149,6 @@ class JobsTestCase(unittest.TestCase):
                 context.flag_vector))
 
     def test_parameters_gardner_knopoff(self):
-
         context = create_context('config_gardner_knopoff.yml')
 
         context.catalog_matrix = []
