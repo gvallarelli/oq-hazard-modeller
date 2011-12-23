@@ -26,7 +26,9 @@ import numpy as np
 
 
 def decimal_year(year, month, day):
-    """Function to calculate the decimal year for a vector of dates"""
+    """
+    Allows to calculate the decimal year for a vector of dates
+    """
     marker = np.array([0., 31., 59., 90., 120., 151., 181.,
                                  212., 243., 273., 304., 334.])
     tmonth = (month - 1).astype(int)
@@ -36,7 +38,10 @@ def decimal_year(year, month, day):
 
 
 def greg2julian(year, month, day, hour, minute, second):
-    """ Function to convert a date from Gregorian to Julian format"""
+    """
+    Allows to convert a date from Gregorian to Julian format
+    """
+
     timeut = hour + (minute / 60.0) + (second / 3600.0)
     jd = (367.0 * year) - np.floor(7.0 * (year +
              np.floor((month + 9.0) / 12.0)) / 4.0) - np.floor(3.0 *
@@ -47,14 +52,19 @@ def greg2julian(year, month, day, hour, minute, second):
 
 
 def haversine(lon1, lat1, lon2, lat2, radians=False, earth_rad=6371.227):
-    '''Quick function to perform geographical distance calculation
-    using the haversine formula. The distance is returned in km'''
+    """
+    Allows to calculate geographical distance
+    using the haversine formula.
+    :returns: geographical distance in km
+    """
+
     if radians == False:
         cfact = np.pi / 180.
         lon1 = cfact * lon1
         lat1 = cfact * lat1
         lon2 = cfact * lon2
         lat2 = cfact * lat2
+
     # Number of locations in each set of points
     if not np.shape(lon1):
         nlocs1 = 1
@@ -80,4 +90,5 @@ def haversine(lon1, lat1, lon2, lat2, radians=False, earth_rad=6371.227):
         distance[:, i] = (2. * earth_rad * np.arctan2(np.sqrt(aval),
                                                     np.sqrt(1 - aval))).T
         i += 1
+
     return distance

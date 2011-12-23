@@ -64,7 +64,7 @@ def calc_windows(magnitude, window_opt):
 def gardner_knopoff_decluster(
     catalog_matrix, window_opt='GardnerKnopoff', fs_time_prop=0):
     """
-    Gardner Knopoff algorithm
+    Gardner Knopoff algorithm.
     :param catalog_matrix: eq catalog in a matrix format with
         these coloumns in order: 'year', 'month', 'day', 'longitude',
         'latitude', 'Mw'
