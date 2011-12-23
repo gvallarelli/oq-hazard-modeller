@@ -20,16 +20,13 @@
 
 import unittest
 import numpy as np
-from mock               import Mock
 
-from mtoolkit.workflow  import Context, PipeLineBuilder, Workflow
-from mtoolkit.jobs      import read_eq_catalog, read_source_model
-from mtoolkit.jobs      import create_catalog_matrix, gardner_knopoff
-from mtoolkit.jobs      import recurrence, create_default_values
-from mtoolkit.jobs      import SourceModelCatalogFilter
-from mtoolkit.jobs      import AreaSourceCatalogFilter
-
-from mtoolkit.utils     import get_data_path, DATA_DIR
+from mtoolkit.workflow import Context, PipeLineBuilder, Workflow
+from mtoolkit.jobs import (read_eq_catalog, read_source_model,
+                           create_catalog_matrix, gardner_knopoff,
+                           recurrence, create_default_values)
+from mtoolkit.catalog_filter import SourceModelCatalogFilter
+from mtoolkit.utils import get_data_path, DATA_DIR
 
 DECIMAL_PLACES = 5
 RUPTURE_KEY = 'rupture_rate_model'
@@ -280,63 +277,3 @@ class JobsTestCase(unittest.TestCase):
 
         self.context.map_sc['recurrence'] = assert_parameters
         recurrence(self.context)
-
-
-class AreaSourceCatalogFilterTestCase(unittest.TestCase):
-
-    def setUp(self):
-        self.sm_geometry = {'area_boundary':
-            [-0.5, 0.0, -0.5, 0.5, 0.0, 0.5, 0.0, 0.0]}
-        self.empty_catalog = np.array([])
-
-    def test_filtering_an_empty_eq_catalog(self):
-        as_filter = AreaSourceCatalogFilter()
-        self.assertTrue(np.allclose(
-            self.empty_catalog,
-            as_filter.filter_eqs(self.sm_geometry, self.empty_catalog)))
-
-    def test_filtering_non_empty_eq_catalog(self):
-        eq_internal_point = [2000, 1, 2, -0.25, 0.25]
-        eq_side_point = [2000, 1, 2, -0.5, 0.25]
-        eq_external_point = [2000, 1, 2, 0.5, 0.25]
-        eq_catalog = np.array([eq_internal_point,
-                eq_side_point, eq_external_point])
-
-        as_filter = AreaSourceCatalogFilter()
-
-        expected_catalog = np.array([eq_internal_point])
-        self.assertTrue(np.array_equal(expected_catalog,
-                as_filter.filter_eqs(self.sm_geometry, eq_catalog)))
-
-    def test_a_bad_polygon_raises_exception(self):
-        self.sm_geometry = {'area_boundary': [1, 1, 1, 2, 2, 1, 2, 2]}
-        as_filter = AreaSourceCatalogFilter()
-
-        self.assertRaises(RuntimeError,
-            as_filter.filter_eqs, self.sm_geometry, self.empty_catalog)
-
-
-class SourceModelCatalogFilterTestCase(unittest.TestCase):
-
-    def setUp(self):
-        pass
-
-    def test_empty_source_model(self):
-        smodel_filter = SourceModelCatalogFilter(None)
-        self.assertRaises(StopIteration, smodel_filter.filter_eqs([], []).next)
-
-    def test_source_model_calling_a_filter(self):
-        asource_filter = AreaSourceCatalogFilter()
-        asource_filter.filter_eqs = Mock()
-        asource_filter.filter_eqs.return_value = []
-
-        smodel_filter = SourceModelCatalogFilter(asource_filter)
-
-        smodel = smodel_filter.filter_eqs([dict(a=1), dict(b=2)], [])
-        self.assertEqual((dict(a=1), []), smodel.next())
-        self.assertEqual((dict(b=2), []), smodel.next())
-
-        self.assertEqual(dict(a=1),
-                asource_filter.filter_eqs.call_args_list[0][0][0])
-        self.assertEqual(dict(b=2),
-                asource_filter.filter_eqs.call_args_list[1][0][0])

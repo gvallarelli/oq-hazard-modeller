@@ -22,8 +22,8 @@ import logging
 from mtoolkit.console   import cmd_line, build_logger
 from mtoolkit.workflow  import Context, PipeLineBuilder, Workflow
 from mtoolkit.jobs      import (read_eq_catalog, create_catalog_matrix,
-                                create_default_values, read_source_model,
-                                SourceModelCatalogFilter)
+                                create_default_values, read_source_model)
+from mtoolkit.catalog_filter import SourceModelCatalogFilter
 
 
 if __name__ == '__main__':

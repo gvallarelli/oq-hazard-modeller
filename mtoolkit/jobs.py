@@ -19,27 +19,29 @@
 
 """
 The purpose of this module is to provide functions
-which tackle specific job.
+which tackle specific job, some of them wrap scientific
+functions defined in different modules.
 """
 
 import logging
 import numpy as np
-from shapely.geometry       import Point, Polygon
 
-from mtoolkit.eqcatalog     import EqEntryReader
-from mtoolkit.smodel        import NRMLReader
-from mtoolkit.utils         import get_data_path, SCHEMA_DIR
+from mtoolkit.eqcatalog import EqEntryReader
+from mtoolkit.smodel import NRMLReader
+from mtoolkit.utils import get_data_path, SCHEMA_DIR
 
 NRML_SCHEMA_PATH = get_data_path('nrml.xsd', SCHEMA_DIR)
 CATALOG_MATRIX_YEAR_INDEX = 0
 CATALOG_MATRIX_MW_INDEX = 5
+CATALOG_MATRIX_FIXED_COLOUMNS = ['year', 'month', 'day',
+                                'longitude', 'latitude', 'Mw']
 
 
 def logged_job(job):
     """
     Decorate a job by adding logging
     statements before and after the execution
-    of the job
+    of the job.
     """
 
     def wrapper(context):
@@ -55,7 +57,11 @@ def logged_job(job):
 
 @logged_job
 def read_eq_catalog(context):
-    """Create eq entries by reading an eq catalog"""
+    """
+    Create eq entries by reading an eq catalog.
+    :param context: shared datastore across different jobs
+        in a pipeline
+    """
 
     reader = EqEntryReader(context.config['eq_catalog_file'])
     eq_entries = []
@@ -66,7 +72,11 @@ def read_eq_catalog(context):
 
 @logged_job
 def read_source_model(context):
-    """Create smodel definitions by reading a source model"""
+    """
+    Create source model definitions by reading a source model.
+    :param context: shared datastore across different jobs
+        in a pipeline
+    """
 
     reader = NRMLReader(context.config['source_model_file'],
             NRML_SCHEMA_PATH)
@@ -78,21 +88,28 @@ def read_source_model(context):
 
 @logged_job
 def create_catalog_matrix(context):
-    """Create a numpy matrix according to fixed attributes"""
+    """
+    Create a numpy matrix according to fixed attributes.
+    :param context: shared datastore across different jobs
+        in a pipeline
+    """
 
     matrix = []
-    attributes = ['year', 'month', 'day', 'longitude', 'latitude', 'Mw']
     for eq_entry in context.eq_catalog:
-        matrix.append([eq_entry[attribute] for attribute in attributes])
+        matrix.append([eq_entry[coloumn] for coloumn in
+                        CATALOG_MATRIX_FIXED_COLOUMNS])
     context.catalog_matrix = np.array(matrix)
 
 
 @logged_job
 def create_default_values(context):
     """
-    Create default values for attributes to be used in different
-    kinds of workflows
+    Create default values for context attributes to be
+    used in different kinds of workflows.
+    :param context: shared datastore across different jobs
+        in a pipeline
     """
+
     context.flag_vector = np.zeros(len(context.catalog_matrix))
     min_year = context.catalog_matrix[:, CATALOG_MATRIX_YEAR_INDEX].min()
     min_magnitude = context.catalog_matrix[:, CATALOG_MATRIX_MW_INDEX].min()
@@ -101,7 +118,11 @@ def create_default_values(context):
 
 @logged_job
 def gardner_knopoff(context):
-    """Apply gardner_knopoff declustering algorithm to the eq catalog"""
+    """
+    Apply gardner_knopoff declustering algorithm to the eq catalog.
+    :param context: shared datastore across different jobs
+        in a pipeline
+    """
 
     vcl, vmain_shock, flag_vector = context.map_sc['gardner_knopoff'](
             context.catalog_matrix,
@@ -116,9 +137,9 @@ def gardner_knopoff(context):
 @logged_job
 def stepp(context):
     """
-    Apply step algorithm to the eq catalog
-    or to the numpy array built by a
-    declustering algorithm
+    Apply step algorithm to the catalog matrix
+    :param context: shared datastore across different jobs
+        in a pipeline
     """
 
     context.completeness_table = context.map_sc['stepp'](
@@ -130,88 +151,13 @@ def stepp(context):
         context.config['Stepp']['increment_lock'])
 
 
-def _processing_steps_required(context):
-    """Return bool which states if processing steps are required"""
-
-    return context.config['apply_processing_jobs']
-
-
-class SourceModelCatalogFilter(object):
-    """
-    SourceModelCatalogFilter allows to filter
-    out eq events within a geometry defined
-    in a generic source model
-    """
-
-    def __init__(self, sm_filter=None):
-        self.sm_filter = sm_filter
-        if sm_filter is None:
-            self.sm_filter = AreaSourceCatalogFilter()
-
-    def filter_eqs(self, sm_definitions, eq_catalog):
-        """
-        Apply filtering to eq catalog
-        """
-
-        for sm in sm_definitions:
-            yield sm, self.sm_filter.filter_eqs(sm, eq_catalog)
-
-
-class AreaSourceCatalogFilter(object):
-    """
-    AreaSourceCatalogFilter allows to filter
-    out eq events within a geometry defined
-    in an area source model
-    """
-
-    POINT_LATITUDE_INDEX = 4
-    POINT_LONGITUDE_INDEX = 3
-
-    def filter_eqs(self, source, eq_catalog):
-        """
-        Filter eq events contained in
-        the polygon
-        """
-
-        polygon = self._extract_polygon(source)
-        self._check_polygon(polygon)
-        filtered_eq = []
-
-        for eq in eq_catalog:
-            eq_point = Point(eq[self.POINT_LONGITUDE_INDEX],
-                    eq[self.POINT_LATITUDE_INDEX])
-
-            if polygon.contains(eq_point):
-                filtered_eq.append(eq)
-        return np.array(filtered_eq)
-
-    def _check_polygon(self, polygon):
-        """
-        Check polygon validity
-        """
-
-        if not polygon.is_valid:
-            raise RuntimeError('Polygon invalid wkt: %s' % polygon.wkt)
-
-    def _extract_polygon(self, source_model):
-        """
-        Create polygon using geomtry data
-        defined in the source model area boundary
-        """
-
-        area_boundary = source_model['area_boundary']
-
-        points = [(area_boundary[i], area_boundary[i + 1])
-            for i in xrange(0, len(area_boundary), 2)]
-
-        return Polygon(points)
-
-
 @logged_job
 def recurrence(context):
     """
     Apply recurrence algorithm to the filtered catalog
     matrix and completeness table
+    :param context: shared datastore across different jobs
+        in a pipeline
     """
 
     bval, sigb, a_m, siga_m = \
