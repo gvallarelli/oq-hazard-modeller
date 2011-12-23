@@ -66,7 +66,7 @@ def gardner_knopoff_decluster(
     """
     Gardner Knopoff algorithm.
     :param catalog_matrix: eq catalog in a matrix format with
-        these coloumns in order: 'year', 'month', 'day', 'longitude',
+        these columns in order: 'year', 'month', 'day', 'longitude',
         'latitude', 'Mw'
     :type catalog_matrix: numpy.ndarray
     :keyword window_opt: method used in calculating distance and time

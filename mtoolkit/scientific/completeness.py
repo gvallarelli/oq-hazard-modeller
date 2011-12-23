@@ -17,7 +17,12 @@
 # version 3 along with MToolkit. If not, see
 # <http://www.gnu.org/licenses/lgpl-3.0.txt> for a copy of the LGPLv3 License.
 
-"""Module which implements completeness algorithms"""
+"""
+The purpose of this module is to provide functions
+which implement completeness algorithms. Implemented
+algorithms are:
+- Stepp
+"""
 
 
 import numpy as np
@@ -25,16 +30,24 @@ import numpy as np
 
 def stepp_analysis(year, mw, dm=0.1, dt=1, ttol=0.2, iloc=True):
     """
-    Stepp function
-    Year    = Year of earthquake
-    M       = Magnitude (Mw)
-    dM      = Magnitude interval
-    dT      = time interval
-    ttol    = Tolerance threshold
-    iloc    = Fix analysis such that completeness magnitude
-              can only increase with catalogue duration
-              (i.e. completess cannot increase for more
-               recent catalogues)
+    Stepp algorithm
+    :param year: catalog matrix year column
+    :type year: numpy.ndarray
+    :param mw: catalog matrix magnitude column
+    :type mw: numpy.ndarray
+    :keyword dm: magnitude interval/window
+    :type dm: positive float
+    :keyword dt: time interval
+    :type dt: int
+    :keyword ttol: tolerance threshold
+    :type ttol: positive float
+    :keyword iloc: Fix analysis such that completeness magnitude
+        can only increase with catalogue duration (i.e. completess
+        cannot increase for more recent catalogues)
+    :type iloc: bool
+    :returns: completeness table which represents the earliest year
+        at which the catalogue is complete above a given magnitude
+    :rtype: numpy.ndarray
     """
 
     # Round off the magnitudes to 2 d.p
@@ -45,49 +58,48 @@ def stepp_analysis(year, mw, dm=0.1, dt=1, ttol=0.2, iloc=True):
     mbin = np.arange(lowm, highm + dm, dm)
     ntb = np.max(np.shape(mbin))
     # Determine time bins
-    endT = np.max(year)
-    startT = np.min(year)
-    T = np.arange(dt, endT - startT + 2, dt)
-    #T = np.vstack([np.arange(dt, endT - startT, dt)[:, np.newaxis], endT])
-    nt = np.max(np.shape(T))
-    TUB = endT * np.ones(nt)
-    TLB = TUB - T
-    TRT = 1. / np.sqrt(T)  # Poisson rate
+    end_time = np.max(year)
+    start_time = np.min(year)
+    time_range = np.arange(dt, end_time - start_time + 2, dt)
+    nt = np.max(np.shape(time_range))
+    t_upper_bound = end_time * np.ones(nt)
+    t_lower_bound = t_upper_bound - time_range
+    t_rate = 1. / np.sqrt(time_range)  # Poisson rate
 
-    N = np.zeros((nt, ntb - 1))
+    number_obs = np.zeros((nt, ntb - 1))
     lamda = np.zeros((nt, ntb - 1))
     siglam = np.zeros((nt, ntb - 1))
     ii = 0
     # count number of events catalogue and magnitude windows
     while ii <= (nt - 1):
     # Select earthquakes later than or in Year[ii]
-        yrchk = year >= TLB[ii]
+        yrchk = year >= t_lower_bound[ii]
         mtmp = mw[yrchk]
         jj = 0
         while jj <= (ntb - 2):
             #Count earthquakes in magnitude bin
             if jj == (ntb - 2):
-                N[ii, jj] = np.sum(mtmp >= np.sum(mbin[jj]))
+                number_obs[ii, jj] = np.sum(mtmp >= np.sum(mbin[jj]))
             else:
-                N[ii, jj] = np.sum(np.logical_and(mtmp >= mbin[jj],
+                number_obs[ii, jj] = np.sum(np.logical_and(mtmp >= mbin[jj],
                                            mtmp < mbin[jj + 1]))
             jj = jj + 1
         ii = ii + 1
 
-    diffT = (np.log10(TRT[1:]) - np.log10(TRT[:-1]))
-    diffT = diffT / (np.log10(T[1:]) - np.log10(T[:-1]))
+    time_diff = (np.log10(t_rate[1:]) - np.log10(t_rate[:-1]))
+    time_diff = time_diff / (
+        np.log10(time_range[1:]) - np.log10(time_range[:-1]))
     comp_length = np.zeros((ntb - 1, 1))
     tloc = np.zeros((ntb - 1, 1), dtype=int)
     ii = 0
     while ii < (ntb - 1):
-        lamda[:, ii] = N[:, ii] / T
-        siglam[:, ii] = np.sqrt(lamda[:, ii] / T)
+        lamda[:, ii] = number_obs[:, ii] / time_range
+        siglam[:, ii] = np.sqrt(lamda[:, ii] / time_range)
         zero_find = siglam[:, ii] < 1E-14   # To avoid divide by zero
         siglam[zero_find, ii] = 1E-14
-        #print siglam[:, ii]
         grad1 = (np.log10(siglam[1:, ii]) - np.log10(siglam[:-1, ii]))
-        grad1 = grad1 / (np.log10(T[1:]) - np.log10(T[:-1]))
-        resid1 = grad1 - diffT
+        grad1 = grad1 / (np.log10(time_range[1:]) - np.log10(time_range[:-1]))
+        resid1 = grad1 - time_diff
         test1 = np.abs(resid1[1:] - resid1[:-1])
         tloct = np.nonzero(test1 > ttol)[0]
         if not(np.any(tloct)):
@@ -101,12 +113,11 @@ def stepp_analysis(year, mw, dm=0.1, dt=1, ttol=0.2, iloc=True):
                 tloc[ii] = tloc[ii - 1]
             else:
                 # Print warning
-                #print "Fitting tolerance removed all data - change parameter"
-                pass
+                print "Fitting tolerance removed all data - change parameter"
         else:
             tloc[ii] = tloct
-        if tloct > np.max(np.shape(T)):
-            tloc[ii] = np.max(np.shape(T))
+        if tloct > np.max(np.shape(time_range)):
+            tloc[ii] = np.max(np.shape(time_range))
 
         if ii > 0:
             # If the increasing completeness is option is set
@@ -115,10 +126,11 @@ def stepp_analysis(year, mw, dm=0.1, dt=1, ttol=0.2, iloc=True):
             inc_check = np.logical_and(iloc, (tloc[ii] < tloc[ii - 1]))
             if inc_check:
                 tloc[ii] = tloc[ii - 1]
-        comp_length[ii] = T[tloc[ii]]
+        comp_length[ii] = time_range[tloc[ii]]
 
         ii = ii + 1
 
-    completeness_table = np.column_stack([endT - comp_length, mbin[:-1].T])
+    completeness_table = np.column_stack(
+        [end_time - comp_length, mbin[:-1].T])
 
     return completeness_table
