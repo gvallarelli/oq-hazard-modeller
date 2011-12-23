@@ -106,9 +106,6 @@ def gardner_knopoff_decluster(
     i = 0
     while i < neq:
         if vcl[i] == 0:
-            #fMag = m[i]
-            #mPos = catalog_matrix[i, 10:11]
-
             # Find Events inside both fore- and aftershock time windows
             dt = year_dec - year_dec[i]
             ick = np.zeros(neq, dtype=int)
@@ -126,7 +123,6 @@ def gardner_knopoff_decluster(
             vcl[vsel] = i + 1
             ick[vsel] = i + 1
             # Number of elements in cluster
-            #nCl = np.max(np.shape(np.nonzero(ick != 0)[0]))
             ick[i] = 0  # Remove mainshock from cluster
             # Indicate the foreshocks
             tempick = ick[vsel]
