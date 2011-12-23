@@ -20,7 +20,7 @@
 '''Module to implement declustering algorithms'''
 
 import numpy as np
-from mtoolkit.catalogue_utilities import decimal_year, haversine
+from catalogue_utilities import decimal_year, haversine
 
 
 # Choose Calculate Magnitude and Distance Windows (for Gardner & Knopoff)
