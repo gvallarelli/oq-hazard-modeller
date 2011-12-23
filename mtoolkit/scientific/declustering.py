@@ -25,7 +25,7 @@ algorithms are:
 """
 
 import numpy as np
-from catalogue_utilities import decimal_year, haversine
+from mtoolkit.scientific.catalogue_utilities import decimal_year, haversine
 
 
 def calc_windows(magnitude, window_opt):
@@ -38,6 +38,7 @@ def calc_windows(magnitude, window_opt):
         Uhrhammer, GardnerKnopoff
     :type window_opt: string
     :returns: distance and time windows
+    :rtype: numpy.ndarray
     """
 
     if window_opt == 'Gruenthal':
