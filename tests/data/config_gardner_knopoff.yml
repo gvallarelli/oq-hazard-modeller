@@ -7,7 +7,7 @@
 # =========================================================
 
 # Path to the file defining the eq catalog.
-eq_catalog_file: tests/data/completeness_input_test.csv 
+eq_catalog_file: tests/data/declustering_input_test.csv 
 
 # Path to the file defining the transformed 
 # eq catalog after the preprocessing jobs.
@@ -15,7 +15,7 @@ eq_catalog_file: tests/data/completeness_input_test.csv
 pprocessing_result_file: path_to_file
 
 # Path to the file defining the source model.
-source_model_file: tests/data/area_source_model_processing.xml
+source_model_file: tests/data/area_source_model_processing.xml 
 
 # Path to the file defining the results 
 # of computation.
@@ -23,7 +23,7 @@ result_file: path_to_file
 
 # Boolean flag to declare
 # if processing jobs are needed.
-apply_processing_jobs: yes
+apply_processing_jobs: no
 
 # =========================================================
 # List of preprocessing jobs
@@ -34,9 +34,6 @@ apply_processing_jobs: yes
 # algorithms will be executed in the specified
 # order.
 preprocessing_jobs:
-- GardnerKnopoff
-- Stepp
-
 
 # =========================================================
 # List of processing jobs
@@ -47,7 +44,6 @@ preprocessing_jobs:
 # algorithms will be executed in the specified
 # order.
 processing_jobs:
-- Recurrence
 
 
 # =========================================================
@@ -58,11 +54,11 @@ processing_jobs:
 
 GardnerKnopoff: {
   # Possible values: GardnerKnopoff, Uhrhammer, Gruenthal.
-  time_dist_windows: no,
+  time_dist_windows: GardnerKnopoff,
 
   # float >= 0 proportion of aftershock time windows 
   # to use to search for foreshock.
-  foreshock_time_window: 0
+  foreshock_time_window: 0.5
 }
 
 # Completeness jobs
@@ -92,7 +88,7 @@ Stepp: {
 Recurrence: {
     
     # Width of magnitude window positive float
-    magnitude_window: 0.2,
+    magnitude_window: 0.5,
     
     # Choose one among Wiechart or MLE
     recurrence_algorithm: Wiechart,
@@ -101,5 +97,5 @@ Recurrence: {
     reference_magnitude: 1.1,
 
     # Greater than zero (float), used only with Wiechart
-    time_window: 0.2
+    time_window: 0.3
 }

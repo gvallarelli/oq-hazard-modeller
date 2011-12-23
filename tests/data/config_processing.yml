@@ -7,40 +7,52 @@
 # =========================================================
 
 # Path to the file defining the eq catalog.
-eq_catalog_file: tests/data/ISC_correct.csv 
+eq_catalog_file: tests/data/completeness_input_test.csv 
 
 # Path to the file defining the transformed 
-# eq catalog after the preprocessing steps.
+# eq catalog after the preprocessing jobs.
 # If not defined no file will be written.
 pprocessing_result_file: path_to_file
 
 # Path to the file defining the source model.
-source_model_file: path_to_file
+source_model_file: tests/data/area_source_model_processing.xml 
 
 # Path to the file defining the results 
 # of computation.
 result_file: path_to_file
 
 # Boolean flag to declare
-# if processing steps are needed.
-apply_processing_steps: #yes/no
+# if processing jobs are needed.
+apply_processing_jobs: yes
 
 # =========================================================
-# List of preprocessing steps
+# List of preprocessing jobs
 # =========================================================
 
 
-# Choose one algorithm per preprocessing step,
+# Choose one algorithm per preprocessing job,
 # algorithms will be executed in the specified
 # order.
-preprocessing_steps:
-- GardnerKnopoff
+preprocessing_jobs:
+
 
 # =========================================================
-# Preprocessing steps in detail
+# List of processing jobs
 # =========================================================
 
-# Declustering Steps
+
+# Choose one algorithm per preprocessing job,
+# algorithms will be executed in the specified
+# order.
+processing_jobs:
+- Recurrence
+
+
+# =========================================================
+# Preprocessing jobs in detail
+# =========================================================
+
+# Declustering jobs
 
 GardnerKnopoff: {
   # Possible values: GardnerKnopoff, Uhrhammer, Gruenthal.
@@ -51,7 +63,7 @@ GardnerKnopoff: {
   foreshock_time_window: 0
 }
 
-# Completeness Steps
+# Completeness jobs
 
 Stepp: {
   # Time Window of each step (in years)
@@ -66,4 +78,26 @@ Stepp: {
   # Increment Lock (fixes that the completeness magnitude
   # will always increase further back in time)
   increment_lock: True 
-}  
+} 
+
+
+# =========================================================
+# Processing jobs in detail
+# =========================================================
+
+# Recurrence job
+
+Recurrence: {
+    
+    # Width of magnitude window positive float
+    magnitude_window: 0.5,
+    
+    # Choose one among Wiechart or MLE
+    recurrence_algorithm: Wiechart,
+
+    # A float
+    reference_magnitude: 1.1,
+
+    # Greater than zero (float), used only with Wiechart
+    time_window: 0.3
+}

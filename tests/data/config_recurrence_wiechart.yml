@@ -15,7 +15,7 @@ eq_catalog_file: tests/data/completeness_input_test.csv
 pprocessing_result_file: path_to_file
 
 # Path to the file defining the source model.
-source_model_file: tests/data/area_source_model_processing.xml
+source_model_file: tests/data/area_source_model_processing.xml 
 
 # Path to the file defining the results 
 # of computation.
@@ -34,8 +34,6 @@ apply_processing_jobs: yes
 # algorithms will be executed in the specified
 # order.
 preprocessing_jobs:
-- GardnerKnopoff
-- Stepp
 
 
 # =========================================================
@@ -92,7 +90,7 @@ Stepp: {
 Recurrence: {
     
     # Width of magnitude window positive float
-    magnitude_window: 0.2,
+    magnitude_window: 0.5,
     
     # Choose one among Wiechart or MLE
     recurrence_algorithm: Wiechart,
@@ -101,5 +99,5 @@ Recurrence: {
     reference_magnitude: 1.1,
 
     # Greater than zero (float), used only with Wiechart
-    time_window: 0.2
+    time_window: 0.3
 }

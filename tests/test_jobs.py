@@ -3,37 +3,61 @@
 
 # Copyright (c) 2010-2011, GEM Foundation.
 #
-# OpenQuake is free software: you can redistribute it and/or modify
+# MToolkit is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License version 3
 # only, as published by the Free Software Foundation.
 #
-# OpenQuake is distributed in the hope that it will be useful,
+# MToolkit is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU Lesser General Public License version 3 for more details
 # (a copy is included in the LICENSE file that accompanied this code).
 #
 # You should have received a copy of the GNU Lesser General Public License
-# version 3 along with OpenQuake. If not, see
+# version 3 along with MToolkit. If not, see
 # <http://www.gnu.org/licenses/lgpl-3.0.txt> for a copy of the LGPLv3 License.
 
 
 import unittest
 import numpy as np
-from shapely.geometry import Polygon
 
-from mtoolkit.workflow import Context
-from mtoolkit.jobs import read_eq_catalog, read_source_model, \
-create_catalog_matrix, gardner_knopoff, stepp, _check_polygon, \
-processing_workflow_setup_gen
+from mtoolkit.workflow import Context, PipeLineBuilder, Workflow
+from mtoolkit.jobs import (read_eq_catalog, read_source_model,
+                           create_catalog_matrix, gardner_knopoff,
+                           recurrence, create_default_values)
+from mtoolkit.catalog_filter import SourceModelCatalogFilter
 from mtoolkit.utils import get_data_path, DATA_DIR
+
+DECIMAL_PLACES = 5
+RUPTURE_KEY = 'rupture_rate_model'
+
+
+def create_workflow(config):
+    builder = PipeLineBuilder()
+    preprocessing_pipeline = builder.build(config,
+        PipeLineBuilder.PREPROCESSING_JOBS_CONFIG_KEY,
+         [read_eq_catalog, read_source_model,
+            create_catalog_matrix, create_default_values])
+
+    processing_pipeline = builder.build(config,
+        PipeLineBuilder.PROCESSING_JOBS_CONFIG_KEY)
+
+    return Workflow(preprocessing_pipeline, processing_pipeline)
+
+
+def create_context(filename=None):
+    return Context(get_data_path(filename, DATA_DIR))
+
+
+def run(workflow, context):
+    return workflow.start(context, SourceModelCatalogFilter())
 
 
 class JobsTestCase(unittest.TestCase):
 
     def setUp(self):
-        self.context = Context(get_data_path(
-            'config.yml', DATA_DIR))
+        self.context = create_context('config_processing.yml')
+
         self.eq_catalog_filename = get_data_path(
             'ISC_small_data.csv', DATA_DIR)
         self.smodel_filename = get_data_path(
@@ -98,46 +122,14 @@ class JobsTestCase(unittest.TestCase):
         self.assertEqual(expected_first_sm_definition,
                 self.context.sm_definitions[0])
 
-    def test_a_bad_polygon_raises_exception(self):
-        polygon = Polygon([(1, 1), (1, 2), (2, 1), (2, 2)])
-
-        self.assertRaises(RuntimeError, _check_polygon, polygon)
-
-    def test_processing_workflow_setup(self):
-        self.context.config['apply_processing_steps'] = True
-
-        eq_internal_point = [2000, 1, 2, -0.25, 0.25]
-        eq_side_point = [2000, 1, 2, -0.5, 0.25]
-        eq_external_point = [2000, 1, 2, 0.5, 0.25]
-        eq_events = np.array([eq_internal_point,
-                eq_side_point, eq_external_point])
-        self.context.vmain_shock = eq_events
-
-        sm = {'area_boundary':
-            [-0.5, 0.0, -0.5, 0.5, 0.0, 0.5, 0.0, 0.0]}
-        self.context.sm_definitions = [sm]
-
-        first_sm, filtered_eq_sm = \
-            processing_workflow_setup_gen(self.context).next()
-
-        expected_eq_events = np.array([eq_internal_point])
-
-        self.assertTrue(np.array_equal(expected_eq_events, filtered_eq_sm))
-        self.assertEqual(sm, first_sm)
-
     def test_gardner_knopoff(self):
+        context = create_context('config_gardner_knopoff.yml')
 
-        self.context.config['eq_catalog_file'] = get_data_path(
-            'declustering_input_test.csv', DATA_DIR)
-        self.context.config['GardnerKnopoff']['time_dist_windows'] = \
-                'GardnerKnopoff'
-        self.context.config['GardnerKnopoff']['foreshock_time_window'] = 0.5
-
-        read_eq_catalog(self.context)
-        create_catalog_matrix(self.context)
+        workflow = create_workflow(context.config)
+        run(workflow, context)
 
         expected_vmain_shock = np.delete(
-            self.context.catalog_matrix, [4, 10, 19], 0)
+            context.catalog_matrix, [4, 10, 19], 0)
 
         expected_vcl = np.array([0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0,
             0, 0, 0, 0, 6])
@@ -145,85 +137,143 @@ class JobsTestCase(unittest.TestCase):
         expected_flag_vector = np.array([0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0,
             0, 0, 0, 0, 0, 0, 1])
 
-        gardner_knopoff(self.context)
+        gardner_knopoff(context)
 
         self.assertTrue(np.array_equal(expected_vmain_shock,
-                self.context.catalog_matrix))
-        self.assertTrue(np.array_equal(expected_vcl, self.context.vcl))
+                context.catalog_matrix))
+        self.assertTrue(np.array_equal(expected_vcl, context.vcl))
         self.assertTrue(np.array_equal(expected_flag_vector,
-                self.context.flag_vector))
+                context.flag_vector))
 
     def test_parameters_gardner_knopoff(self):
+        context = create_context('config_gardner_knopoff.yml')
 
-        self.context.config['eq_catalog_file'] = get_data_path(
-            'declustering_input_test.csv', DATA_DIR)
-        self.context.config['GardnerKnopoff']['time_dist_windows'] = \
-                'GardnerKnopoff'
-        self.context.config['GardnerKnopoff']['foreshock_time_window'] = 0.5
+        context.catalog_matrix = []
 
-        read_eq_catalog(self.context)
-        create_catalog_matrix(self.context)
-
-        def mock(data, time_dist_windows, foreshock_time_window):
+        def assert_parameters(data, time_dist_windows, foreshock_time_window):
             self.assertEquals("GardnerKnopoff", time_dist_windows)
             self.assertEquals(0.5, foreshock_time_window)
             return None, None, None
 
-        self.context.map_sc['gardner_knopoff'] = mock
-        gardner_knopoff(self.context)
+        context.map_sc['gardner_knopoff'] = assert_parameters
+        gardner_knopoff(context)
 
     def test_stepp(self):
-        self.context.config['eq_catalog_file'] = get_data_path(
-            'completeness_input_test.csv', DATA_DIR)
+        context = create_context('config_stepp.yml')
 
-        self.context.config['Stepp']['time_window'] = 5
-        self.context.config['Stepp']['magnitude_windows'] = 0.1
-        self.context.config['Stepp']['sensitivity'] = 0.2
-        self.context.config['Stepp']['increment_lock'] = True
+        workflow = create_workflow(context.config)
 
-        read_eq_catalog(self.context)
-        create_catalog_matrix(self.context)
+        run(workflow, context)
 
         filtered_eq_events = np.array([
-                    [4.0, 1994.], [4.1, 1994.], [4.2, 1994.],
-                    [4.3, 1994.], [4.4, 1994.], [4.5, 1964.],
-                    [4.6, 1964.], [4.7, 1964.], [4.8, 1964.],
-                    [4.9, 1964.], [5.0, 1964.], [5.1, 1964.],
-                    [5.2, 1964.], [5.3, 1964.], [5.4, 1964.],
-                    [5.5, 1919.], [5.6, 1919.], [5.7, 1919.],
-                    [5.8, 1919.], [5.9, 1919.], [6.0, 1919.],
-                    [6.1, 1919.], [6.2, 1919.], [6.3, 1919.],
-                    [6.4, 1919.], [6.5, 1919.], [6.6, 1919.],
-                    [6.7, 1919.], [6.8, 1919.], [6.9, 1919.],
-                    [7.0, 1919.], [7.1, 1919.], [7.2, 1919.],
-                    [7.3, 1919.]])
+                    [1994., 4.0], [1994., 4.1], [1994., 4.2],
+                    [1994., 4.3], [1994., 4.4], [1964., 4.5],
+                    [1964., 4.6], [1964., 4.7], [1964., 4.8],
+                    [1964., 4.9], [1964., 5.0], [1964., 5.1],
+                    [1964., 5.2], [1964., 5.3], [1964., 5.4],
+                    [1919., 5.5], [1919., 5.6], [1919., 5.7],
+                    [1919., 5.8], [1919., 5.9], [1919., 6.0],
+                    [1919., 6.1], [1919., 6.2], [1919., 6.3],
+                    [1919., 6.4], [1919., 6.5], [1919., 6.6],
+                    [1919., 6.7], [1919., 6.8], [1919., 6.9],
+                    [1919., 7.0], [1919., 7.1], [1919., 7.2],
+                    [1919., 7.3]])
 
-        stepp(self.context)
         self.assertTrue(np.allclose(filtered_eq_events,
-                self.context.completeness_table))
-
-        gardner_knopoff(self.context)
-        stepp(self.context)
-        self.assertTrue(np.allclose(filtered_eq_events,
-                self.context.completeness_table))
+                context.completeness_table))
 
     def test_parameters_stepp(self):
-        self.context.config['eq_catalog_file'] = get_data_path(
-            'completeness_input_test.csv', DATA_DIR)
+        context = create_context('config_stepp.yml')
 
-        self.context.config['Stepp']['time_window'] = 5
-        self.context.config['Stepp']['magnitude_windows'] = 0.1
-        self.context.config['Stepp']['sensitivity'] = 0.2
-        self.context.config['Stepp']['increment_lock'] = True
+        workflow = create_workflow(context.config)
 
-        read_eq_catalog(self.context)
-        create_catalog_matrix(self.context)
-
-        def mock(year, mw, magnitude_windows, time_window, sensitivity, iloc):
+        def assert_parameters(year, mw, magnitude_windows, time_window,
+                sensitivity, iloc):
             self.assertEqual(time_window, 5)
             self.assertEqual(magnitude_windows, 0.1)
             self.assertEqual(sensitivity, 0.2)
             self.assertTrue(iloc)
 
-        self.context.map_sc['stepp'] = mock
-        stepp(self.context)
+        context.map_sc['stepp'] = assert_parameters
+
+        run(workflow, context)
+
+    def test_recurrence_wiechart_algorithm(self):
+        context = create_context('config_recurrence_wiechart.yml')
+        workflow = create_workflow(context.config)
+
+        run(workflow, context)
+
+        self.assertAlmostEqual(
+            context.sm_definitions[0][RUPTURE_KEY][0]['b_value'],
+            0.569790,
+            DECIMAL_PLACES)
+
+        self.assertAlmostEqual(
+            context.sm_definitions[0]['Recurrence_sigb'],
+            0.041210,
+            DECIMAL_PLACES)
+
+        self.assertAlmostEqual(
+            context.sm_definitions[0][RUPTURE_KEY][0]['a_value_cumulative'],
+            132.051268,
+            DECIMAL_PLACES)
+
+        self.assertAlmostEqual(
+            context.sm_definitions[0]['Recurrence_siga_m'],
+            7.701386,
+            DECIMAL_PLACES)
+
+    def test_recurrence_mle_algorithm(self):
+        context = create_context('config_recurrence_mle.yml')
+
+        workflow = create_workflow(context.config)
+        run(workflow, context)
+
+        self.assertAlmostEqual(
+            context.sm_definitions[0][RUPTURE_KEY][0]['b_value'],
+            0.595256,
+            DECIMAL_PLACES)
+
+        self.assertAlmostEqual(
+            context.sm_definitions[0]['Recurrence_sigb'],
+            0.024816,
+            DECIMAL_PLACES)
+
+        self.assertAlmostEqual(
+            context.sm_definitions[0][RUPTURE_KEY][0]['a_value_cumulative'],
+            3.123129,
+            DECIMAL_PLACES)
+
+        self.assertAlmostEqual(
+            context.sm_definitions[0]['Recurrence_siga_m'],
+            0.027298,
+            DECIMAL_PLACES)
+
+    def test_parameters_recurrence(self):
+        self.context.config['Recurrence']['magnitude_window'] = 0.5
+        self.context.config['Recurrence']['recurrence_algorithm'] = 'Wiechart'
+        self.context.config['Recurrence']['referece_magnitude'] = 1.1
+        self.context.config['Recurrence']['time_window'] = 0.3
+
+        # Fake values for used attributes
+        self.context.current_sm = {'rupture_rate_model': [{'max_magnitude': '',
+                                    'a_value_cumulative': '',
+                                    'name': '',
+                                    'min_magnitude': '',
+                                    'b_value': ''}]}
+        self.context.completeness_table = []
+        self.context.current_filtered_eq = np.array([[1, 2, 3, 4, 5, 6]])
+
+        def assert_parameters(year_col, magnitude_col, completeness_table,
+            magnitude_window, recurrence_algorithm, reference_magnitude,
+            time_window):
+
+            self.assertEqual(magnitude_window, 0.5)
+            self.assertEqual(recurrence_algorithm, 'Wiechart')
+            self.assertEqual(reference_magnitude, 1.1)
+            self.assertEqual(time_window, 0.3)
+            return None, None, None, None
+
+        self.context.map_sc['recurrence'] = assert_parameters
+        recurrence(self.context)

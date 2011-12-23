@@ -3,33 +3,33 @@
 
 # Copyright (c) 2010-2011, GEM Foundation.
 #
-# OpenQuake is free software: you can redistribute it and/or modify
+# MToolkit is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License version 3
 # only, as published by the Free Software Foundation.
 #
-# OpenQuake is distributed in the hope that it will be useful,
+# MToolkit is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU Lesser General Public License version 3 for more details
 # (a copy is included in the LICENSE file that accompanied this code).
 #
 # You should have received a copy of the GNU Lesser General Public License
-# version 3 along with OpenQuake. If not, see
+# version 3 along with MToolkit. If not, see
 # <http://www.gnu.org/licenses/lgpl-3.0.txt> for a copy of the LGPLv3 License.
 
 """
 The purpose of this module is to provide objects
-to process a series of jobs in a predetermined
+to process a series of jobs in a sequential
 order. The order is determined by the queue of jobs.
 """
 
 import yaml
 
-from mtoolkit.jobs import read_eq_catalog, gardner_knopoff, stepp, \
-create_catalog_matrix
-
-from mtoolkit.declustering import gardner_knopoff_decluster
-from mtoolkit.completeness import stepp_analysis
+from mtoolkit.jobs          import gardner_knopoff, stepp
+from mtoolkit.jobs          import recurrence
+from mtoolkit.declustering  import gardner_knopoff_decluster
+from mtoolkit.completeness  import stepp_analysis
+from mtoolkit.recurrence    import recurrence_analysis
 
 
 class PipeLine(object):
@@ -49,8 +49,15 @@ class PipeLine(object):
         self.jobs = []
 
     def __eq__(self, other):
+        """Equal operator for pipeline"""
+
         return self.name == other.name \
                 and self.jobs == other.jobs
+
+    def __ne__(self, other):
+        """Not equal operator for pipeline"""
+
+        return not self.__eq__(other)
 
     def add_job(self, a_job):
         """Append a new job the to queue"""
@@ -75,16 +82,19 @@ class PipeLine(object):
 class PipeLineBuilder(object):
     """
     PipeLineBuilder allows to build a PipeLine
-    by assembling all the required jobs/steps
+    by assembling all the required jobs
     specified in the config file.
     """
 
-    def __init__(self, name):
-        self.name = name
-        self.map_step_callable = {'GardnerKnopoff': gardner_knopoff,
-                                  'Stepp': stepp}
+    PREPROCESSING_JOBS_CONFIG_KEY = 'preprocessing_jobs'
+    PROCESSING_JOBS_CONFIG_KEY = 'processing_jobs'
 
-    def build(self, config):
+    def __init__(self):
+        self.map_job_callable = {'GardnerKnopoff': gardner_knopoff,
+                                  'Stepp': stepp,
+                                  'Recurrence': recurrence}
+
+    def build(self, config, pipeline_type, compulsory_jobs=[]):
         """
         Build method creates the pipeline by
         assembling all the steps required.
@@ -93,14 +103,17 @@ class PipeLineBuilder(object):
         steps.
         """
 
-        pipeline = PipeLine(self.name)
-        pipeline.add_job(read_eq_catalog)
-        pipeline.add_job(create_catalog_matrix)
-        for step in config['preprocessing_steps']:
-            try:
-                pipeline.add_job(self.map_step_callable[step])
-            except KeyError:
-                raise RuntimeError('Invalid step: %s' % step)
+        pipeline = PipeLine(pipeline_type)
+        for job in compulsory_jobs:
+            pipeline.add_job(job)
+
+        if config[pipeline_type] != None:
+            for job in config[pipeline_type]:
+                if job in self.map_job_callable:
+                    pipeline.add_job(self.map_job_callable[job])
+                else:
+                    raise RuntimeError('Invalid job: %s' % job)
+
         return pipeline
 
 
@@ -111,8 +124,38 @@ class Context(object):
     intermediate results.
     """
 
-    def __init__(self, config_filename):
-        config_file = open(config_filename, 'r')
-        self.config = yaml.load(config_file)
+    def __init__(self, config_filename=None):
+        self.config = dict()
         self.map_sc = {'gardner_knopoff': gardner_knopoff_decluster,
-                        'stepp': stepp_analysis}
+                        'stepp': stepp_analysis,
+                        'recurrence': recurrence_analysis}
+
+        if config_filename:
+            config_file = open(config_filename, 'r')
+            self.config = yaml.load(config_file)
+        self.catalog_matrix = None
+
+
+class Workflow(object):
+    """
+    Workflow is the object responsible
+    for dealing with preprocessing and
+    processing pipelines
+    """
+
+    def __init__(self, preprocessing_pipeline, processing_pipeline):
+        self.preprocessing_pipeline = preprocessing_pipeline
+        self.processing_pipeline = processing_pipeline
+
+    def start(self, context, source_model_filter):
+        """
+        Execute the main workflow
+        """
+        self.preprocessing_pipeline.run(context)
+        if context.config['apply_processing_jobs']:
+            for sm, filtered_eq in \
+                    source_model_filter.filter_eqs(
+                    context.sm_definitions, context.catalog_matrix):
+                context.current_sm = sm
+                context.current_filtered_eq = filtered_eq
+                self.processing_pipeline.run(context)

@@ -15,7 +15,7 @@ eq_catalog_file: tests/data/completeness_input_test.csv
 pprocessing_result_file: path_to_file
 
 # Path to the file defining the source model.
-source_model_file: tests/data/area_source_model_processing.xml
+source_model_file: tests/data/area_source_model_processing.xml 
 
 # Path to the file defining the results 
 # of computation.
@@ -23,7 +23,7 @@ result_file: path_to_file
 
 # Boolean flag to declare
 # if processing jobs are needed.
-apply_processing_jobs: yes
+apply_processing_jobs: no
 
 # =========================================================
 # List of preprocessing jobs
@@ -34,7 +34,6 @@ apply_processing_jobs: yes
 # algorithms will be executed in the specified
 # order.
 preprocessing_jobs:
-- GardnerKnopoff
 - Stepp
 
 
@@ -47,7 +46,6 @@ preprocessing_jobs:
 # algorithms will be executed in the specified
 # order.
 processing_jobs:
-- Recurrence
 
 
 # =========================================================
@@ -72,10 +70,10 @@ Stepp: {
   time_window: 5,
 
   # Magnitude window of each step (in Mw units)
-  magnitude_windows: 0.2,
+  magnitude_windows: 0.1,
   
   # Sensitivity parameter (see documentation)
-  sensitivity: 0.1,
+  sensitivity: 0.2,
   
   # Increment Lock (fixes that the completeness magnitude
   # will always increase further back in time)
@@ -92,7 +90,7 @@ Stepp: {
 Recurrence: {
     
     # Width of magnitude window positive float
-    magnitude_window: 0.2,
+    magnitude_window: 0.5,
     
     # Choose one among Wiechart or MLE
     recurrence_algorithm: Wiechart,
@@ -101,5 +99,5 @@ Recurrence: {
     reference_magnitude: 1.1,
 
     # Greater than zero (float), used only with Wiechart
-    time_window: 0.2
+    time_window: 0.3
 }

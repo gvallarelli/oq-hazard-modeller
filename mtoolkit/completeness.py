@@ -3,18 +3,18 @@
 
 # Copyright (c) 2010-2011, GEM Foundation.
 #
-# OpenQuake is free software: you can redistribute it and/or modify
+# MToolkit is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License version 3
 # only, as published by the Free Software Foundation.
 #
-# OpenQuake is distributed in the hope that it will be useful,
+# MToolkit is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU Lesser General Public License version 3 for more details
 # (a copy is included in the LICENSE file that accompanied this code).
 #
 # You should have received a copy of the GNU Lesser General Public License
-# version 3 along with OpenQuake. If not, see
+# version 3 along with MToolkit. If not, see
 # <http://www.gnu.org/licenses/lgpl-3.0.txt> for a copy of the LGPLv3 License.
 
 """Module which implements completeness algorithms"""
@@ -119,6 +119,6 @@ def stepp_analysis(year, mw, dm=0.1, dt=1, ttol=0.2, iloc=True):
 
         ii = ii + 1
 
-    completeness_table = np.column_stack([mbin[:-1].T, endT - comp_length])
+    completeness_table = np.column_stack([endT - comp_length, mbin[:-1].T])
 
     return completeness_table
