@@ -20,7 +20,7 @@
 """
 The purpose of this module is to provide functions
 which tackle specific job, some of them wrap scientific
-functions defined in different modules.
+functions defined in the scientific module.
 """
 
 import logging
