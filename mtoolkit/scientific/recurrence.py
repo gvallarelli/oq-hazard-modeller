@@ -49,12 +49,15 @@ def recurrence_analysis(year_col, magnitude_col,
     :param recurrence_algorithm: recurrence algorithm could be one
                                  between Wiechart or MLE
     :type recurrence_algorithm: string
-    :param reference_magnitude:
+    :param reference_magnitude: for calculating cumulative recurrence rate
+                                (i.e. aValCumulative = annual rate of
+                                events >= reference_magnitude)
     :type reference_magnitude: float
     :param time_window: used only with Wiechart algorithm
     :type time_window: float
-    :returns: bval computed bvalue, sigb , a_m computed avalue,
-              siga_m
+    :returns: bval computed b-value, sigb error on b-value (one standard
+              deviation), a_m computed a-value, siga_m error on a-value
+              (one standard deviation)
     :rtype: numpy.float64
     """
 
@@ -86,16 +89,22 @@ def recurrence_analysis(year_col, magnitude_col,
 
 def recurrence_table(mag, dmag, year):
     """
-    Allows to count earthquake occurrences
+    Table of recurrence statistics for each magnitude
+    [Magnitude, Number of Observations, Cumulative Number
+    of Observations >= M, Number of Observations
+    (normalised to annual value), Cumulative Number of
+    Observations (normalised to annual value)]
+    Counts number and cumulative number of occurrences of
+    each magnitude in catalogue
 
-    :param year: year of earthquake
-    :type year:
-    :param mag: magnitude
-    :type mag:
-    :param dmag:
-    :type dmag: magnitude interval
-    :returns:
-    :rtype:
+    :param mag: catalog matrix magnitude column
+    :type mag: numpy.ndarray
+    :param dmag: magnitude interval
+    :type dmag: numpy.ndarray
+    :param year: catalog matrix year column
+    :type year: numpy.ndarray
+    :returns: recurrence table
+    :rtype: numpy.ndarray
     """
 
     # Define magnitude vectors
@@ -126,18 +135,22 @@ def recurrence_table(mag, dmag, year):
 
 def b_max_likelihood(mval, number_obs, dmag=0.1, m_c=0.0):
     """
-    Allows to calculate avalue and bvalue by Maximum Likelihood
+    Calculation of b-value and its uncertainty for a given catalogue,
+    using the maximum likelihood method of Aki (1965), with a correction
+    for discrete bin width (Bender, 1983).
 
-    :param mval:
-    :type mval:
-    :param number_obs:
-    :type number_obs:
-    :keyword dmag:
-    :type dmag:
-    :keyword m_c:
-    :type m_c:
-    :returns:
-    :rtype:
+    :param mval: array of reference magnitudes
+                 (column 0 from recurrence table)
+    :type mval: numpy.ndarray
+    :param number_obs: number of observations in magnitude bin
+                       (column 1 from recurrence table)
+    :type number_obs: numpy.ndarray
+    :keyword dmag: magnitude interval
+    :type dmag: positive float
+    :keyword m_c: completeness magnitude
+    :type m_c: float
+    :returns: bvalue and sigma_b
+    :rtype: float
     """
 
     # Exclude data below Mc
@@ -163,20 +176,20 @@ def b_maxlike_time(year, mag, ctime, cmag, dmag, ref_mag=0.0):
     The "final" bvalue is the weighted average of the various
     subsets - weighted according to the number of events in the subset
 
-    :param year:
-    :type year:
-    :param mag:
-    :type mag:
-    :param ctime:
-    :type ctime:
-    :param cmag:
-    :type cmag:
-    :param dmag:
-    :type dmag:
-    :keyword ref_mag:
-    :type ref_mag:
-    :returns:
-    :rtype:
+    :param year: catalog matrix year column
+    :type year: numpy.ndarray
+    :param mag: catalog matrix magnitude column
+    :type mag: numpy.ndarray
+    :param ctime: year of completeness for each period
+    :type ctime: numpy.ndarray
+    :param cmag: completeness magnitude for each period
+    :type cmag: numpy.ndarray
+    :param dmag: magnitude interval
+    :type dmag: positive float
+    :keyword ref_mag: reference magnitude
+    :type ref_mag: float
+    :returns: b-value, sigma_b, a-value, sigma_a
+    :rtype: float
     """
 
     ival = 0
@@ -219,20 +232,20 @@ def wiechert_prep(year, fmag, ctime, cmag, d_m, d_t):
     """
     Allows to prepare table input for Wiechart algorithm
 
-    :param year: year from catalogue
-    :type year:
-    :param fmag: magnitude from catalogue
-    :type fmag:
-    :param ctime: time period of complteness interval (from completness output)
-    :type ctime:
-    :param cmag: completeness magnitude (from completeness output)
-    :type cmag:
+    :param year: catalog matrix year column
+    :type year: numpy.ndarray
+    :param fmag: catalog matrix magnitude column
+    :type fmag: numpy.ndarray
+    :param ctime: year of completeness for each period
+    :type ctime: numpy.ndarray
+    :param cmag: completeness magnitude for each period
+    :type cmag: numpy.ndarray
     :param d_m: magnitude bin size (config file)
-    :type d_m:
+    :type d_m: positive float
     :param d_t: time bin size (from config file)
-    :type d_t:
-    :returns:
-    :rtype:
+    :type d_t: float
+    :returns: central magnitude, tper length of observation period,
+              n_obs number of events in magnitude increment
     """
 
     # Check to make sure ctime and cmag are the same length
@@ -277,24 +290,24 @@ def wiechert_prep(year, fmag, ctime, cmag, d_m, d_t):
     return cent_mag, t_per, n_obs
 
 
-def wiechart(tper, fmag, nobs, mrate=0, beta=1.5, itstab=1E-5):
+def wiechart(tper, fmag, nobs, mrate=0.0, beta=1.5, itstab=1E-5):
     """
     Wiechart algorithm
 
     :param tper: length of observation period corresponding to magnitude
-    :type tper:
+    :type tper: numpy.ndarray (float)
     :param fmag: central magnitude
-    :type fmag:
+    :type fmag: numpy.ndarray (float)
     :param nobs: number of events in magnitude increment
-    :type nobs:
-    :keyword mrate: target magnitude for rate
-    :type mrate:
+    :type nobs: numpy.ndarray (int)
+    :keyword mrate: reference magnitude
+    :type mrate: float
     :keyword beta: initial value for beta
-    :type beta:
-    :keyword itstab:
-    :type itstab: stabilisation tolerance
-    :returns:
-    :rtype:
+    :type beta: float
+    :keyword itstab: stabilisation tolerance
+    :type itstab: float
+    :returns: b-value, sigma_b, a-value, sigma_a
+    :rtype: float
     """
 
     d_m = fmag[1] - fmag[0]

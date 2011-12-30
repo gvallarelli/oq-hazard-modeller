@@ -48,8 +48,9 @@ def stepp_analysis(year, mw, dm=0.1, dt=1, ttol=0.2, iloc=True):
                    (i.e. completess cannot increase for more recent
                    catalogues)
     :type iloc: bool
-    :returns: completeness table which represents the earliest year
-              at which the catalogue is complete above a given magnitude
+    :returns: two-column completeness table representing the earliest
+              year at which the catalogue is complete above a
+              given magnitude
     :rtype: numpy.ndarray
     """
 
