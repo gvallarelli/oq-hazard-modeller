@@ -19,10 +19,10 @@
 
 """
 A set of utility functions for performing
-calculations on features in an eq catalogue
+calculations on features in an eq catalogue:
 
-*decimal_year
-*haversine
+* decimal_year
+* haversine
 """
 
 import numpy as np
