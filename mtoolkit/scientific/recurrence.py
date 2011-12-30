@@ -34,25 +34,26 @@ def recurrence_analysis(year_col, magnitude_col,
                         time_window):
     """
     Recurrence algorithm
+
     :param year_col: catalog matrix year column
     :type year_col: numpy.ndarray
     :param magnitude_col: catalog matrix magnitude column
     :type magnitude_col: numpy.ndarray
     :param completeness_table: completeness table which represents
-        the earliest year at which the catalogue is complete above
-        a given magnitude
+    the earliest year at which the catalogue is complete above
+    a given magnitude
     :type completeness_table: numpy.ndarray
     :param magnitude_window: width of magnitude window
     :type magnitude_window: float
     :param recurrence_algorithm: recurrence algorithm could be one
-        between Wiechart or MLE
+    between Wiechart or MLE
     :type recurrence_algorithm: string
     :param reference_magnitude:
     :type reference_magnitude: float
     :param time_window: used only with Wiechart algorithm
     :type time_window: float
     :returns: bval computed bvalue, sigb , a_m computed avalue,
-        siga_m
+    siga_m
     :rtype: numpy.float64
     """
 
@@ -85,6 +86,7 @@ def recurrence_analysis(year_col, magnitude_col,
 def recurrence_table(mag, dmag, year):
     """
     Allows to count earthquake occurrences
+
     :param year: year of earthquake
     :type year:
     :param mag: magnitude
@@ -124,6 +126,7 @@ def recurrence_table(mag, dmag, year):
 def b_max_likelihood(mval, number_obs, dmag=0.1, m_c=0.0):
     """
     Allows to calculate avalue and bvalue by Maximum Likelihood
+
     :param mval:
     :type mval:
     :param number_obs:
@@ -154,10 +157,11 @@ def b_max_likelihood(mval, number_obs, dmag=0.1, m_c=0.0):
 
 def b_maxlike_time(year, mag, ctime, cmag, dmag, ref_mag=0.0):
     """
-    Allows to get a profile of bvaue varying with time
+    Allows to get a profile of bvalue varying with time
     for calculation of the bvalue of the catalogue from MLE.
     The "final" bvalue is the weighted average of the various
     subsets - weighted according to the number of events in the subset
+
     :param year:
     :type year:
     :param mag:
@@ -213,6 +217,7 @@ def b_maxlike_time(year, mag, ctime, cmag, dmag, ref_mag=0.0):
 def wiechert_prep(year, fmag, ctime, cmag, d_m, d_t):
     """
     Allows to prepare table input for Wiechart algorithm
+
     :param year: year from catalogue
     :type year:
     :param fmag: magnitude from catalogue
@@ -274,6 +279,7 @@ def wiechert_prep(year, fmag, ctime, cmag, d_m, d_t):
 def wiechart(tper, fmag, nobs, mrate=0, beta=1.5, itstab=1E-5):
     """
     Wiechart algorithm
+
     :param tper: length of observation period corresponding to magnitude
     :type tper:
     :param fmag: central magnitude
