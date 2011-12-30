@@ -18,8 +18,11 @@
 # <http://www.gnu.org/licenses/lgpl-3.0.txt> for a copy of the LGPLv3 License.
 
 """
-A set of untility functions for performing
+A set of utility functions for performing
 calculations on features in an eq catalogue
+
+*decimal_year
+*haversine
 """
 
 import numpy as np
@@ -28,36 +31,48 @@ import numpy as np
 def decimal_year(year, month, day):
     """
     Allows to calculate the decimal year for a vector of dates
+
+    :param year: year column from catalogue matrix
+    :type year: numpy.ndarray
+    :param month: month column from catalogue matrix
+    :type month: numpy.ndarray
+    :param day: day column from catalogue matrix
+    :type day: numpy.ndarray
+    :returns: decimal year column
+    :rtype: numpy.ndarray
     """
+
     marker = np.array([0., 31., 59., 90., 120., 151., 181.,
                                  212., 243., 273., 304., 334.])
     tmonth = (month - 1).astype(int)
     day_count = marker[tmonth] + day - 1.
     dec_year = year + (day_count / 365.)
+    print len(dec_year)
     return dec_year
-
-
-def greg2julian(year, month, day, hour, minute, second):
-    """
-    Allows to convert a date from Gregorian to Julian format
-    """
-
-    timeut = hour + (minute / 60.0) + (second / 3600.0)
-    jd = (367.0 * year) - np.floor(7.0 * (year +
-             np.floor((month + 9.0) / 12.0)) / 4.0) - np.floor(3.0 *
-             (np.floor((year + (month - 9.0) / 7.0) / 100.0) + 1.0) /
-             4.0) + np.floor((275.0 * month) / 9.0) + day +\
-             1721028.5 + (timeut / 24.0)
-    return jd
 
 
 def haversine(lon1, lat1, lon2, lat2, radians=False, earth_rad=6371.227):
     """
     Allows to calculate geographical distance
     using the haversine formula.
+
+    :param lon1: longitude of the first set of locations
+    :type lon1: numpy.ndarray
+    :param lat1: latitude of the frist set of locations
+    :type lat1: numpy.ndarray
+    :param lon2: longitude of the second set of locations
+    :type lon2: numpy.float64
+    :param lat2: latitude of the second set of locations
+    :type lat2: numpy.float64
+    :keyword radians: states if locations are given in terms of radians
+    :type radians: bool
+    :keyword earth_rad: radius of the earth in km
+    :type earth_rad: float
     :returns: geographical distance in km
+    :rtype: numpy.ndarray
     """
 
+    print 'haversine', type(lon1), type(lat1), type(lon2), type(lat2)
     if radians == False:
         cfact = np.pi / 180.
         lon1 = cfact * lon1
@@ -90,5 +105,4 @@ def haversine(lon1, lat1, lon2, lat2, radians=False, earth_rad=6371.227):
         distance[:, i] = (2. * earth_rad * np.arctan2(np.sqrt(aval),
                                                     np.sqrt(1 - aval))).T
         i += 1
-
     return distance
