@@ -21,7 +21,8 @@
 The purpose of this module is to provide functions
 which implement declustering algorithms. Implemented
 algorithms are:
-- GardnerKnopoff
+
+* GardnerKnopoff
 """
 
 import numpy as np

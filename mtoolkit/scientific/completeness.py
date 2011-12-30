@@ -21,7 +21,8 @@
 The purpose of this module is to provide functions
 which implement completeness algorithms. Implemented
 algorithms are:
-- Stepp
+
+* Stepp
 """
 
 
@@ -43,11 +44,12 @@ def stepp_analysis(year, mw, dm=0.1, dt=1, ttol=0.2, iloc=True):
     :keyword ttol: tolerance threshold
     :type ttol: positive float
     :keyword iloc: Fix analysis such that completeness magnitude
-    can only increase with catalogue duration (i.e. completess
-    cannot increase for more recent catalogues)
+                   can only increase with catalogue duration
+                   (i.e. completess cannot increase for more recent
+                   catalogues)
     :type iloc: bool
     :returns: completeness table which represents the earliest year
-    at which the catalogue is complete above a given magnitude
+              at which the catalogue is complete above a given magnitude
     :rtype: numpy.ndarray
     """
 

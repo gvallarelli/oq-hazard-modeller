@@ -21,7 +21,8 @@
 The purpose of this module is to provide functions
 which implement recurrence algorithms. Implemented
 algorithms are:
-- Recurrence analysis (Wiechart, MLE)
+
+* Recurrence analysis (Wiechart, MLE)
 """
 
 
@@ -40,20 +41,20 @@ def recurrence_analysis(year_col, magnitude_col,
     :param magnitude_col: catalog matrix magnitude column
     :type magnitude_col: numpy.ndarray
     :param completeness_table: completeness table which represents
-    the earliest year at which the catalogue is complete above
-    a given magnitude
+                               the earliest year at which the catalogue
+                               is complete above a given magnitude
     :type completeness_table: numpy.ndarray
     :param magnitude_window: width of magnitude window
     :type magnitude_window: float
     :param recurrence_algorithm: recurrence algorithm could be one
-    between Wiechart or MLE
+                                 between Wiechart or MLE
     :type recurrence_algorithm: string
     :param reference_magnitude:
     :type reference_magnitude: float
     :param time_window: used only with Wiechart algorithm
     :type time_window: float
     :returns: bval computed bvalue, sigb , a_m computed avalue,
-    siga_m
+              siga_m
     :rtype: numpy.float64
     """
 
