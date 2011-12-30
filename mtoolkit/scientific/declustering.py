@@ -31,12 +31,12 @@ from mtoolkit.scientific.catalogue_utilities import decimal_year, haversine
 def calc_windows(magnitude, window_opt):
     """
     Allows to calculate distance and time windows (sw, search window)
-    see reference: 'Van Stiphout et al (2010)'.
+    see reference: `Van Stiphout et al (2010)`.
 
     :param magnitude: magnitude
     :type magnitude: float
-    :param window_opt: window option can be one between: Gruenthal,
-    Uhrhammer, GardnerKnopoff
+    :param window_opt: window option can be one between: `Gruenthal`,
+                       `Uhrhammer`, `GardnerKnopoff`
     :type window_opt: string
     :returns: distance and time windows
     :rtype: numpy.ndarray
@@ -68,16 +68,17 @@ def gardner_knopoff_decluster(
     Gardner Knopoff algorithm.
 
     :param catalog_matrix: eq catalog in a matrix format with these columns in
-    order: 'year', 'month', 'day', 'longitude', 'latitude', 'Mw'
+                            order: `year`, `month`, `day`, `longitude`,
+                            `latitude`, `Mw`
     :type catalog_matrix: numpy.ndarray
     :keyword window_opt: method used in calculating distance and time windows
     :type window_opt: string
     :keyword fs_time_prop: foreshock time window as a proportion of
-    aftershock time window
+                           aftershock time window
     :type fs_time_prop: positive float
-    :returns: vcl vector indicating cluster number, vmain_shock catalog containing
-    non-clustered events, flag_vector vector indicating which eq events belong to
-    a cluster
+    :returns: **vcl vector** indicating cluster number, **vmain_shock catalog**
+              containing non-clustered events, **flag_vector** indicating
+              which eq events belong to a cluster
     :rtype: numpy.ndarray
     """
 
