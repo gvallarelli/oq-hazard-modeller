@@ -47,7 +47,7 @@ def decimal_year(year, month, day):
     tmonth = (month - 1).astype(int)
     day_count = marker[tmonth] + day - 1.
     dec_year = year + (day_count / 365.)
-    print len(dec_year)
+
     return dec_year
 
 
@@ -72,7 +72,6 @@ def haversine(lon1, lat1, lon2, lat2, radians=False, earth_rad=6371.227):
     :rtype: numpy.ndarray
     """
 
-    print 'haversine', type(lon1), type(lat1), type(lon2), type(lat2)
     if radians == False:
         cfact = np.pi / 180.
         lon1 = cfact * lon1
