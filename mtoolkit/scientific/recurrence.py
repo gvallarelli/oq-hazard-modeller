@@ -17,13 +17,50 @@
 # version 3 along with MToolkit. If not, see
 # <http://www.gnu.org/licenses/lgpl-3.0.txt> for a copy of the LGPLv3 License.
 
+"""
+The purpose of this module is to provide functions
+which implement recurrence algorithms. Implemented
+algorithms are:
+
+* Recurrence analysis (Wiechart, MLE)
+"""
+
 
 import numpy as np
 
 
 def recurrence_analysis(year_col, magnitude_col,
-                        completeness_table, magnitude_window, recurrence_algorithm,
-                        reference_magnitude, time_window):
+                        completeness_table, magnitude_window,
+                        recurrence_algorithm, reference_magnitude,
+                        time_window):
+    """
+    Recurrence algorithm
+
+    :param year_col: catalog matrix year column
+    :type year_col: numpy.ndarray
+    :param magnitude_col: catalog matrix magnitude column
+    :type magnitude_col: numpy.ndarray
+    :param completeness_table: completeness table which represents
+                               the earliest year at which the catalogue
+                               is complete above a given magnitude
+    :type completeness_table: numpy.ndarray
+    :param magnitude_window: width of magnitude window
+    :type magnitude_window: float
+    :param recurrence_algorithm: recurrence algorithm could be one
+                                 between Wiechart or MLE
+    :type recurrence_algorithm: string
+    :param reference_magnitude: for calculating cumulative recurrence rate
+                                (i.e. aValCumulative = annual rate of
+                                events >= reference_magnitude)
+    :type reference_magnitude: float
+    :param time_window: used only with Wiechart algorithm
+    :type time_window: float
+    :returns: bval computed b-value, sigb error on b-value (one standard
+              deviation), a_m computed a-value, siga_m error on a-value
+              (one standard deviation)
+    :rtype: numpy.float64
+    """
+
     if recurrence_algorithm == 'Wiechart':
         cent_mag, t_per, n_obs = wiechert_prep(
             year_col,
@@ -47,15 +84,28 @@ def recurrence_analysis(year_col, magnitude_col,
                 completeness_table[:, 1],
                 magnitude_window,
                 reference_magnitude)
-
     return bval, sigb, a_m, siga_m
 
 
 def recurrence_table(mag, dmag, year):
-    ''' Function to count earthquake occurrences
-    # year = Year of earthquake
-    # mag  = Magnitude
-    # dmag = Magniutde interval'''
+    """
+    Table of recurrence statistics for each magnitude
+    [Magnitude, Number of Observations, Cumulative Number
+    of Observations >= M, Number of Observations
+    (normalised to annual value), Cumulative Number of
+    Observations (normalised to annual value)]
+    Counts number and cumulative number of occurrences of
+    each magnitude in catalogue
+
+    :param mag: catalog matrix magnitude column
+    :type mag: numpy.ndarray
+    :param dmag: magnitude interval
+    :type dmag: numpy.ndarray
+    :param year: catalog matrix year column
+    :type year: numpy.ndarray
+    :returns: recurrence table
+    :rtype: numpy.ndarray
+    """
 
     # Define magnitude vectors
     num_year = np.max(year) - np.min(year) + 1.
@@ -84,8 +134,24 @@ def recurrence_table(mag, dmag, year):
 
 
 def b_max_likelihood(mval, number_obs, dmag=0.1, m_c=0.0):
-    ''' Function to calculate a and b-value by Maximum Likelihood
-    Mc is optional - default to 0'''
+    """
+    Calculation of b-value and its uncertainty for a given catalogue,
+    using the maximum likelihood method of Aki (1965), with a correction
+    for discrete bin width (Bender, 1983).
+
+    :param mval: array of reference magnitudes
+                 (column 0 from recurrence table)
+    :type mval: numpy.ndarray
+    :param number_obs: number of observations in magnitude bin
+                       (column 1 from recurrence table)
+    :type number_obs: numpy.ndarray
+    :keyword dmag: magnitude interval
+    :type dmag: positive float
+    :keyword m_c: completeness magnitude
+    :type m_c: float
+    :returns: bvalue and sigma_b
+    :rtype: float
+    """
 
     # Exclude data below Mc
     id0 = mval >= m_c
@@ -102,12 +168,29 @@ def b_max_likelihood(mval, number_obs, dmag=0.1, m_c=0.0):
     sigma_b = 2.3 * (bval ** 2.0) * np.sqrt(sigma_b)
     return bval, sigma_b
 
-def b_maxlike_time(year, mag, ctime, cmag, dmag, ref_mag = 0.0):
-    '''Function to get a profile of b-value varying with time
-    for calculation of the b-value of the catalogue from MLE
-    The "final" b-value is the weighted average of the various
+
+def b_maxlike_time(year, mag, ctime, cmag, dmag, ref_mag=0.0):
+    """
+    Allows to get a profile of bvalue varying with time
+    for calculation of the bvalue of the catalogue from MLE.
+    The "final" bvalue is the weighted average of the various
     subsets - weighted according to the number of events in the subset
-    '''
+
+    :param year: catalog matrix year column
+    :type year: numpy.ndarray
+    :param mag: catalog matrix magnitude column
+    :type mag: numpy.ndarray
+    :param ctime: year of completeness for each period
+    :type ctime: numpy.ndarray
+    :param cmag: completeness magnitude for each period
+    :type cmag: numpy.ndarray
+    :param dmag: magnitude interval
+    :type dmag: positive float
+    :keyword ref_mag: reference magnitude
+    :type ref_mag: float
+    :returns: b-value, sigma_b, a-value, sigma_a
+    :rtype: float
+    """
 
     ival = 0
     while ival < np.shape(ctime)[0]:
@@ -126,7 +209,7 @@ def b_maxlike_time(year, mag, ctime, cmag, dmag, ref_mag = 0.0):
                        (bval + sigma_b) * ref_mag - aval)
         if ival == 0:
             gr_pars = np.array([np.hstack([bval, sigma_b, aval, sigma_a])])
-            neq = np.sum(id1) # Number of events
+            neq = np.sum(id1)  # Number of events
         else:
             gr_pars = np.vstack([gr_pars, np.hstack([bval, sigma_b, aval,
                                                      sigma_a])])
@@ -144,66 +227,26 @@ def b_maxlike_time(year, mag, ctime, cmag, dmag, ref_mag = 0.0):
 
     return bval, sigma_b, aval, sigma_a
 
-def b_least_squares(mval, n_c, m_c=0):
-    ''' Calculate b-value from least squares approach
-    # Mc is optional - default to 0'''
-
-    # Exclude data below Mc
-    id0 = np.logical_and(mval >= m_c, n_c != 0)
-    mval = mval[id0]
-    log_nc = np.log10(n_c[id0])
-
-    ndata = np.shape(log_nc)[0]
-    if ndata <= 2:
-        print 'To few earthquakes to derive b-value by least squares'
-        return
-    else:
-        barx = np.sum(mval, axis=0) / ndata
-        bary = np.sum(log_nc, axis=0) / ndata
-        ssxx = np.sum((mval ** 2.)) - ndata * (barx ** 2.0)
-        ssyy = np.sum(log_nc ** 2.) - ndata * (bary ** 2.0)
-        ssxy = np.sum(mval * log_nc) - ndata * barx * bary
-        bval = ssxy / ssxx
-        aval = bary - bval * barx
-        rsq = (ssxy ** 2.0) / (ssxx * ssyy)
-        stmp = np.sqrt((ssyy - bval * ssxy) / (ndata - 2.0))
-        sig_a = stmp * np.sqrt((1.0 / ndata) + ((barx ** 2.0) / ssxx))
-        sig_b = stmp / np.sqrt(ssxx)
-        return aval, sig_a, bval, sig_b, rsq
-
-
-def completeness_flag(year, fmag, ctime, cmag, flag_vector):
-    '''This is a quick function to return a flag vector that indicates
-    events outside the range of completeness. It takes as input the
-    year and magnitude of the event, and the completeness time and
-    magnitude of the catalogue. If an existing flag_vector is input
-    then the function will merge the input vector (probably from the
-    declustering) with the completeness flag vector.'''
-    neq = np.shape(year)[0]
-    ncat = np.shape(ctime)[0]  # Number of magnitude-time categories
-    temp_flag = np.zeros(neq, dtype=int)
-    i = 0
-    while i < ncat:
-        id0 = np.logical_and(year < ctime[i], fmag < cmag[i])
-        temp_flag[id0] = 1
-        i += 1
-
-    # Flag vector is input for the catalogue and has the same
-    # length as the catalogue - merge the two
-    output_flag = np.zeros(neq, dtype=int)
-    id0 = np.logical_or(temp_flag != 0, flag_vector != 0)
-    output_flag[id0] = 1
-
-    return output_flag
-
 
 def wiechert_prep(year, fmag, ctime, cmag, d_m, d_t):
-    '''Function to prepare table input for Wiechart algorithm:
-    year, fMag = year and magnitude respectively (from catalogue)
-    ctime = time period of completeness interval (from Completeness output)
-    cMag = completeness magnitude (from Completeness output)
-    d_m = magnitude bin size (from Config file)
-    d_t = time bin size (from Config file)'''
+    """
+    Allows to prepare table input for Wiechart algorithm
+
+    :param year: catalog matrix year column
+    :type year: numpy.ndarray
+    :param fmag: catalog matrix magnitude column
+    :type fmag: numpy.ndarray
+    :param ctime: year of completeness for each period
+    :type ctime: numpy.ndarray
+    :param cmag: completeness magnitude for each period
+    :type cmag: numpy.ndarray
+    :param d_m: magnitude bin size (config file)
+    :type d_m: positive float
+    :param d_t: time bin size (from config file)
+    :type d_t: float
+    :returns: central magnitude, tper length of observation period,
+              n_obs number of events in magnitude increment
+    """
 
     # Check to make sure ctime and cmag are the same length
     if np.shape(ctime)[0] != np.shape(cmag)[0]:
@@ -247,15 +290,26 @@ def wiechert_prep(year, fmag, ctime, cmag, d_m, d_t):
     return cent_mag, t_per, n_obs
 
 
-def wiechart(tper, fmag, nobs, mrate=0, beta=1.5, itstab=1E-5):
-    '''Quick implementation of the Wiechart method for estimating
-    Gutenberg & Richter (1944) recurrence parameters
-    tper: Length of observation period corresponding to magniutde
-    fmag: Central magnitude
-    nobs: Number of events in magnitude increment
-    mrate: Target magnitude for rate
-    beta = Initial value for beta
-    itstab = Stabilisation tolerence'''
+def wiechart(tper, fmag, nobs, mrate=0.0, beta=1.5, itstab=1E-5):
+    """
+    Wiechart algorithm
+
+    :param tper: length of observation period corresponding to magnitude
+    :type tper: numpy.ndarray (float)
+    :param fmag: central magnitude
+    :type fmag: numpy.ndarray (float)
+    :param nobs: number of events in magnitude increment
+    :type nobs: numpy.ndarray (int)
+    :keyword mrate: reference magnitude
+    :type mrate: float
+    :keyword beta: initial value for beta
+    :type beta: float
+    :keyword itstab: stabilisation tolerance
+    :type itstab: float
+    :returns: b-value, sigma_b, a-value, sigma_a
+    :rtype: float
+    """
+
     d_m = fmag[1] - fmag[0]
     itbreak = 0
     while (itbreak != 1):

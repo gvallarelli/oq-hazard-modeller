@@ -27,9 +27,9 @@ import yaml
 
 from mtoolkit.jobs          import gardner_knopoff, stepp
 from mtoolkit.jobs          import recurrence
-from mtoolkit.declustering  import gardner_knopoff_decluster
-from mtoolkit.completeness  import stepp_analysis
-from mtoolkit.recurrence    import recurrence_analysis
+from mtoolkit.scientific.declustering import gardner_knopoff_decluster
+from mtoolkit.scientific.completeness import stepp_analysis
+from mtoolkit.scientific.recurrence import recurrence_analysis
 
 
 class PipeLine(object):
