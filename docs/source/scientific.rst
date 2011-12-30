@@ -9,7 +9,6 @@ The :mod:`Catalogue utilities` Module
 .. currentmodule:: mtoolkit.scientific.catalogue_utilities
 .. automodule:: mtoolkit.scientific.catalogue_utilities
 .. autofunction:: decimal_year
-.. autofunction:: greg2julian
 .. autofunction:: haversine
 
 The :mod:`Declustering` Module
