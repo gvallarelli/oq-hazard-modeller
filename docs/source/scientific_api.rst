@@ -1,6 +1,4 @@
-
-MT Scientific modules
-=============================================================
+.. _scientific_api:
 
 These modules implement all the hazard calculations.
 
@@ -34,7 +32,3 @@ The :mod:`Recurrence` Module
 .. autofunction:: b_maxlike_time
 .. autofunction:: wiechert_prep
 .. autofunction:: wiechart
-
-
-   
-
