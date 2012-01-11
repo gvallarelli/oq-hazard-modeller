@@ -24,9 +24,9 @@ context.
 Two phases strategy
 -------------------------------------------------------------------------------
 
-.. image:: ../img/MToolkitSetupPhase.png
+.. image:: ../img/MtoolkitSetupPhase.png
 
-.. image:: ../img/MToolkitExecutionPhase.png
+.. image:: ../img/MtoolkitExecutionPhase.png
 
 MToolkit's computation can be seen as a two phases strategy. In the first one
 the configuration file is read and two pipelines are built by a PipeLineBuilder
