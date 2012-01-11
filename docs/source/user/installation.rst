@@ -46,6 +46,8 @@ Run MToolkit with::
 
     $ python main -i config.yml
 
+All settings are defined in the :ref:`configuration file <configuration>`.
+
 
 .. Links
 .. _Lxml: http://lxml.de/

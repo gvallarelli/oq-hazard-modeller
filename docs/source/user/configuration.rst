@@ -59,6 +59,14 @@ preprocessing pipeline are:
     - GardnerKnopoff
     - Stepp
 
+If no preprocessing jobs are required then this fields are left blank:
+
+.. code-block:: yaml
+    :linenos:
+
+    preprocessing_jobs:
+
+
 A pipeline for processing jobs is enabled by putting value true or yes to
 apply_processing_jobs flag:
 
@@ -106,5 +114,5 @@ below:
 
 .. Links
 .. _Yaml: http://www.yaml.org
-.. _Nrml: http://github.com/gem/NRML
+.. _Nrml: http://docs.openquake.org/openquake/python/schema.html
 

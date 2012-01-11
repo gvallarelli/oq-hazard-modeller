@@ -9,9 +9,9 @@ Modeller's Toolkit's documentation
 Release v\ |version|. (:ref:`Installation <installation>`)
 
 Modeller's Toolkit (MToolkit) is a `Python`_ tool for seismic hazard 
-calculations. MToolkit allows users to create inputs needed for the
-calculations within OpenQuake_, it works also as a means for prototyping risk
-calculations. MToolkit is written by GEM Foundation and licensed under
+model preparation. MToolkit allows users to create inputs needed for the
+calculations within OpenQuake_, it works also as a means for prototyping model
+development. MToolkit is written by GEM Foundation and licensed under
 `LGPL3 license`_.
 
 
