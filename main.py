@@ -28,11 +28,16 @@ from mtoolkit.catalog_filter import SourceModelCatalogFilter
 
 if __name__ == '__main__':
 
-    INPUT_CONFIG_FILENAME = cmd_line()
+    CMD_LINE_ARGS = cmd_line()
+
+    INPUT_CONFIG_FILENAME = CMD_LINE_ARGS.input_file[0]
+
+    LOG_LEVEL = logging.DEBUG if CMD_LINE_ARGS.detailed else logging.INFO
+
+    build_logger(LOG_LEVEL)
 
     if INPUT_CONFIG_FILENAME != None:
         CONTEXT = Context(INPUT_CONFIG_FILENAME)
-        build_logger()
 
         PIPELINE_PREPROCESSING = PipeLineBuilder().build(
                 CONTEXT.config,
@@ -49,8 +54,3 @@ if __name__ == '__main__':
         WORKFLOW = Workflow(PIPELINE_PREPROCESSING, PIPELINE_PROCESSING)
 
         WORKFLOW.start(CONTEXT, SM_CATALOG_FILTER)
-
-        LOGGER = logging.getLogger('mt_logger')
-        LOGGER.debug(CONTEXT.vcl)
-        LOGGER.debug(CONTEXT.catalog_matrix)
-        LOGGER.debug(CONTEXT.flag_vector)

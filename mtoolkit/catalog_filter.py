@@ -25,6 +25,9 @@ the earthquake catalog.
 
 from shapely.geometry import Point, Polygon
 import numpy as np
+import logging
+
+LOGGER = logging.getLogger('mt_logger')
 
 
 class SourceModelCatalogFilter(object):
@@ -74,6 +77,14 @@ class AreaSourceCatalogFilter(object):
 
             if polygon.contains(eq_point):
                 filtered_eq.append(eq)
+
+        LOGGER.info(''.center(80, '-'))
+
+        LOGGER.info("AREA SOURCE FILTERING")
+
+        LOGGER.debug("Number of events inside the zone %s: %s" %
+            (source['name'], len(filtered_eq)))
+
         return np.array(filtered_eq)
 
 

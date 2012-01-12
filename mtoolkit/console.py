@@ -35,13 +35,18 @@ def build_cmd_parser():
     parser.add_argument('-i', '--input-file',
                         dest='input_file',
                         nargs=1,
-                        metavar='input file',
                         help="""Specify the configuration
                         file (i.e. config.yml)""")
 
+    parser.add_argument('-d', '--detailed',
+                        help="""Show detailed information
+                        about the workflow
+                        """,
+                        action='store_true')
+
     parser.add_argument('-v', '--version',
                         action='version',
-                        version="%(prog)s 0.0.1")
+                        version="%(prog)s 0.1")
     return parser
 
 
@@ -53,40 +58,35 @@ def cmd_line():
     """
 
     parser = build_cmd_parser()
-    input_filename = None
     if len(sys.argv) == 1:
         parser.print_help()
     else:
         args = parser.parse_args()
-        if os.path.exists(args.input_file[0]):
-            input_filename = args.input_file[0]
-        else:
+        if not os.path.exists(args.input_file[0]):
             print 'Error: non existent input file\n'
             parser.print_help()
 
-    return input_filename
+    return args
 
 
-def build_logger():
+def build_logger(logging_level):
     """
     Build a custom logger which provides
     log data to the cmdline and in a log_file
     """
 
     logger = logging.getLogger('mt_logger')
-    logger.setLevel(logging.DEBUG)
+    logger.setLevel(logging_level)
+
+    formatter = logging.Formatter('%(message)s\n')
 
     console_handler = logging.StreamHandler()
-    logfile_handler = logging.FileHandler('log_file.log')
-
-    console_handler.setLevel(logging.INFO)
-    logfile_handler.setLevel(logging.DEBUG)
-
-    formatter = logging.Formatter(
-        '%(levelname)s - %(message)s - %(asctime)s')
-
+    console_handler.setLevel(logging_level)
     console_handler.setFormatter(formatter)
-    logfile_handler.setFormatter(formatter)
-
     logger.addHandler(console_handler)
-    logger.addHandler(logfile_handler)
+
+    if logging_level < logging.INFO:
+        logfile_handler = logging.FileHandler('debug.log')
+        logfile_handler.setLevel(logging_level)
+        logfile_handler.setFormatter(formatter)
+        logger.addHandler(logfile_handler)
