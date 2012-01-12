@@ -35,6 +35,7 @@ CATALOG_MATRIX_YEAR_INDEX = 0
 CATALOG_MATRIX_MW_INDEX = 5
 CATALOG_MATRIX_FIXED_COLOUMNS = ['year', 'month', 'day',
                                 'longitude', 'latitude', 'Mw']
+LOGGER = logging.getLogger('mt_logger')
 
 
 def logged_job(job):
@@ -46,12 +47,10 @@ def logged_job(job):
 
     def wrapper(context):
         """Wraps a job, adding logging statements"""
-        logger = logging.getLogger('mt_logger')
-        start_job_line = 'Start:\t%21s \t' % job.__name__
-        end_job_line = 'End:\t%21s \t' % job.__name__
-        logger.info(start_job_line)
+        LOGGER.info(''.center(80, '-'))
+        LOGGER.info(" %22s " % job.__name__.upper())
         job(context)
-        logger.info(end_job_line)
+
     return wrapper
 
 
@@ -69,6 +68,8 @@ def read_eq_catalog(context):
         eq_entries.append(eq_entry)
     context.eq_catalog = eq_entries
 
+    LOGGER.debug("* Eq catalog length: %s" % len(context.eq_catalog))
+
 
 @logged_job
 def read_source_model(context):
@@ -84,6 +85,8 @@ def read_source_model(context):
     for sm in reader.read():
         sm_definitions.append(sm)
     context.sm_definitions = sm_definitions
+
+    LOGGER.debug("* Eq number source models: %s" % len(context.sm_definitions))
 
 
 @logged_job
@@ -133,6 +136,17 @@ def gardner_knopoff(context):
     context.catalog_matrix = vmain_shock
     context.flag_vector = flag_vector
 
+    LOGGER.debug(
+        "* Number of events after declustering: %s" % len(vmain_shock))
+
+    LOGGER.debug(
+        "* Number of events removed during declustering: %s" %
+        (np.sum(flag_vector != 0)))
+
+    LOGGER.debug(
+        "* Number of cluster identified: %s" %
+        (np.size(np.unique(vcl), 0) - 1))
+
 
 @logged_job
 def stepp(context):
@@ -149,6 +163,15 @@ def stepp(context):
         context.config['Stepp']['time_window'],
         context.config['Stepp']['sensitivity'],
         context.config['Stepp']['increment_lock'])
+
+    LOGGER.debug(
+        "* Number of events into completeness algorithm: %s"
+            % len(context.catalog_matrix))
+
+    LOGGER.debug(
+        "* Completeness table: ")
+
+    LOGGER.debug(context.completeness_table)
 
 
 @logged_job
@@ -176,3 +199,6 @@ def recurrence(context):
         context.config['Recurrence']['reference_magnitude']
     context.current_sm['Recurrence_sigb'] = sigb
     context.current_sm['Recurrence_siga_m'] = siga_m
+
+    LOGGER.debug("Bvalue: %3.3f, Sigma_b: %3.3f, Avalue: %3.3f, Sigma_a: %3.3f"
+        % (bval, sigb, a_m, siga_m))

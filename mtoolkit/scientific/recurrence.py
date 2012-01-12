@@ -27,6 +27,9 @@ algorithms are:
 
 
 import numpy as np
+import logging
+
+LOGGER = logging.getLogger('mt_logger')
 
 
 def recurrence_analysis(year_col, magnitude_col,
@@ -225,6 +228,10 @@ def b_maxlike_time(year, mag, ctime, cmag, dmag, ref_mag=0.0):
     aval = np.sum(neq * gr_pars[:, 2])
     sigma_a = np.sum(neq * gr_pars[:, 3])
 
+    LOGGER.debug("Recurrence parameters for each time interval")
+
+    LOGGER.debug(gr_pars)
+
     return bval, sigma_b, aval, sigma_a
 
 
@@ -286,6 +293,9 @@ def wiechert_prep(year, fmag, ctime, cmag, d_m, d_t):
         else:
             t_per[i] = np.max(year) - ctime[dummy1[0]] + 1
         i += 1
+
+    LOGGER.debug("Wiechart preparation:")
+    LOGGER.debug(np.column_stack([cent_mag, t_per, n_obs]))
 
     return cent_mag, t_per, n_obs
 

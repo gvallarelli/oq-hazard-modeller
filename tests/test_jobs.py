@@ -153,7 +153,7 @@ class JobsTestCase(unittest.TestCase):
         def assert_parameters(data, time_dist_windows, foreshock_time_window):
             self.assertEquals("GardnerKnopoff", time_dist_windows)
             self.assertEquals(0.5, foreshock_time_window)
-            return None, None, None
+            return [], [], []
 
         context.map_sc['gardner_knopoff'] = assert_parameters
         gardner_knopoff(context)
@@ -273,7 +273,7 @@ class JobsTestCase(unittest.TestCase):
             self.assertEqual(recurrence_algorithm, 'Wiechart')
             self.assertEqual(reference_magnitude, 1.1)
             self.assertEqual(time_window, 0.3)
-            return None, None, None, None
+            return 0.0, 0.0, 0.0, 0.0
 
         self.context.map_sc['recurrence'] = assert_parameters
         recurrence(self.context)

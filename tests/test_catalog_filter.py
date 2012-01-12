@@ -30,7 +30,8 @@ class AreaSourceCatalogFilterTestCase(unittest.TestCase):
 
     def setUp(self):
         self.sm_geometry = {'area_boundary':
-            [-0.5, 0.0, -0.5, 0.5, 0.0, 0.5, 0.0, 0.0]}
+            [-0.5, 0.0, -0.5, 0.5, 0.0, 0.5, 0.0, 0.0],
+            'name': 'fake'}
         self.empty_catalog = np.array([])
 
     def test_filtering_an_empty_eq_catalog(self):
