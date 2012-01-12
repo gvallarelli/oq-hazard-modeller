@@ -30,13 +30,14 @@ if __name__ == '__main__':
 
     CMD_LINE_ARGS = cmd_line()
 
-    INPUT_CONFIG_FILENAME = CMD_LINE_ARGS.input_file[0]
+    if CMD_LINE_ARGS:
 
-    LOG_LEVEL = logging.DEBUG if CMD_LINE_ARGS.detailed else logging.INFO
+        INPUT_CONFIG_FILENAME = CMD_LINE_ARGS.input_file[0]
 
-    build_logger(LOG_LEVEL)
+        LOG_LEVEL = logging.DEBUG if CMD_LINE_ARGS.detailed else logging.INFO
 
-    if INPUT_CONFIG_FILENAME != None:
+        build_logger(LOG_LEVEL)
+
         CONTEXT = Context(INPUT_CONFIG_FILENAME)
 
         PIPELINE_PREPROCESSING = PipeLineBuilder().build(

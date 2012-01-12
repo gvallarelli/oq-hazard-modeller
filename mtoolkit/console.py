@@ -58,6 +58,7 @@ def cmd_line():
     """
 
     parser = build_cmd_parser()
+    args = None
     if len(sys.argv) == 1:
         parser.print_help()
     else:
