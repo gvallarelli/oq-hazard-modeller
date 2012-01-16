@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
-           xmlns="http://openquake.org/xmlns/nrml/0.2"
-           xmlns:nrml="http://openquake.org/xmlns/nrml/0.2"
+           xmlns="http://openquake.org/xmlns/nrml/0.3"
+           xmlns:nrml="http://openquake.org/xmlns/nrml/0.3"
            xmlns:gmlsf="http://www.opengis.net/gmlsf"
            xmlns:gml="http://www.opengis.net/gml"
-           targetNamespace="http://openquake.org/xmlns/nrml/0.2"
+           targetNamespace="http://openquake.org/xmlns/nrml/0.3"
            elementFormDefault="qualified"
-           xml:lang="en"> 
+           xml:lang="en">
 
     <xs:import namespace="http://www.opengis.net/gmlsf" schemaLocation="./gmlsfLevels.xsd"/>
     <xs:import namespace="http://www.opengis.net/gml" schemaLocation="./gmlsf.xsd"/>
@@ -32,11 +32,13 @@
                     <xs:choice minOccurs="0" maxOccurs="1">
                         <xs:element ref="hazardResult"/>
                         <xs:element ref="sourceModel"/>
-                        <xs:element ref="logicTreeSet"/>
                         <xs:element ref="rupture"/>
                         <xs:element ref="riskResult"/>
                         <xs:element ref="exposurePortfolio"/>
                         <xs:element ref="vulnerabilityModel"/>
+                        <xs:element ref="logicTree"/>
+                        <xs:element ref="disaggregationResultField"/>
+                        <xs:element ref="uhsResultSet"/>
                     </xs:choice>
                 </xs:sequence>
             </xs:extension>
