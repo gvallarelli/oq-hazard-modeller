@@ -8,14 +8,14 @@
       <areaBoundary>
         <gml:Polygon>
           <gml:exterior>
-            <gml:LinearRing>
+            <gml:LinearRing srsName="urn:ogc:def:crs:EPSG::4326">
               <gml:posList>21.0 31.0 21.0 35.0 25.0 35.0 25.0 31.0</gml:posList>
             </gml:LinearRing>
           </gml:exterior>
         </gml:Polygon>
       </areaBoundary>
       <ruptureRateModel>
-        <truncatedGutenbergRichter>
+        <truncatedGutenbergRichter type="ML">
           <aValueCumulative>0.0</aValueCumulative>
           <bValue>0.0</bValue>
           <minMagnitude>0.0</minMagnitude>
@@ -24,7 +24,7 @@
         <strike>0.0</strike><dip>90.0</dip><rake>0.0</rake>
       </ruptureRateModel>
       <ruptureDepthDistribution>
-        <magnitude>5.0</magnitude>
+        <magnitude type="ML">5.0</magnitude>
         <depth>15.0</depth>
       </ruptureDepthDistribution>
       <hypocentralDepth>15.0</hypocentralDepth>
@@ -35,14 +35,14 @@
       <areaBoundary>
         <gml:Polygon>
           <gml:exterior>
-            <gml:LinearRing>
+            <gml:LinearRing srsName="urn:ogc:def:crs:EPSG::4326">
               <gml:posList>21.0 36.0 21.0 40.0 25.0 40.0 25.0 36.0</gml:posList>
             </gml:LinearRing>
           </gml:exterior>
         </gml:Polygon>
       </areaBoundary>
       <ruptureRateModel>
-        <truncatedGutenbergRichter>
+        <truncatedGutenbergRichter type="ML">
           <aValueCumulative>0.0</aValueCumulative>
           <bValue>0.0</bValue>
           <minMagnitude>0.0</minMagnitude>
@@ -51,7 +51,7 @@
         <strike>0.0</strike><dip>90.0</dip><rake>0.0</rake>
       </ruptureRateModel>
       <ruptureDepthDistribution>
-        <magnitude>5.0</magnitude>
+        <magnitude type="ML">5.0</magnitude>
         <depth>15.0</depth>
       </ruptureDepthDistribution>
       <hypocentralDepth>15.0</hypocentralDepth>
