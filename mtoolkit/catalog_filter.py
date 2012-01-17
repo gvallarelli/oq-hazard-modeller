@@ -83,7 +83,7 @@ class AreaSourceCatalogFilter(object):
         LOGGER.info("AREA SOURCE FILTERING")
 
         LOGGER.debug("Number of events inside the zone %s: %s" %
-            (source['name'], len(filtered_eq)))
+            (source.name, len(filtered_eq)))
 
         return np.array(filtered_eq)
 
@@ -103,9 +103,4 @@ def _extract_polygon(source_model):
     defined in the source model area boundary
     """
 
-    area_boundary = source_model['area_boundary']
-
-    points = [(area_boundary[i], area_boundary[i + 1])
-        for i in xrange(0, len(area_boundary), 2)]
-
-    return Polygon(points)
+    return Polygon(source_model.area_boundary.pos_list)

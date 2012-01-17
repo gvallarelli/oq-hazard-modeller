@@ -156,6 +156,6 @@ class Workflow(object):
             for sm, filtered_eq in \
                     source_model_filter.filter_eqs(
                     context.sm_definitions, context.catalog_matrix):
-                context.current_sm = sm
+                context.cur_sm = sm
                 context.current_filtered_eq = filtered_eq
                 self.processing_pipeline.run(context)

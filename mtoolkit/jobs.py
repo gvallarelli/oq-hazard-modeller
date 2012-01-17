@@ -27,7 +27,7 @@ import logging
 import numpy as np
 
 from mtoolkit.eqcatalog import EqEntryReader
-from mtoolkit.smodel import NRMLReader
+from mtoolkit.nrml import NRMLReader
 from mtoolkit.utils import get_data_path, SCHEMA_DIR
 
 NRML_SCHEMA_PATH = get_data_path('nrml.xsd', SCHEMA_DIR)
@@ -183,8 +183,7 @@ def recurrence(context):
         in a pipeline
     """
 
-    bval, sigb, a_m, siga_m = \
-        context.map_sc['recurrence'](
+    bval, sigb, a_m, siga_m = context.map_sc['recurrence'](
             context.current_filtered_eq[:, CATALOG_MATRIX_YEAR_INDEX],
             context.current_filtered_eq[:, CATALOG_MATRIX_MW_INDEX],
             context.completeness_table,
@@ -193,12 +192,17 @@ def recurrence(context):
             context.config['Recurrence']['reference_magnitude'],
             context.config['Recurrence']['time_window'])
 
-    context.current_sm['rupture_rate_model'][0]['a_value_cumulative'] = a_m
-    context.current_sm['rupture_rate_model'][0]['b_value'] = bval
-    context.current_sm['rupture_rate_model'][0]['min_magnitude'] = \
-        context.config['Recurrence']['reference_magnitude']
-    context.current_sm['Recurrence_sigb'] = sigb
-    context.current_sm['Recurrence_siga_m'] = siga_m
+    t = context.cur_sm.rupture_rate_model.truncated_gutenberg_richter._replace(
+        a_value=a_m,
+        b_value=bval,
+        min_magnitude=context.config['Recurrence']['reference_magnitude'])
+
+    context.cur_sm.rupture_rate_model = \
+        context.cur_sm.rupture_rate_model._replace(
+                                        truncated_gutenberg_richter=t)
+
+    context.cur_sm.recurrence_sigb = sigb
+    context.cur_sm.recurrence_siga_m = siga_m
 
     LOGGER.debug("Bvalue: %3.3f, Sigma_b: %3.3f, Avalue: %3.3f, Sigma_a: %3.3f"
         % (bval, sigb, a_m, siga_m))
