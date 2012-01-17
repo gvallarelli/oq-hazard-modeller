@@ -19,13 +19,11 @@
 
 """
 The purpose of this module is to provide constants,
-and some utilities: function and exception to deal
-with nrml (xml file format) and the retrieval of
-nrml schema path.
+and some utility function to deal with nrml (xml file format)
+and the retrieval of nrml schema path or nrml input files.
 """
 
 import os
-from lxml import etree
 
 
 ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
@@ -38,16 +36,18 @@ DATA_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__),
 
 FILE_NAME_ERROR = "Unknown filename"
 
-SCHEMA_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__),
-        '../nrml/schema'))
-
-NRML_NS = 'http://openquake.org/xmlns/nrml/0.2'
+NRML_NS = 'http://openquake.org/xmlns/nrml/0.3'
 GML_NS = 'http://www.opengis.net/gml'
-QUAKEML_NS = 'http://quakeml.org/xmlns/quakeml/1.1'
 
 NRML = "{%s}" % NRML_NS
 GML = "{%s}" % GML_NS
-QUAKEML = "{%s}" % QUAKEML_NS
+
+NSMAP = {None: NRML_NS, "gml": GML_NS}
+
+ROOT = "%snrml" % NRML
+SOURCE_MODEL = "%ssourceModel" % NRML
+CONFIG = "%sconfig" % NRML
+TYPE = "type"
 
 AREA_SOURCE = "%sareaSource" % NRML
 GML_ID = "%sid" % GML
@@ -55,28 +55,30 @@ GML_NAME = "%sname" % GML
 TECTONIC_REGION = "%stectonicRegion" % NRML
 
 AREA_BOUNDARY = "%sareaBoundary" % NRML
+POLYGON = "%sPolygon" % GML
+EXTERIOR = "%sexterior" % GML
+LINEAR_RING = "%sLinearRing" % GML
+LINEAR_RING_NAME = "srsName"
 POS_LIST = "%sposList" % GML
+
+RUPTURE_RATE_MODEL = "%sruptureRateModel" % NRML
 
 TRUNCATED_GUTEN_RICHTER = "%struncatedGutenbergRichter" % NRML
 
-RUPTURE_RATE_MODEL = "%sruptureRateModel" % NRML
 A_VALUE_CUMULATIVE = "%saValueCumulative" % NRML
 B_VALUE = "%sbValue" % NRML
 MIN_MAGNITUDE = "%sminMagnitude" % NRML
 MAX_MAGNITUDE = "%smaxMagnitude" % NRML
-FOCAL_MECHANISM = "%sfocalMechanism" % NRML
-FM_ID_ATTR = "publicID"
-NODAL_PLANES = "%snodalPlanes" % QUAKEML
-NODAL_PLANE_STRIKE = "%sstrike" % QUAKEML
-NODAL_PLANE_DIP = "%sdip" % QUAKEML
-NODAL_PLANE_RAKE = "%srake" % QUAKEML
+
+STRIKE = "%sstrike" % NRML
+DIP = "%sdip" % NRML
+RAKE = "%srake" % NRML
 
 RUPTURE_DEPTH_DISTRIB = "%sruptureDepthDistribution" % NRML
 MAGNITUDE = "%smagnitude" % NRML
 DEPTH = "%sdepth" % NRML
 
 HYPOCENTRAL_DEPTH = "%shypocentralDepth" % NRML
-
 
 SIMPLE_FAULT_SOURCE = "%ssimpleFaultSource" % NRML
 RAKE = "%srake" % NRML
@@ -98,24 +100,6 @@ LOCATION = "%slocation" % NRML
 POINT = "%sPoint" % GML
 SRS_NAME = "srsName"
 POS = "%spos" % GML
-
-
-class XMLValidationError(Exception):
-    """XML schema validation error"""
-
-    def __init__(self, filename, message):
-        """Constructs a new validation exception for the given file name"""
-        Exception.__init__(self, message)
-        self.args = (filename, message)
-        self.filename = filename
-        self.message = message
-
-
-def valid_schema(source_model_path, schema_path):
-    """Check if the xml is conform to the schema provided"""
-    xml_doc = etree.parse(source_model_path)
-    xmlschema = etree.XMLSchema(etree.parse(schema_path))
-    return xmlschema.validate(xml_doc)
 
 
 def get_data_path(filename, dirname):

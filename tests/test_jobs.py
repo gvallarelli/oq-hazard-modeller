@@ -21,6 +21,12 @@
 import unittest
 import numpy as np
 
+from mtoolkit.source_model import (AreaSource, AREA_BOUNDARY, POINT,
+                                    TRUNCATED_GUTEN_RICHTER,
+                                    RUPTURE_RATE_MODEL,
+                                    MAGNITUDE,
+                                    RUPTURE_DEPTH_DISTRIB)
+
 from mtoolkit.workflow import Context, PipeLineBuilder, Workflow
 from mtoolkit.jobs import (read_eq_catalog, read_source_model,
                            create_catalog_matrix, gardner_knopoff,
@@ -82,44 +88,42 @@ class JobsTestCase(unittest.TestCase):
 
     def test_read_smodel(self):
         self.context.config['source_model_file'] = self.smodel_filename
-        expected_first_sm_definition = \
-            {'id_as': 'src_1',
-             'area_boundary':
-               [132.93, 42.85, 134.86,
-                41.82, 129.73, 38.38,
-                128.15, 40.35],
-             'rupture_rate_model': [
-               {'max_magnitude': 8.0,
-                'a_value_cumulative':
-                    3.1612436654341836,
-                'name': 'truncated_guten_richter',
-                'min_magnitude': 5.0,
-                'b_value': 0.7318999871612379},
-             {'name': 'focal_mechanism',
-              'nodal_planes': [
-                {'strike': 0.0,
-                 'rake': 0.0,
-                 'dip': 90.0,
-                 'id': 0},
-                {'strike': 12.0,
-                 'rake': 0.0,
-                 'dip': 40.0,
-                 'id': 1}],
-              'id': 'smi:fm1/0'}],
-             'tectonic_region':
-                'Active Shallow Crust',
-             'id_sm': 'sm1',
-             'rupture_depth_distribution': {
-                'depth': [15.0],
-                'magnitude': [5.0],
-                'name': 'rupture_depth_distrib'},
-             'hypocentral_depth': 15.0,
-             'type': 'area_source',
-             'name': 'Source 8.CH.3'}
+
+        asource = AreaSource()
+        asource.nrml_id = "n1"
+        asource.source_model_id = "sm1"
+        asource.area_source_id = "src03"
+        asource.name = "Quito"
+        asource.tectonic_region = "Active Shallow Crust"
+
+        area_boundary = [-122.5, 37.5, -121.5,
+                            37.5, -121.5, 38.5,
+                            -122.5, 38.5]
+        asource.area_boundary = AREA_BOUNDARY("urn:ogc:def:crs:EPSG::4326",
+                [POINT(area_boundary[i],
+                    area_boundary[i + 1])
+                    for i in xrange(0, len(area_boundary), 2)])
+
+        truncated_gutenberg_richter = TRUNCATED_GUTEN_RICHTER(
+            5.0, 0.8, 5.0, 7.0, "ML")
+
+        strike = 0.0
+        dip = 90.0
+        rake = 0.0
+
+        asource.rupture_rate_model = RUPTURE_RATE_MODEL(
+            truncated_gutenberg_richter, strike, dip, rake)
+
+        magnitude = MAGNITUDE("ML", [6.0, 6.5, 7.0])
+        depth = [5000.0, 3000.0, 0.0]
+
+        asource.rupture_depth_dist = RUPTURE_DEPTH_DISTRIB(magnitude, depth)
+
+        asource.hypocentral_depth = 5000.0
 
         read_source_model(self.context)
-        self.assertEqual(2, len(self.context.sm_definitions))
-        self.assertEqual(expected_first_sm_definition,
+        self.assertEqual(1, len(self.context.sm_definitions))
+        self.assertEqual(asource,
                 self.context.sm_definitions[0])
 
     def test_gardner_knopoff(self):
@@ -204,23 +208,25 @@ class JobsTestCase(unittest.TestCase):
 
         run(workflow, context)
 
+        sm = context.sm_definitions[0]
+
         self.assertAlmostEqual(
-            context.sm_definitions[0][RUPTURE_KEY][0]['b_value'],
+            sm.rupture_rate_model.truncated_gutenberg_richter.b_value,
             0.569790,
             DECIMAL_PLACES)
 
         self.assertAlmostEqual(
-            context.sm_definitions[0]['Recurrence_sigb'],
+            sm.recurrence_sigb,
             0.041210,
             DECIMAL_PLACES)
 
         self.assertAlmostEqual(
-            context.sm_definitions[0][RUPTURE_KEY][0]['a_value_cumulative'],
+            sm.rupture_rate_model.truncated_gutenberg_richter.a_value,
             132.051268,
             DECIMAL_PLACES)
 
         self.assertAlmostEqual(
-            context.sm_definitions[0]['Recurrence_siga_m'],
+            sm.recurrence_siga_m,
             7.701386,
             DECIMAL_PLACES)
 
@@ -228,25 +234,28 @@ class JobsTestCase(unittest.TestCase):
         context = create_context('config_recurrence_mle.yml')
 
         workflow = create_workflow(context.config)
+
         run(workflow, context)
 
+        sm = context.sm_definitions[0]
+
         self.assertAlmostEqual(
-            context.sm_definitions[0][RUPTURE_KEY][0]['b_value'],
+            sm.rupture_rate_model.truncated_gutenberg_richter.b_value,
             0.595256,
             DECIMAL_PLACES)
 
         self.assertAlmostEqual(
-            context.sm_definitions[0]['Recurrence_sigb'],
+            sm.recurrence_sigb,
             0.024816,
             DECIMAL_PLACES)
 
         self.assertAlmostEqual(
-            context.sm_definitions[0][RUPTURE_KEY][0]['a_value_cumulative'],
+            sm.rupture_rate_model.truncated_gutenberg_richter.a_value,
             3.123129,
             DECIMAL_PLACES)
 
         self.assertAlmostEqual(
-            context.sm_definitions[0]['Recurrence_siga_m'],
+            sm.recurrence_siga_m,
             0.027298,
             DECIMAL_PLACES)
 
@@ -257,11 +266,11 @@ class JobsTestCase(unittest.TestCase):
         self.context.config['Recurrence']['time_window'] = 0.3
 
         # Fake values for used attributes
-        self.context.current_sm = {'rupture_rate_model': [{'max_magnitude': '',
-                                    'a_value_cumulative': '',
-                                    'name': '',
-                                    'min_magnitude': '',
-                                    'b_value': ''}]}
+        self.context.cur_sm = AreaSource()
+        tgr = TRUNCATED_GUTEN_RICHTER('', '', '', '', '')
+        rrm = RUPTURE_RATE_MODEL(tgr, '', '', '')
+        self.context.cur_sm.rupture_rate_model = rrm
+
         self.context.completeness_table = []
         self.context.current_filtered_eq = np.array([[1, 2, 3, 4, 5, 6]])
 

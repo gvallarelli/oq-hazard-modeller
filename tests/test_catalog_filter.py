@@ -25,13 +25,25 @@ import numpy as np
 from mtoolkit.catalog_filter import (AreaSourceCatalogFilter,
                                      SourceModelCatalogFilter)
 
+from mtoolkit.source_model import AreaSource, AREA_BOUNDARY, POINT
+
+
+def build_geometry(pos_list):
+
+    area_source = AreaSource()
+    area_source.area_boundary = AREA_BOUNDARY('fake',
+        [POINT(pos_list[i], pos_list[i + 1])
+                for i in xrange(0, len(pos_list), 2)])
+    return area_source
+
 
 class AreaSourceCatalogFilterTestCase(unittest.TestCase):
 
     def setUp(self):
-        self.sm_geometry = {'area_boundary':
-            [-0.5, 0.0, -0.5, 0.5, 0.0, 0.5, 0.0, 0.0],
-            'name': 'fake'}
+
+        self.sm_geometry = build_geometry([-0.5, 0.0, -0.5,
+                            0.5, 0.0, 0.5, 0.0, 0.0])
+
         self.empty_catalog = np.array([])
 
     def test_filtering_an_empty_eq_catalog(self):
@@ -54,7 +66,7 @@ class AreaSourceCatalogFilterTestCase(unittest.TestCase):
                 as_filter.filter_eqs(self.sm_geometry, eq_catalog)))
 
     def test_a_bad_polygon_raises_exception(self):
-        self.sm_geometry = {'area_boundary': [1, 1, 1, 2, 2, 1, 2, 2]}
+        self.sm_geometry = build_geometry([1, 1, 1, 2, 2, 1, 2, 2])
         as_filter = AreaSourceCatalogFilter()
 
         self.assertRaises(RuntimeError,

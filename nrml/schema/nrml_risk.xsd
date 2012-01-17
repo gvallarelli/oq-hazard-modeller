@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
            xmlns:gml="http://www.opengis.net/gml"
-           xmlns:nrml="http://openquake.org/xmlns/nrml/0.2"
-           xmlns="http://openquake.org/xmlns/nrml/0.2"
-           targetNamespace="http://openquake.org/xmlns/nrml/0.2"
+           xmlns:nrml="http://openquake.org/xmlns/nrml/0.3"
+           xmlns="http://openquake.org/xmlns/nrml/0.3"
+           targetNamespace="http://openquake.org/xmlns/nrml/0.3"
            elementFormDefault="qualified"
            xml:lang="en">
 
@@ -14,9 +14,7 @@
     
     <xs:complexType name="AssetValue">
         <xs:simpleContent>
-            <xs:extension base="NonNegativeDoubleType">
-                <xs:attribute name="unit" type="AssetValueUnit"/>
-            </xs:extension>
+            <xs:extension base="NonNegativeDoubleType" />
         </xs:simpleContent>
     </xs:complexType>
 
@@ -31,12 +29,16 @@
     </xs:simpleType>
     
     <xs:simpleType name="AssetValueUnit">
-        <xs:restriction base="xs:string">
-            <xs:enumeration value="USD"/>
-            <xs:enumeration value="EUR"/>
-        </xs:restriction>
+        <xs:restriction base="xs:string" />
     </xs:simpleType>
     
+    <xs:simpleType name="PoE">
+        <xs:restriction base="xs:double">
+            <xs:minInclusive value="0"/>
+            <xs:maxInclusive value="1"/>
+        </xs:restriction>
+    </xs:simpleType>
+
     <!-- ============================================================= -->
     
     <xs:complexType name="DiscreteVulnerabilitySet">
@@ -99,6 +101,7 @@
                 </xs:sequence>
                 <xs:attribute name="assetCategory" type="AssetCategory" use="required"/>
                 <xs:attribute name="lossCategory" type="LossCategory" use="required"/>
+                <xs:attribute name="unit" type="AssetValueUnit"/>
             </xs:extension>
         </xs:complexContent>
     </xs:complexType>
@@ -124,13 +127,16 @@
                 <xs:sequence>
                     <xs:element ref="LMNode" minOccurs="1" maxOccurs="unbounded"/>
                 </xs:sequence>
+                <xs:attribute name="calculator" type="xs:string"/>
                 <xs:attribute name="endBranchLabel" type="xs:string"/>
                 <xs:attribute name="lossCategory" type="LossCategory"/>
                 <xs:attribute name="unit" type="AssetValueUnit"/>
+                <xs:attribute name="timeSpan" type="xs:double"/>
+                <xs:attribute name="poE" type="PoE"/>
             </xs:extension>
         </xs:complexContent>
     </xs:complexType>
-    
+
     <xs:element name="LMNode" type="LMNodeType" substitutionGroup="fieldNode"/>
     <xs:complexType name="LMNodeType">
         <xs:complexContent>
@@ -144,8 +150,11 @@
 
     <xs:complexType name="LMLossType">
         <xs:sequence>
-            <xs:element name="mean" type="NonNegativeDoubleType"/>
-            <xs:element name="stdDev" type="NonNegativeDoubleType"/>
+            <xs:choice minOccurs="1" maxOccurs="2">
+                <xs:element name="mean" type="NonNegativeDoubleType"/>
+                <xs:element name="stdDev" type="NonNegativeDoubleType"/>
+                <xs:element name="value" type="NonNegativeDoubleType"/>
+            </xs:choice>
         </xs:sequence>
         <xs:attribute name="assetRef" type="xs:ID" use="required"/>
     </xs:complexType>
@@ -173,8 +182,7 @@
         <xs:complexContent>
             <xs:extension base="FieldNode">
                 <xs:sequence>
-                    <xs:element name="assetDescription" type="xs:string" minOccurs="0" maxOccurs="1"/>
-                    <xs:element name="vulnerabilityFunctionReference" type="xs:string"/>
+                    <xs:element name="taxonomy" type="xs:string"/>
                     <xs:element name="structureCategory" type="xs:string"/>
                     <xs:element name="assetValue" type="AssetValue"/>
                 </xs:sequence>

@@ -25,8 +25,8 @@ order. The order is determined by the queue of jobs.
 
 import yaml
 
-from mtoolkit.jobs          import gardner_knopoff, stepp
-from mtoolkit.jobs          import recurrence
+from mtoolkit.jobs import gardner_knopoff, stepp
+from mtoolkit.jobs import recurrence
 from mtoolkit.scientific.declustering import gardner_knopoff_decluster
 from mtoolkit.scientific.completeness import stepp_analysis
 from mtoolkit.scientific.recurrence import recurrence_analysis
@@ -156,6 +156,6 @@ class Workflow(object):
             for sm, filtered_eq in \
                     source_model_filter.filter_eqs(
                     context.sm_definitions, context.catalog_matrix):
-                context.current_sm = sm
+                context.cur_sm = sm
                 context.current_filtered_eq = filtered_eq
                 self.processing_pipeline.run(context)

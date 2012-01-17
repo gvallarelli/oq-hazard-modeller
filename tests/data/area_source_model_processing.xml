@@ -1,6 +1,5 @@
-<?xml version="1.0" encoding="UTF-8"?>
-
-<nrml xmlns="http://openquake.org/xmlns/nrml/0.2" xmlns:gml="http://www.opengis.net/gml" xmlns:qml="http://quakeml.org/xmlns/quakeml/1.1" gml:id="n1">
+<?xml version="1.0"?>
+<nrml xmlns="http://openquake.org/xmlns/nrml/0.3" xmlns:gml="http://www.opengis.net/gml" gml:id="n1">
   <sourceModel gml:id="sm1">
     <config/>
     <areaSource gml:id="src_1">
@@ -9,48 +8,23 @@
       <areaBoundary>
         <gml:Polygon>
           <gml:exterior>
-            <gml:LinearRing>
+            <gml:LinearRing srsName="urn:ogc:def:crs:EPSG::4326">
               <gml:posList>21.0 31.0 21.0 35.0 25.0 35.0 25.0 31.0</gml:posList>
             </gml:LinearRing>
           </gml:exterior>
         </gml:Polygon>
       </areaBoundary>
       <ruptureRateModel>
-        <truncatedGutenbergRichter>
-          <aValueCumulative>3.1612436654341836</aValueCumulative>
-          <bValue>0.7318999871612379</bValue>
-          <minMagnitude>5.0</minMagnitude>
-          <maxMagnitude>8.0</maxMagnitude>
+        <truncatedGutenbergRichter type="ML">
+          <aValueCumulative>0.0</aValueCumulative>
+          <bValue>0.0</bValue>
+          <minMagnitude>0.0</minMagnitude>
+          <maxMagnitude>0.0</maxMagnitude>
         </truncatedGutenbergRichter>
-        <focalMechanism publicID="smi:fm1/0">
-          <qml:nodalPlanes>
-            <qml:nodalPlane1>
-              <qml:strike>
-                <qml:value>0.0</qml:value>
-              </qml:strike>
-              <qml:dip>
-                <qml:value>90.0</qml:value>
-              </qml:dip>
-              <qml:rake>
-                <qml:value>0.0</qml:value>
-              </qml:rake>
-            </qml:nodalPlane1>
-            <qml:nodalPlane2>
-              <qml:strike>
-                <qml:value>12.0</qml:value>
-              </qml:strike>
-              <qml:dip>
-                <qml:value>40.0</qml:value>
-              </qml:dip>
-              <qml:rake>
-                <qml:value>0.0</qml:value>
-              </qml:rake>
-            </qml:nodalPlane2>
-          </qml:nodalPlanes>
-        </focalMechanism>
+        <strike>0.0</strike><dip>90.0</dip><rake>0.0</rake>
       </ruptureRateModel>
       <ruptureDepthDistribution>
-        <magnitude>5.0</magnitude>
+        <magnitude type="ML">5.0</magnitude>
         <depth>15.0</depth>
       </ruptureDepthDistribution>
       <hypocentralDepth>15.0</hypocentralDepth>
@@ -61,37 +35,23 @@
       <areaBoundary>
         <gml:Polygon>
           <gml:exterior>
-            <gml:LinearRing>
+            <gml:LinearRing srsName="urn:ogc:def:crs:EPSG::4326">
               <gml:posList>21.0 36.0 21.0 40.0 25.0 40.0 25.0 36.0</gml:posList>
             </gml:LinearRing>
           </gml:exterior>
         </gml:Polygon>
       </areaBoundary>
       <ruptureRateModel>
-        <truncatedGutenbergRichter>
-          <aValueCumulative>3.3729064679738805</aValueCumulative>
-          <bValue>0.7318999871612379</bValue>
-          <minMagnitude>5.0</minMagnitude>
-          <maxMagnitude>7.8</maxMagnitude>
+        <truncatedGutenbergRichter type="ML">
+          <aValueCumulative>0.0</aValueCumulative>
+          <bValue>0.0</bValue>
+          <minMagnitude>0.0</minMagnitude>
+          <maxMagnitude>0.0</maxMagnitude>
         </truncatedGutenbergRichter>
-        <focalMechanism publicID="smi:fm1/0">
-          <qml:nodalPlanes>
-            <qml:nodalPlane1>
-              <qml:strike>
-                <qml:value>0.0</qml:value>
-              </qml:strike>
-              <qml:dip>
-                <qml:value>90.0</qml:value>
-              </qml:dip>
-              <qml:rake>
-                <qml:value>0.0</qml:value>
-              </qml:rake>
-            </qml:nodalPlane1>
-          </qml:nodalPlanes>
-        </focalMechanism>
+        <strike>0.0</strike><dip>90.0</dip><rake>0.0</rake>
       </ruptureRateModel>
       <ruptureDepthDistribution>
-        <magnitude>5.0</magnitude>
+        <magnitude type="ML">5.0</magnitude>
         <depth>15.0</depth>
       </ruptureDepthDistribution>
       <hypocentralDepth>15.0</hypocentralDepth>

@@ -19,7 +19,7 @@ source_model_file: tests/data/area_source_model_processing.xml
 
 # Path to the file defining the results 
 # of computation.
-result_file: path_to_file
+result_file: tests/data/output.xml
 
 # Boolean flag to declare
 # if processing jobs are needed.
