@@ -20,11 +20,11 @@
 import unittest
 from mock import Mock, MagicMock
 
-from mtoolkit.workflow  import PipeLine, PipeLineBuilder, Context
-from mtoolkit.workflow  import Workflow
-from mtoolkit.jobs      import read_eq_catalog, create_catalog_matrix
-from mtoolkit.jobs      import gardner_knopoff, stepp, recurrence
-from mtoolkit.utils     import get_data_path, DATA_DIR
+from mtoolkit.workflow import PipeLine, PipeLineBuilder, Context
+from mtoolkit.workflow import Workflow
+from mtoolkit.jobs import read_eq_catalog, create_catalog_matrix
+from mtoolkit.jobs import gardner_knopoff, stepp, recurrence
+from mtoolkit.nrml_xml import get_data_path, DATA_DIR
 
 
 class ContextTestCase(unittest.TestCase):

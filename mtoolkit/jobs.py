@@ -28,7 +28,7 @@ import numpy as np
 
 from mtoolkit.eqcatalog import EqEntryReader
 from mtoolkit.nrml import NRMLReader
-from mtoolkit.utils import get_data_path, SCHEMA_DIR
+from mtoolkit.nrml_xml import get_data_path, SCHEMA_DIR
 
 NRML_SCHEMA_PATH = get_data_path('nrml.xsd', SCHEMA_DIR)
 CATALOG_MATRIX_YEAR_INDEX = 0
