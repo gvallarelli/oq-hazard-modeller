@@ -23,7 +23,7 @@ representing the different elements inside the
 NRML data format.
 """
 
-from collections    import namedtuple
+from collections import namedtuple
 
 
 POINT = namedtuple('Point', 'lon, lat')

@@ -17,15 +17,15 @@
 # version 3 along with MToolkit. If not, see
 # <http://www.gnu.org/licenses/lgpl-3.0.txt> for a copy of the LGPLv3 License.
 
-import  unittest
-import  os
-from    lxml                import etree
+import unittest
+import os
+from lxml import etree
 
-from mtoolkit.nrml_xml       import get_data_path, DATA_DIR, SCHEMA_DIR
-from mtoolkit.nrml           import NRMLReader, AreaSourceWriter
-from mtoolkit.source_model   import (AreaSource, POINT, AREA_BOUNDARY,
+from mtoolkit.nrml_xml import get_data_path, DATA_DIR, SCHEMA_DIR
+from mtoolkit.nrml import NRMLReader, AreaSourceWriter
+from mtoolkit.source_model import (AreaSource, POINT, AREA_BOUNDARY,
                                     TRUNCATED_GUTEN_RICHTER)
-from mtoolkit.source_model   import (MAGNITUDE, RUPTURE_RATE_MODEL,
+from mtoolkit.source_model import (MAGNITUDE, RUPTURE_RATE_MODEL,
                                     RUPTURE_DEPTH_DISTRIB)
 
 AREA_SOURCE = get_data_path('area_source_model.xml', DATA_DIR)

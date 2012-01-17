@@ -25,8 +25,8 @@ order. The order is determined by the queue of jobs.
 
 import yaml
 
-from mtoolkit.jobs          import gardner_knopoff, stepp
-from mtoolkit.jobs          import recurrence
+from mtoolkit.jobs import gardner_knopoff, stepp
+from mtoolkit.jobs import recurrence
 from mtoolkit.scientific.declustering import gardner_knopoff_decluster
 from mtoolkit.scientific.completeness import stepp_analysis
 from mtoolkit.scientific.recurrence import recurrence_analysis

@@ -26,14 +26,14 @@ of the NRML data format.
 import os
 from lxml import etree
 
-from mtoolkit                import nrml_xml
-from mtoolkit.source_model   import AreaSource
-from mtoolkit.source_model   import POINT
-from mtoolkit.source_model   import AREA_BOUNDARY
-from mtoolkit.source_model   import TRUNCATED_GUTEN_RICHTER
-from mtoolkit.source_model   import RUPTURE_RATE_MODEL
-from mtoolkit.source_model   import MAGNITUDE
-from mtoolkit.source_model   import RUPTURE_DEPTH_DISTRIB
+from mtoolkit import nrml_xml
+from mtoolkit.source_model import AreaSource
+from mtoolkit.source_model import POINT
+from mtoolkit.source_model import AREA_BOUNDARY
+from mtoolkit.source_model import TRUNCATED_GUTEN_RICHTER
+from mtoolkit.source_model import RUPTURE_RATE_MODEL
+from mtoolkit.source_model import MAGNITUDE
+from mtoolkit.source_model import RUPTURE_DEPTH_DISTRIB
 
 XML_NODE = 1
 
@@ -262,8 +262,8 @@ def _write_header(area_sources):
     source_model_elem.attrib[nrml_xml.GML_ID] = \
         area_sources[first_area_source_index].source_model_id
 
-    config_elem = etree.SubElement(
-        source_model_elem, nrml_xml.CONFIG)
+    etree.SubElement(source_model_elem, nrml_xml.CONFIG)
+
     return root_elem
 
 
