@@ -31,7 +31,7 @@ from mtoolkit.workflow import Context, PipeLineBuilder, Workflow
 from mtoolkit.jobs import (read_eq_catalog, read_source_model,
                            create_catalog_matrix, gardner_knopoff,
                            recurrence, create_default_values)
-from mtoolkit.catalog_filter import SourceModelCatalogFilter
+from mtoolkit.catalog_filter import CatalogFilter, SourceModelCatalogFilter
 from mtoolkit.nrml_xml import get_data_path, DATA_DIR
 
 DECIMAL_PLACES = 5
@@ -56,7 +56,7 @@ def create_context(filename=None):
 
 
 def run(workflow, context):
-    return workflow.start(context, SourceModelCatalogFilter())
+    return workflow.start(context, CatalogFilter(SourceModelCatalogFilter()))
 
 
 class JobsTestCase(unittest.TestCase):
@@ -125,6 +125,12 @@ class JobsTestCase(unittest.TestCase):
         self.assertEqual(1, len(self.context.sm_definitions))
         self.assertEqual(asource,
                 self.context.sm_definitions[0])
+
+    def test_read_no_smodel_defined(self):
+        self.context.config['source_model_file'] = None
+        read_source_model(self.context)
+
+        self.assertEqual([], self.context.sm_definitions)
 
     def test_gardner_knopoff(self):
         context = create_context('config_gardner_knopoff.yml')

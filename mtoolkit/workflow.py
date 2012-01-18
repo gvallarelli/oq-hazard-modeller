@@ -135,6 +135,14 @@ class Context(object):
             self.config = yaml.load(config_file)
         self.catalog_matrix = None
 
+    def source_model_defined(self):
+        """
+        Return a bool stating if a source model file
+        is defined in the config
+        """
+
+        return self.config['source_model_file'] != None
+
 
 class Workflow(object):
     """
@@ -147,15 +155,15 @@ class Workflow(object):
         self.preprocessing_pipeline = preprocessing_pipeline
         self.processing_pipeline = processing_pipeline
 
-    def start(self, context, source_model_filter):
+    def start(self, context, catalog_filter):
         """
         Execute the main workflow
         """
         self.preprocessing_pipeline.run(context)
         if context.config['apply_processing_jobs']:
-            for sm, filtered_eq in \
-                    source_model_filter.filter_eqs(
+            for sm, filtered_eq in catalog_filter.filter_eqs(
                     context.sm_definitions, context.catalog_matrix):
+
                 context.cur_sm = sm
                 context.current_filtered_eq = filtered_eq
                 self.processing_pipeline.run(context)

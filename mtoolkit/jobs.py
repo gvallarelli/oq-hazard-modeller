@@ -79,11 +79,14 @@ def read_source_model(context):
         in a pipeline
     """
 
-    reader = NRMLReader(context.config['source_model_file'],
-            NRML_SCHEMA_PATH)
     sm_definitions = []
-    for sm in reader.read():
-        sm_definitions.append(sm)
+
+    if context.config['source_model_file'] != None:
+        reader = NRMLReader(context.config['source_model_file'],
+                NRML_SCHEMA_PATH)
+        for sm in reader.read():
+            sm_definitions.append(sm)
+
     context.sm_definitions = sm_definitions
 
     LOGGER.debug("* Eq number source models: %s" % len(context.sm_definitions))

@@ -51,6 +51,13 @@ class ContextTestCase(unittest.TestCase):
         self.assertEqual(expected_config_dict,
             self.context_preprocessing.config)
 
+    def test_source_model_defined(self):
+        self.assertTrue(self.context_preprocessing.source_model_defined())
+
+        self.context_preprocessing.config['source_model_file'] = None
+
+        self.assertFalse(self.context_preprocessing.source_model_defined())
+
 
 class PipeLineTestCase(unittest.TestCase):
 
