@@ -25,7 +25,8 @@ from mtoolkit.source_model import (AreaSource, AREA_BOUNDARY, POINT,
                                     TRUNCATED_GUTEN_RICHTER,
                                     RUPTURE_RATE_MODEL,
                                     MAGNITUDE,
-                                    RUPTURE_DEPTH_DISTRIB)
+                                    RUPTURE_DEPTH_DISTRIB,
+                                    create_default_area_source)
 
 from mtoolkit.workflow import Context, PipeLineBuilder, Workflow
 from mtoolkit.jobs import (read_eq_catalog, read_source_model,
@@ -128,9 +129,11 @@ class JobsTestCase(unittest.TestCase):
 
     def test_read_no_smodel_defined(self):
         self.context.config['source_model_file'] = None
+        default_as = [create_default_area_source()]
+
         read_source_model(self.context)
 
-        self.assertEqual([], self.context.sm_definitions)
+        self.assertEqual(default_as, self.context.sm_definitions)
 
     def test_gardner_knopoff(self):
         context = create_context('config_gardner_knopoff.yml')

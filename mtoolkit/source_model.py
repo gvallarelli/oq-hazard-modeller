@@ -88,3 +88,35 @@ class AreaSource(object):
 
     def __ne__(self, other):
         return not self.__eq__(other)
+
+
+def create_default_area_source():
+    """Create a default area source object"""
+
+    default_string = "MTK"
+    default_as = AreaSource()
+    default_as.nrml_id = default_string
+    default_as.source_model_id = default_string
+    default_as.area_source_id = default_string
+    default_as.name = default_string
+    default_as.tectonic_region = default_string
+    default_as.area_boundary = AREA_BOUNDARY(
+        default_string, [POINT(0, 0)])
+
+    truncated_gutenberg_richter = TRUNCATED_GUTEN_RICHTER(
+        0.0, 0.0, 0.0, 0.0, default_string)
+
+    strike = 0.0
+    dip = 90.0
+    rake = 0.0
+
+    default_as.rupture_rate_model = RUPTURE_RATE_MODEL(
+        truncated_gutenberg_richter, strike, dip, rake)
+
+    magnitude = MAGNITUDE(default_string, [6.5])
+    depth = [5000.0]
+
+    default_as.rupture_depth_dist = RUPTURE_DEPTH_DISTRIB(magnitude, depth)
+    default_as.hypocentral_depth = 5000.0
+
+    return default_as

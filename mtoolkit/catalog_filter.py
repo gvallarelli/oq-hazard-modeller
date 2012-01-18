@@ -38,9 +38,9 @@ class CatalogFilter(object):
     """
 
     def __init__(self, sm_filter=None):
+        self.sm_filter = sm_filter
         if sm_filter is None:
             self.sm_filter = NullCatalogFilter()
-        self.sm_filter = sm_filter
 
     def filter_eqs(self, sm_definitions, eq_catalog):
         """
@@ -114,5 +114,4 @@ class NullCatalogFilter(object):
     """
 
     def filter_eqs(self, source, eq_catalog):
-        return eq_catalog
-
+        return np.array(eq_catalog)

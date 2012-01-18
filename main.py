@@ -60,6 +60,5 @@ if __name__ == '__main__':
         WORKFLOW = Workflow(PIPELINE_PREPROCESSING, PIPELINE_PROCESSING)
         WORKFLOW.start(CONTEXT, CATALOG_FILTER)
 
-        if CONTEXT.source_model_defined():
-            WRITER = AreaSourceWriter(CONTEXT.config['result_file'])
-            WRITER.serialize(CONTEXT.sm_definitions)
+        WRITER = AreaSourceWriter(CONTEXT.config['result_file'])
+        WRITER.serialize(CONTEXT.sm_definitions)
