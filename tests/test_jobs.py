@@ -25,13 +25,16 @@ from mtoolkit.source_model import (AreaSource, AREA_BOUNDARY, POINT,
                                     TRUNCATED_GUTEN_RICHTER,
                                     RUPTURE_RATE_MODEL,
                                     MAGNITUDE,
-                                    RUPTURE_DEPTH_DISTRIB)
+                                    RUPTURE_DEPTH_DISTRIB,
+                                    default_area_source)
 
 from mtoolkit.workflow import Context, PipeLineBuilder, Workflow
+
 from mtoolkit.jobs import (read_eq_catalog, read_source_model,
-                           create_catalog_matrix, gardner_knopoff,
-                           recurrence, create_default_values)
-from mtoolkit.catalog_filter import SourceModelCatalogFilter
+                           gardner_knopoff, recurrence,
+                           create_default_source_model)
+
+from mtoolkit.catalog_filter import CatalogFilter, SourceModelCatalogFilter
 from mtoolkit.nrml_xml import get_data_path, DATA_DIR
 
 DECIMAL_PLACES = 5
@@ -41,9 +44,7 @@ RUPTURE_KEY = 'rupture_rate_model'
 def create_workflow(config):
     builder = PipeLineBuilder()
     preprocessing_pipeline = builder.build(config,
-        PipeLineBuilder.PREPROCESSING_JOBS_CONFIG_KEY,
-         [read_eq_catalog, read_source_model,
-            create_catalog_matrix, create_default_values])
+        PipeLineBuilder.PREPROCESSING_JOBS_CONFIG_KEY)
 
     processing_pipeline = builder.build(config,
         PipeLineBuilder.PROCESSING_JOBS_CONFIG_KEY)
@@ -56,7 +57,7 @@ def create_context(filename=None):
 
 
 def run(workflow, context):
-    return workflow.start(context, SourceModelCatalogFilter())
+    return workflow.start(context, CatalogFilter(SourceModelCatalogFilter()))
 
 
 class JobsTestCase(unittest.TestCase):
@@ -125,6 +126,13 @@ class JobsTestCase(unittest.TestCase):
         self.assertEqual(1, len(self.context.sm_definitions))
         self.assertEqual(asource,
                 self.context.sm_definitions[0])
+
+    def test_create_default_source_model(self):
+        default_as = [default_area_source()]
+
+        create_default_source_model(self.context)
+
+        self.assertEqual(default_as, self.context.sm_definitions)
 
     def test_gardner_knopoff(self):
         context = create_context('config_gardner_knopoff.yml')

@@ -30,9 +30,9 @@ import logging
 LOGGER = logging.getLogger('mt_logger')
 
 
-class SourceModelCatalogFilter(object):
+class CatalogFilter(object):
     """
-    SourceModelCatalogFilter allows to filter
+    CatalogFilter allows to filter
     out eq events within a geometry defined
     in a generic source model
     """
@@ -40,7 +40,7 @@ class SourceModelCatalogFilter(object):
     def __init__(self, sm_filter=None):
         self.sm_filter = sm_filter
         if sm_filter is None:
-            self.sm_filter = AreaSourceCatalogFilter()
+            self.sm_filter = NullCatalogFilter()
 
     def filter_eqs(self, sm_definitions, eq_catalog):
         """
@@ -51,9 +51,9 @@ class SourceModelCatalogFilter(object):
             yield sm, self.sm_filter.filter_eqs(sm, eq_catalog)
 
 
-class AreaSourceCatalogFilter(object):
+class SourceModelCatalogFilter(object):
     """
-    AreaSourceCatalogFilter allows to filter
+    SourceModelCatalogFilter allows to filter
     out eq events within a geometry defined
     in an area source model
     """
@@ -80,7 +80,7 @@ class AreaSourceCatalogFilter(object):
 
         LOGGER.info(''.center(80, '-'))
 
-        LOGGER.info("AREA SOURCE FILTERING")
+        LOGGER.info("SOURCE MODEL GEOMETRY FILTERING")
 
         LOGGER.debug("Number of events inside the zone %s: %s" %
             (source.name, len(filtered_eq)))
@@ -104,3 +104,14 @@ def _extract_polygon(source_model):
     """
 
     return Polygon(source_model.area_boundary.pos_list)
+
+
+class NullCatalogFilter(object):
+    """
+    NullCatalogFilter doesn't apply any kind
+    of filtering to the eq events defined in the
+    catalogue
+    """
+
+    def filter_eqs(self, source, eq_catalog):
+        return np.array(eq_catalog)

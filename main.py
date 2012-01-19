@@ -20,10 +20,10 @@
 import logging
 
 from mtoolkit.console import cmd_line, build_logger
+
 from mtoolkit.workflow import Context, PipeLineBuilder, Workflow
-from mtoolkit.jobs import (read_eq_catalog, create_catalog_matrix,
-                            create_default_values, read_source_model)
-from mtoolkit.catalog_filter import SourceModelCatalogFilter
+
+from mtoolkit.catalog_filter import CatalogFilter, SourceModelCatalogFilter
 
 from mtoolkit.nrml import AreaSourceWriter
 
@@ -44,19 +44,19 @@ if __name__ == '__main__':
 
         PIPELINE_PREPROCESSING = PipeLineBuilder().build(
                 CONTEXT.config,
-                PipeLineBuilder.PREPROCESSING_JOBS_CONFIG_KEY,
-                [read_eq_catalog, read_source_model, create_catalog_matrix,
-                create_default_values])
+                PipeLineBuilder.PREPROCESSING_JOBS_CONFIG_KEY)
 
         PIPELINE_PROCESSING = PipeLineBuilder().build(
                 CONTEXT.config,
                 PipeLineBuilder.PROCESSING_JOBS_CONFIG_KEY)
 
-        SM_CATALOG_FILTER = SourceModelCatalogFilter()
+        if CONTEXT.config['source_model_file']:
+            CATALOG_FILTER = CatalogFilter(SourceModelCatalogFilter())
+        else:
+            CATALOG_FILTER = CatalogFilter()
 
         WORKFLOW = Workflow(PIPELINE_PREPROCESSING, PIPELINE_PROCESSING)
-
-        WORKFLOW.start(CONTEXT, SM_CATALOG_FILTER)
+        WORKFLOW.start(CONTEXT, CATALOG_FILTER)
 
         WRITER = AreaSourceWriter(CONTEXT.config['result_file'])
         WRITER.serialize(CONTEXT.sm_definitions)

@@ -22,8 +22,9 @@ import unittest
 from mock import Mock
 import numpy as np
 
-from mtoolkit.catalog_filter import (AreaSourceCatalogFilter,
-                                     SourceModelCatalogFilter)
+from mtoolkit.catalog_filter import (SourceModelCatalogFilter,
+                                     CatalogFilter,
+                                     NullCatalogFilter)
 
 from mtoolkit.source_model import AreaSource, AREA_BOUNDARY, POINT
 
@@ -37,7 +38,7 @@ def build_geometry(pos_list):
     return area_source
 
 
-class AreaSourceCatalogFilterTestCase(unittest.TestCase):
+class SourceModelCatalogFilterTestCase(unittest.TestCase):
 
     def setUp(self):
 
@@ -47,10 +48,10 @@ class AreaSourceCatalogFilterTestCase(unittest.TestCase):
         self.empty_catalog = np.array([])
 
     def test_filtering_an_empty_eq_catalog(self):
-        as_filter = AreaSourceCatalogFilter()
+        sm_filter = SourceModelCatalogFilter()
         self.assertTrue(np.allclose(
             self.empty_catalog,
-            as_filter.filter_eqs(self.sm_geometry, self.empty_catalog)))
+            sm_filter.filter_eqs(self.sm_geometry, self.empty_catalog)))
 
     def test_filtering_non_empty_eq_catalog(self):
         eq_internal_point = [2000, 1, 2, -0.25, 0.25]
@@ -59,41 +60,49 @@ class AreaSourceCatalogFilterTestCase(unittest.TestCase):
         eq_catalog = np.array([eq_internal_point,
                 eq_side_point, eq_external_point])
 
-        as_filter = AreaSourceCatalogFilter()
+        sm_filter = SourceModelCatalogFilter()
 
         expected_catalog = np.array([eq_internal_point])
         self.assertTrue(np.array_equal(expected_catalog,
-                as_filter.filter_eqs(self.sm_geometry, eq_catalog)))
+                sm_filter.filter_eqs(self.sm_geometry, eq_catalog)))
 
     def test_a_bad_polygon_raises_exception(self):
         self.sm_geometry = build_geometry([1, 1, 1, 2, 2, 1, 2, 2])
-        as_filter = AreaSourceCatalogFilter()
+        sm_filter = SourceModelCatalogFilter()
 
         self.assertRaises(RuntimeError,
-            as_filter.filter_eqs, self.sm_geometry, self.empty_catalog)
+            sm_filter.filter_eqs, self.sm_geometry, self.empty_catalog)
 
 
-class SourceModelCatalogFilterTestCase(unittest.TestCase):
+class NullCatalogFilterTestCase(unittest.TestCase):
 
-    def setUp(self):
-        pass
+    def test_a_null_catalog_apply_no_filtering(self):
+
+        eq_catalog = np.array([[2000, 1, 2, -0.25, 0.25]])
+        null_filter = NullCatalogFilter()
+
+        self.assertTrue(np.array_equal(eq_catalog,
+                null_filter.filter_eqs(AreaSource(), eq_catalog)))
+
+
+class CatalogFilterTestCase(unittest.TestCase):
 
     def test_empty_source_model(self):
-        smodel_filter = SourceModelCatalogFilter(None)
-        self.assertRaises(StopIteration, smodel_filter.filter_eqs([], []).next)
+        catalog_filter = CatalogFilter(None)
+        self.assertRaises(StopIteration, catalog_filter.filter_eqs([], []).next)
 
     def test_source_model_calling_a_filter(self):
-        asource_filter = AreaSourceCatalogFilter()
-        asource_filter.filter_eqs = Mock()
-        asource_filter.filter_eqs.return_value = []
+        sm_filter = SourceModelCatalogFilter()
+        sm_filter.filter_eqs = Mock()
+        sm_filter.filter_eqs.return_value = []
 
-        smodel_filter = SourceModelCatalogFilter(asource_filter)
+        catalog_filter = CatalogFilter(sm_filter)
 
-        smodel = smodel_filter.filter_eqs([dict(a=1), dict(b=2)], [])
-        self.assertEqual((dict(a=1), []), smodel.next())
-        self.assertEqual((dict(b=2), []), smodel.next())
+        gen = catalog_filter.filter_eqs([dict(a=1), dict(b=2)], [])
+        self.assertEqual((dict(a=1), []), gen.next())
+        self.assertEqual((dict(b=2), []), gen.next())
 
         self.assertEqual(dict(a=1),
-                asource_filter.filter_eqs.call_args_list[0][0][0])
+                sm_filter.filter_eqs.call_args_list[0][0][0])
         self.assertEqual(dict(b=2),
-                asource_filter.filter_eqs.call_args_list[1][0][0])
+                sm_filter.filter_eqs.call_args_list[1][0][0])
