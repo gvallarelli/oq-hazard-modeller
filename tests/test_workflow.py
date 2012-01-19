@@ -24,7 +24,7 @@ from mtoolkit.workflow import PipeLine, PipeLineBuilder, Context
 from mtoolkit.workflow import Workflow
 from mtoolkit.jobs import (read_eq_catalog, create_catalog_matrix,
                             gardner_knopoff, stepp, recurrence,
-                            read_source_model, create_catalog_matrix,
+                            read_source_model, create_default_area_source,
                             create_default_values)
 
 from mtoolkit.nrml_xml import get_data_path, DATA_DIR
@@ -129,6 +129,23 @@ class PipeLineBuilderTestCase(unittest.TestCase):
             pprocessing_built_pipeline)
         self.assertEqual(expected_processing_pipeline,
             processing_built_pipeline)
+
+    def test_build_pipeline_source_model_undefined(self):
+        self.context_preprocessing.config['source_model_file'] = None
+        expected_preprocessing_pipeline = PipeLine('preprocessing_jobs')
+        expected_preprocessing_pipeline.add_job(read_eq_catalog)
+        expected_preprocessing_pipeline.add_job(create_default_area_source)
+        expected_preprocessing_pipeline.add_job(create_catalog_matrix)
+        expected_preprocessing_pipeline.add_job(create_default_values)
+        expected_preprocessing_pipeline.add_job(gardner_knopoff)
+        expected_preprocessing_pipeline.add_job(stepp)
+
+        pprocessing_built_pipeline = self.pipeline_builder.build(
+            self.context_preprocessing.config,
+            PipeLineBuilder.PREPROCESSING_JOBS_CONFIG_KEY)
+
+        self.assertEqual(expected_preprocessing_pipeline,
+            pprocessing_built_pipeline)
 
     def test_non_existent_job_raise_exception(self):
         invalid_job = 'comb a quail\'s hair'
