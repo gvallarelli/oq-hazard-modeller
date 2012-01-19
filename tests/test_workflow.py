@@ -22,8 +22,11 @@ from mock import Mock, MagicMock
 
 from mtoolkit.workflow import PipeLine, PipeLineBuilder, Context
 from mtoolkit.workflow import Workflow
-from mtoolkit.jobs import read_eq_catalog, create_catalog_matrix
-from mtoolkit.jobs import gardner_knopoff, stepp, recurrence
+from mtoolkit.jobs import (read_eq_catalog, create_catalog_matrix,
+                            gardner_knopoff, stepp, recurrence,
+                            read_source_model, create_catalog_matrix,
+                            create_default_values)
+
 from mtoolkit.nrml_xml import get_data_path, DATA_DIR
 
 
@@ -50,13 +53,6 @@ class ContextTestCase(unittest.TestCase):
 
         self.assertEqual(expected_config_dict,
             self.context_preprocessing.config)
-
-    def test_source_model_defined(self):
-        self.assertTrue(self.context_preprocessing.source_model_defined())
-
-        self.context_preprocessing.config['source_model_file'] = None
-
-        self.assertFalse(self.context_preprocessing.source_model_defined())
 
 
 class PipeLineTestCase(unittest.TestCase):
@@ -112,7 +108,9 @@ class PipeLineBuilderTestCase(unittest.TestCase):
 
         expected_preprocessing_pipeline = PipeLine('preprocessing_jobs')
         expected_preprocessing_pipeline.add_job(read_eq_catalog)
+        expected_preprocessing_pipeline.add_job(read_source_model)
         expected_preprocessing_pipeline.add_job(create_catalog_matrix)
+        expected_preprocessing_pipeline.add_job(create_default_values)
         expected_preprocessing_pipeline.add_job(gardner_knopoff)
         expected_preprocessing_pipeline.add_job(stepp)
 
@@ -121,8 +119,7 @@ class PipeLineBuilderTestCase(unittest.TestCase):
 
         pprocessing_built_pipeline = self.pipeline_builder.build(
             self.context_preprocessing.config,
-            PipeLineBuilder.PREPROCESSING_JOBS_CONFIG_KEY,
-            [read_eq_catalog, create_catalog_matrix])
+            PipeLineBuilder.PREPROCESSING_JOBS_CONFIG_KEY)
 
         processing_built_pipeline = self.pipeline_builder.build(
             self.context_processing.config,

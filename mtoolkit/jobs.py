@@ -29,7 +29,7 @@ import numpy as np
 from mtoolkit.eqcatalog import EqEntryReader
 from mtoolkit.nrml import NRMLReader
 from mtoolkit.nrml_xml import get_data_path, SCHEMA_DIR
-from mtoolkit.source_model import create_default_area_source
+from mtoolkit.source_model import default_area_source
 
 NRML_SCHEMA_PATH = get_data_path('nrml.xsd', SCHEMA_DIR)
 CATALOG_MATRIX_YEAR_INDEX = 0
@@ -82,15 +82,24 @@ def read_source_model(context):
 
     sm_definitions = []
 
-    if context.source_model_defined():
-        reader = NRMLReader(context.config['source_model_file'],
-                NRML_SCHEMA_PATH)
-        for sm in reader.read():
-            sm_definitions.append(sm)
+    reader = NRMLReader(context.config['source_model_file'], NRML_SCHEMA_PATH)
+    for sm in reader.read():
+        sm_definitions.append(sm)
 
         context.sm_definitions = sm_definitions
-    else:
-        context.sm_definitions = [create_default_area_source()]
+
+    LOGGER.debug("* Eq number source models: %s" % len(context.sm_definitions))
+
+
+@logged_job
+def create_default_area_source(context):
+    """
+    Create a defaul area source object
+    :param context: shared datastore across different jobs
+        in a pipeline
+    """
+
+    context.sm_definitions = [default_area_source()]
 
     LOGGER.debug("* Eq number source models: %s" % len(context.sm_definitions))
 

@@ -26,12 +26,14 @@ from mtoolkit.source_model import (AreaSource, AREA_BOUNDARY, POINT,
                                     RUPTURE_RATE_MODEL,
                                     MAGNITUDE,
                                     RUPTURE_DEPTH_DISTRIB,
-                                    create_default_area_source)
+                                    default_area_source)
 
 from mtoolkit.workflow import Context, PipeLineBuilder, Workflow
+
 from mtoolkit.jobs import (read_eq_catalog, read_source_model,
-                           create_catalog_matrix, gardner_knopoff,
-                           recurrence, create_default_values)
+                           gardner_knopoff, recurrence,
+                           create_default_area_source)
+
 from mtoolkit.catalog_filter import CatalogFilter, SourceModelCatalogFilter
 from mtoolkit.nrml_xml import get_data_path, DATA_DIR
 
@@ -42,9 +44,7 @@ RUPTURE_KEY = 'rupture_rate_model'
 def create_workflow(config):
     builder = PipeLineBuilder()
     preprocessing_pipeline = builder.build(config,
-        PipeLineBuilder.PREPROCESSING_JOBS_CONFIG_KEY,
-         [read_eq_catalog, read_source_model,
-            create_catalog_matrix, create_default_values])
+        PipeLineBuilder.PREPROCESSING_JOBS_CONFIG_KEY)
 
     processing_pipeline = builder.build(config,
         PipeLineBuilder.PROCESSING_JOBS_CONFIG_KEY)
@@ -127,11 +127,10 @@ class JobsTestCase(unittest.TestCase):
         self.assertEqual(asource,
                 self.context.sm_definitions[0])
 
-    def test_read_no_smodel_defined(self):
-        self.context.config['source_model_file'] = None
-        default_as = [create_default_area_source()]
+    def test_create_default_area_source(self):
+        default_as = [default_area_source()]
 
-        read_source_model(self.context)
+        create_default_area_source(self.context)
 
         self.assertEqual(default_as, self.context.sm_definitions)
 

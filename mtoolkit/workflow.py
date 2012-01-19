@@ -25,8 +25,12 @@ order. The order is determined by the queue of jobs.
 
 import yaml
 
-from mtoolkit.jobs import gardner_knopoff, stepp
-from mtoolkit.jobs import recurrence
+from mtoolkit.jobs import (gardner_knopoff, stepp, recurrence,
+                            read_eq_catalog, read_source_model,
+                            create_default_area_source,
+                            create_catalog_matrix,
+                            create_default_values)
+
 from mtoolkit.scientific.declustering import gardner_knopoff_decluster
 from mtoolkit.scientific.completeness import stepp_analysis
 from mtoolkit.scientific.recurrence import recurrence_analysis
@@ -38,7 +42,7 @@ class PipeLine(object):
     jobs and execute them in order.
     """
 
-    def __init__(self, name):
+    def __init__(self, name, jobs_list=None):
         """
         Initialize a PipeLine object having
         attributes: name and jobs, a list
@@ -47,6 +51,8 @@ class PipeLine(object):
 
         self.name = name
         self.jobs = []
+        if jobs_list != None:
+            self.jobs = jobs_list
 
     def __eq__(self, other):
         """Equal operator for pipeline"""
@@ -94,7 +100,7 @@ class PipeLineBuilder(object):
                                   'Stepp': stepp,
                                   'Recurrence': recurrence}
 
-    def build(self, config, pipeline_type, compulsory_jobs=[]):
+    def build(self, config, pipeline_type):
         """
         Build method creates the pipeline by
         assembling all the steps required.
@@ -103,9 +109,18 @@ class PipeLineBuilder(object):
         steps.
         """
 
-        pipeline = PipeLine(pipeline_type)
-        for job in compulsory_jobs:
-            pipeline.add_job(job)
+        if pipeline_type == self.PREPROCESSING_JOBS_CONFIG_KEY:
+
+            if config['source_model_file']:
+                source_model_creation = read_source_model
+            else:
+                source_model_creation = create_default_area_source
+
+            pipeline = PipeLine(pipeline_type,
+                    [read_eq_catalog, source_model_creation,
+                    create_catalog_matrix, create_default_values])
+        else:
+            pipeline = PipeLine(pipeline_type)
 
         if config[pipeline_type] != None:
             for job in config[pipeline_type]:
@@ -134,14 +149,6 @@ class Context(object):
             config_file = open(config_filename, 'r')
             self.config = yaml.load(config_file)
         self.catalog_matrix = None
-
-    def source_model_defined(self):
-        """
-        Return a bool stating if a source model file
-        is defined in the config
-        """
-
-        return self.config['source_model_file'] != None
 
 
 class Workflow(object):

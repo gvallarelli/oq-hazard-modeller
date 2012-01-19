@@ -76,9 +76,6 @@ class SourceModelCatalogFilterTestCase(unittest.TestCase):
 
 class NullCatalogFilterTestCase(unittest.TestCase):
 
-    def setUp(self):
-        pass
-
     def test_a_null_catalog_apply_no_filtering(self):
 
         eq_catalog = np.array([[2000, 1, 2, -0.25, 0.25]])
@@ -89,9 +86,6 @@ class NullCatalogFilterTestCase(unittest.TestCase):
 
 
 class CatalogFilterTestCase(unittest.TestCase):
-
-    def setUp(self):
-        pass
 
     def test_empty_source_model(self):
         catalog_filter = CatalogFilter(None)

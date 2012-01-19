@@ -32,7 +32,7 @@ LOGGER = logging.getLogger('mt_logger')
 
 class CatalogFilter(object):
     """
-    SourceModelCatalogFilter allows to filter
+    CatalogFilter allows to filter
     out eq events within a geometry defined
     in a generic source model
     """
@@ -53,7 +53,7 @@ class CatalogFilter(object):
 
 class SourceModelCatalogFilter(object):
     """
-    AreaSourceCatalogFilter allows to filter
+    SourceModelCatalogFilter allows to filter
     out eq events within a geometry defined
     in an area source model
     """

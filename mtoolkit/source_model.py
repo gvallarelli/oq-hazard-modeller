@@ -90,7 +90,7 @@ class AreaSource(object):
         return not self.__eq__(other)
 
 
-def create_default_area_source():
+def default_area_source():
     """Create a default area source object"""
 
     default_string = "MTK"
