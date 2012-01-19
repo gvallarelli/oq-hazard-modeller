@@ -32,7 +32,7 @@ from mtoolkit.workflow import Context, PipeLineBuilder, Workflow
 
 from mtoolkit.jobs import (read_eq_catalog, read_source_model,
                            gardner_knopoff, recurrence,
-                           create_default_area_source)
+                           create_default_source_model)
 
 from mtoolkit.catalog_filter import CatalogFilter, SourceModelCatalogFilter
 from mtoolkit.nrml_xml import get_data_path, DATA_DIR
@@ -127,10 +127,10 @@ class JobsTestCase(unittest.TestCase):
         self.assertEqual(asource,
                 self.context.sm_definitions[0])
 
-    def test_create_default_area_source(self):
+    def test_create_default_source_model(self):
         default_as = [default_area_source()]
 
-        create_default_area_source(self.context)
+        create_default_source_model(self.context)
 
         self.assertEqual(default_as, self.context.sm_definitions)
 

@@ -92,9 +92,9 @@ def read_source_model(context):
 
 
 @logged_job
-def create_default_area_source(context):
+def create_default_source_model(context):
     """
-    Create a defaul area source object
+    Create a default source model object
     :param context: shared datastore across different jobs
         in a pipeline
     """

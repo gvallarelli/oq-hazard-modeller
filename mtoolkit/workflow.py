@@ -27,7 +27,7 @@ import yaml
 
 from mtoolkit.jobs import (gardner_knopoff, stepp, recurrence,
                             read_eq_catalog, read_source_model,
-                            create_default_area_source,
+                            create_default_source_model,
                             create_catalog_matrix,
                             create_default_values)
 
@@ -114,7 +114,7 @@ class PipeLineBuilder(object):
             if config['source_model_file']:
                 source_model_creation = read_source_model
             else:
-                source_model_creation = create_default_area_source
+                source_model_creation = create_default_source_model
 
             pipeline = PipeLine(pipeline_type,
                     [read_eq_catalog, source_model_creation,
