@@ -23,7 +23,9 @@ from lxml import etree
 
 from nrml.nrml_xml import get_data_path, DATA_DIR, SCHEMA_DIR
 
-from nrml.nrml import NRMLReader, AreaSourceWriter
+from nrml.reader import NRMLReader
+
+from nrml.writer import AreaSourceWriter
 
 from mtoolkit.source_model import (AreaSource, POINT, AREA_BOUNDARY,
                                     TRUNCATED_GUTEN_RICHTER)
