@@ -25,7 +25,8 @@ of the NRML data format.
 
 from lxml import etree
 
-import nrml_xml
+from nrml.nrml import nrml_xml
+
 from mtoolkit.source_model import AreaSource
 from mtoolkit.source_model import POINT
 from mtoolkit.source_model import AREA_BOUNDARY
@@ -34,8 +35,8 @@ from mtoolkit.source_model import RUPTURE_RATE_MODEL
 from mtoolkit.source_model import MAGNITUDE
 from mtoolkit.source_model import RUPTURE_DEPTH_DISTRIB
 
-
 XML_NODE = 1
+
 
 class NRMLReader(object):
     """
