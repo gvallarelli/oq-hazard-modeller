@@ -52,17 +52,6 @@ processing_jobs:
 # Preprocessing jobs in detail
 # =========================================================
 
-# Declustering jobs
-
-GardnerKnopoff: {
-  # Possible values: GardnerKnopoff, Uhrhammer, Gruenthal.
-  time_dist_windows: no,
-
-  # float >= 0 proportion of aftershock time windows 
-  # to use to search for foreshock.
-  foreshock_time_window: 0
-}
-
 # Completeness jobs
 
 Stepp: {
@@ -79,25 +68,3 @@ Stepp: {
   # will always increase further back in time)
   increment_lock: True 
 } 
-
-
-# =========================================================
-# Processing jobs in detail
-# =========================================================
-
-# Recurrence job
-
-Recurrence: {
-    
-    # Width of magnitude window positive float
-    magnitude_window: 0.5,
-    
-    # Choose one among Wiechart or MLE
-    recurrence_algorithm: Wiechart,
-
-    # A float
-    reference_magnitude: 1.1,
-
-    # Greater than zero (float), used only with Wiechart
-    time_window: 0.3
-}

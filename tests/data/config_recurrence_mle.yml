@@ -47,40 +47,6 @@ preprocessing_jobs:
 processing_jobs:
 - Recurrence
 
-
-# =========================================================
-# Preprocessing jobs in detail
-# =========================================================
-
-# Declustering jobs
-
-GardnerKnopoff: {
-  # Possible values: GardnerKnopoff, Uhrhammer, Gruenthal.
-  time_dist_windows: no,
-
-  # float >= 0 proportion of aftershock time windows 
-  # to use to search for foreshock.
-  foreshock_time_window: 0
-}
-
-# Completeness jobs
-
-Stepp: {
-  # Time Window of each step (in years)
-  time_window: 5,
-
-  # Magnitude window of each step (in Mw units)
-  magnitude_windows: 0.2,
-  
-  # Sensitivity parameter (see documentation)
-  sensitivity: 0.1,
-  
-  # Increment Lock (fixes that the completeness magnitude
-  # will always increase further back in time)
-  increment_lock: True 
-} 
-
-
 # =========================================================
 # Processing jobs in detail
 # =========================================================
