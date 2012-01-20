@@ -21,13 +21,12 @@
 import unittest
 import numpy as np
 
-from helper import create_context, create_workflow, run
+from qa_tests.helper import create_context, create_workflow, run
 
 from mtoolkit.jobs import gardner_knopoff
 
 
 class DeclusteringTestCase(unittest.TestCase):
-
 
     def test_gardner_knopoff(self):
         context = create_context('config_gardner_knopoff.yml')

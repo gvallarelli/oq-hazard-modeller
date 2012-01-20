@@ -19,13 +19,13 @@
 
 import unittest
 
-from helper import create_context, create_workflow, run
+from qa_tests.helper import create_context, create_workflow, run
 
 
 class RecurrenceTestCase(unittest.TestCase):
 
     def setUp(self):
-        self.DECIMAL_PLACES = 5
+        self.decimal_places = 5
 
     def test_recurrence_wiechart_algorithm(self):
         context = create_context('config_recurrence_wiechart.yml')
@@ -38,22 +38,22 @@ class RecurrenceTestCase(unittest.TestCase):
         self.assertAlmostEqual(
             sm.rupture_rate_model.truncated_gutenberg_richter.b_value,
             0.569790,
-            self.DECIMAL_PLACES)
+            self.decimal_places)
 
         self.assertAlmostEqual(
             sm.recurrence_sigb,
             0.041210,
-            self.DECIMAL_PLACES)
+            self.decimal_places)
 
         self.assertAlmostEqual(
             sm.rupture_rate_model.truncated_gutenberg_richter.a_value,
             132.051268,
-            self.DECIMAL_PLACES)
+            self.decimal_places)
 
         self.assertAlmostEqual(
             sm.recurrence_siga_m,
             7.701386,
-            self.DECIMAL_PLACES)
+            self.decimal_places)
 
     def test_recurrence_mle_algorithm(self):
         context = create_context('config_recurrence_mle.yml')
@@ -67,19 +67,19 @@ class RecurrenceTestCase(unittest.TestCase):
         self.assertAlmostEqual(
             sm.rupture_rate_model.truncated_gutenberg_richter.b_value,
             0.595256,
-            self.DECIMAL_PLACES)
+            self.decimal_places)
 
         self.assertAlmostEqual(
             sm.recurrence_sigb,
             0.024816,
-            self.DECIMAL_PLACES)
+            self.decimal_places)
 
         self.assertAlmostEqual(
             sm.rupture_rate_model.truncated_gutenberg_richter.a_value,
             3.123129,
-            self.DECIMAL_PLACES)
+            self.decimal_places)
 
         self.assertAlmostEqual(
             sm.recurrence_siga_m,
             0.027298,
-            self.DECIMAL_PLACES)
+            self.decimal_places)

@@ -20,7 +20,7 @@
 import unittest
 import numpy as np
 
-from helper import create_context, create_workflow, run
+from qa_tests.helper import create_context, create_workflow, run
 
 
 class DeclusteringTestCase(unittest.TestCase):

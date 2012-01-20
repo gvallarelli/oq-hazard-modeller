@@ -17,6 +17,11 @@
 # version 3 along with MToolkit. If not, see
 # <http://www.gnu.org/licenses/lgpl-3.0.txt> for a copy of the LGPLv3 License.
 
+"""
+This module provide helper functions used in
+tests.
+"""
+
 from mtoolkit.workflow import Context, PipeLineBuilder, Workflow
 
 from mtoolkit.catalog_filter import CatalogFilter, SourceModelCatalogFilter
@@ -25,6 +30,8 @@ from nrml.nrml_xml import get_data_path, DATA_DIR
 
 
 def create_workflow(config):
+    """Create a workflow based on the config"""
+
     builder = PipeLineBuilder()
     preprocessing_pipeline = builder.build(config,
         PipeLineBuilder.PREPROCESSING_JOBS_CONFIG_KEY)
@@ -36,9 +43,12 @@ def create_workflow(config):
 
 
 def create_context(filename=None):
+    """Create a context using config file"""
+
     return Context(get_data_path(filename, DATA_DIR))
 
 
 def run(workflow, context):
-    return workflow.start(context, CatalogFilter(SourceModelCatalogFilter()))
+    """Run the workflow with source model filtering"""
 
+    return workflow.start(context, CatalogFilter(SourceModelCatalogFilter()))
