@@ -35,7 +35,8 @@ from mtoolkit.jobs import (read_eq_catalog, read_source_model,
                            create_default_source_model)
 
 from mtoolkit.catalog_filter import CatalogFilter, SourceModelCatalogFilter
-from mtoolkit.nrml_xml import get_data_path, DATA_DIR
+
+from nrml.nrml_xml import get_data_path, DATA_DIR
 
 DECIMAL_PLACES = 5
 RUPTURE_KEY = 'rupture_rate_model'

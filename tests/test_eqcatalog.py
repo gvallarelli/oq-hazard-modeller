@@ -19,9 +19,10 @@
 
 import unittest
 
-from mtoolkit.eqcatalog import CsvReader, EqEntryReader, \
-EqEntryValidationError
-from mtoolkit.nrml_xml import get_data_path, DATA_DIR, FILE_NAME_ERROR
+from mtoolkit.eqcatalog import (CsvReader, EqEntryReader,
+                                EqEntryValidationError)
+
+from nrml.nrml_xml import get_data_path, DATA_DIR, FILE_NAME_ERROR
 
 FIELDNAMES = ['eventID', 'Agency', 'Identifier',
               'year', 'month', 'day',

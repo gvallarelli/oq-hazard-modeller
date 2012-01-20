@@ -21,10 +21,13 @@ import unittest
 import os
 from lxml import etree
 
-from mtoolkit.nrml_xml import get_data_path, DATA_DIR, SCHEMA_DIR
-from mtoolkit.nrml import NRMLReader, AreaSourceWriter
+from nrml.nrml_xml import get_data_path, DATA_DIR, SCHEMA_DIR
+
+from nrml.nrml import NRMLReader, AreaSourceWriter
+
 from mtoolkit.source_model import (AreaSource, POINT, AREA_BOUNDARY,
                                     TRUNCATED_GUTEN_RICHTER)
+
 from mtoolkit.source_model import (MAGNITUDE, RUPTURE_RATE_MODEL,
                                     RUPTURE_DEPTH_DISTRIB)
 

@@ -25,7 +25,7 @@ from mtoolkit.workflow import Context, PipeLineBuilder, Workflow
 
 from mtoolkit.catalog_filter import CatalogFilter, SourceModelCatalogFilter
 
-from mtoolkit.nrml import AreaSourceWriter
+from nrml.writer import AreaSourceWriter
 
 
 if __name__ == '__main__':
