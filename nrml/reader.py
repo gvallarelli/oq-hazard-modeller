@@ -25,7 +25,7 @@ of the NRML data format.
 
 from lxml import etree
 
-from nrml.nrml import nrml_xml
+from nrml import nrml_xml
 
 from mtoolkit.source_model import AreaSource
 from mtoolkit.source_model import POINT

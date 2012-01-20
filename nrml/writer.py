@@ -26,7 +26,7 @@ of the NRML data format.
 import os
 from lxml import etree
 
-from nrml.nrml import nrml_xml
+from nrml import nrml_xml
 
 
 class AreaSourceWriter(object):
