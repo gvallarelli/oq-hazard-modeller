@@ -27,8 +27,8 @@ import logging
 import numpy as np
 
 from mtoolkit.eqcatalog import EqEntryReader
-from mtoolkit.nrml import NRMLReader
-from mtoolkit.nrml_xml import get_data_path, SCHEMA_DIR
+from nrml.reader import NRMLReader
+from nrml.nrml_xml import get_data_path, SCHEMA_DIR
 from mtoolkit.source_model import default_area_source
 
 NRML_SCHEMA_PATH = get_data_path('nrml.xsd', SCHEMA_DIR)
