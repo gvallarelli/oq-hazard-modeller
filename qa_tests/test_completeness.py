@@ -23,7 +23,7 @@ import numpy as np
 from qa_tests.helper import create_context, create_workflow, run
 
 
-class DeclusteringTestCase(unittest.TestCase):
+class CompletenessTestCase(unittest.TestCase):
 
     def test_stepp(self):
         context = create_context('config_stepp.yml')
