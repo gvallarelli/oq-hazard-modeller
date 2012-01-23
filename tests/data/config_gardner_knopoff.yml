@@ -9,17 +9,8 @@
 # Path to the file defining the eq catalog.
 eq_catalog_file: tests/data/declustering_input_test.csv 
 
-# Path to the file defining the transformed 
-# eq catalog after the preprocessing jobs.
-# If not defined no file will be written.
-pprocessing_result_file: path_to_file
-
 # Path to the file defining the source model.
 source_model_file: tests/data/area_source_model_processing.xml 
-
-# Path to the file defining the results 
-# of computation.
-result_file: path_to_file
 
 # Boolean flag to declare
 # if processing jobs are needed.
@@ -59,43 +50,4 @@ GardnerKnopoff: {
   # float >= 0 proportion of aftershock time windows 
   # to use to search for foreshock.
   foreshock_time_window: 0.5
-}
-
-# Completeness jobs
-
-Stepp: {
-  # Time Window of each step (in years)
-  time_window: 5,
-
-  # Magnitude window of each step (in Mw units)
-  magnitude_windows: 0.2,
-  
-  # Sensitivity parameter (see documentation)
-  sensitivity: 0.1,
-  
-  # Increment Lock (fixes that the completeness magnitude
-  # will always increase further back in time)
-  increment_lock: True 
-} 
-
-
-# =========================================================
-# Processing jobs in detail
-# =========================================================
-
-# Recurrence job
-
-Recurrence: {
-    
-    # Width of magnitude window positive float
-    magnitude_window: 0.5,
-    
-    # Choose one among Wiechart or MLE
-    recurrence_algorithm: Wiechart,
-
-    # A float
-    reference_magnitude: 1.1,
-
-    # Greater than zero (float), used only with Wiechart
-    time_window: 0.3
 }
