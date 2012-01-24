@@ -27,8 +27,8 @@ class RecurrenceTestCase(unittest.TestCase):
     def setUp(self):
         self.decimal_places = 5
 
-    def test_recurrence_wiechart_algorithm(self):
-        context = create_context('config_recurrence_wiechart.yml')
+    def test_recurrence_weichert_algorithm(self):
+        context = create_context('config_recurrence_weichert.yml')
         workflow = create_workflow(context.config)
 
         run(workflow, context)
@@ -76,10 +76,10 @@ class RecurrenceTestCase(unittest.TestCase):
 
         self.assertAlmostEqual(
             sm.rupture_rate_model.truncated_gutenberg_richter.a_value,
-            3.123129,
+            158.109066,
             self.decimal_places)
 
         self.assertAlmostEqual(
             sm.recurrence_siga_m,
-            0.027298,
+            49.997286,
             self.decimal_places)

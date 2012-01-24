@@ -58,7 +58,7 @@ Recurrence: {
     # Width of magnitude window positive float
     magnitude_window: 0.5,
     
-    # Choose one among Wiechart or MLE
+    # Choose one among Weichert or MLE
     recurrence_algorithm: MLE,
 
     # A float

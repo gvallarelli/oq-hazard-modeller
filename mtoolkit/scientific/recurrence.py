@@ -22,7 +22,7 @@ The purpose of this module is to provide functions
 which implement recurrence algorithms. Implemented
 algorithms are:
 
-* Recurrence analysis (Wiechart, MLE)
+* Recurrence analysis (Weichert, MLE)
 """
 
 
@@ -50,13 +50,13 @@ def recurrence_analysis(year_col, magnitude_col,
     :param magnitude_window: width of magnitude window
     :type magnitude_window: float
     :param recurrence_algorithm: recurrence algorithm could be one
-                                 between Wiechart or MLE
+                                 between Weichert or MLE
     :type recurrence_algorithm: string
     :param reference_magnitude: for calculating cumulative recurrence rate
                                 (i.e. aValCumulative = annual rate of
                                 events >= reference_magnitude)
     :type reference_magnitude: float
-    :param time_window: used only with Wiechart algorithm
+    :param time_window: used only with Weichert algorithm
     :type time_window: float
     :returns: bval computed b-value, sigb error on b-value (one standard
               deviation), a_m computed a-value, siga_m error on a-value
@@ -64,8 +64,8 @@ def recurrence_analysis(year_col, magnitude_col,
     :rtype: numpy.float64
     """
 
-    if recurrence_algorithm == 'Wiechart':
-        cent_mag, t_per, n_obs = wiechert_prep(
+    if recurrence_algorithm == 'Weichert':
+        cent_mag, t_per, n_obs = weichert_prep(
             year_col,
             magnitude_col,
             completeness_table[:, 0],
@@ -73,7 +73,7 @@ def recurrence_analysis(year_col, magnitude_col,
             magnitude_window,
             time_window)
 
-        bval, sigb, a_m, siga_m = wiechart(
+        bval, sigb, a_m, siga_m = weichert(
             t_per,
             cent_mag,
             n_obs,
@@ -202,20 +202,28 @@ def b_maxlike_time(year, mag, ctime, cmag, dmag, ref_mag=0.0):
         # Find events later than cut-off year, and with magnitude
         # greater than or equal to the corresponding completeness magnitude
         id1 = np.logical_and(year >= ctime[ival], mag >= m_c)
+        nyr = np.float(np.max(year[id1]) - np.min(year[id1]) + 1)
 
         # Get a- and b- value for the selected events
         temp_rec_table = recurrence_table(mag[id1], dmag, year[id1])
         bval, sigma_b = b_max_likelihood(temp_rec_table[:, 0],
                                          temp_rec_table[:, 1], dmag, m_c)
-        aval = np.log10(np.sum(id1)) + bval * ref_mag
-        sigma_a = np.abs(np.log10(np.sum(id1)) +
-                       (bval + sigma_b) * ref_mag - aval)
+
+        aval = np.log10(np.float(np.sum(id1)) / nyr) + bval * m_c
+        sigma_a = np.abs(np.log10(np.float(np.sum(id1)) / nyr) +
+            (bval + sigma_b) * ref_mag - aval)
+
+        # Calculate reference rate
+        rate = 10.0 ** (aval - bval * ref_mag)
+        sigrate = 10.0 ** ((aval + sigma_a) - (bval * ref_mag) -
+            np.log10(rate))
+
         if ival == 0:
-            gr_pars = np.array([np.hstack([bval, sigma_b, aval, sigma_a])])
+            gr_pars = np.array([np.hstack([bval, sigma_b, rate, sigrate])])
             neq = np.sum(id1)  # Number of events
         else:
-            gr_pars = np.vstack([gr_pars, np.hstack([bval, sigma_b, aval,
-                                                     sigma_a])])
+            gr_pars = np.vstack([gr_pars, np.hstack([bval, sigma_b, rate,
+                                                     sigrate])])
             neq = np.hstack([neq, np.sum(id1)])
         ival = ival + np.sum(id0)
 
@@ -235,9 +243,9 @@ def b_maxlike_time(year, mag, ctime, cmag, dmag, ref_mag=0.0):
     return bval, sigma_b, aval, sigma_a
 
 
-def wiechert_prep(year, fmag, ctime, cmag, d_m, d_t):
+def weichert_prep(year, fmag, ctime, cmag, d_m, d_t):
     """
-    Allows to prepare table input for Wiechart algorithm
+    Allows to prepare table input for Weichert algorithm
 
     :param year: catalog matrix year column
     :type year: numpy.ndarray
@@ -287,22 +295,23 @@ def wiechert_prep(year, fmag, ctime, cmag, d_m, d_t):
         # Count number of events in each magnitude bin
         n_obs[i] = np.sum(fullcount1[:, i])
         # corresponding year of completeness
-        dummy1 = np.nonzero(cmag >= mag_int[i])[0]
+        dummy1 = np.nonzero((cmag - mag_int[i]) < 1.E-3)[0]
+
         if np.shape(dummy1)[0] == 0:
             t_per[i] = np.max(year) - ctime[-1] + 1
         else:
-            t_per[i] = np.max(year) - ctime[dummy1[0]] + 1
+            t_per[i] = np.max(year) - ctime[dummy1[-1]] + 1
         i += 1
 
-    LOGGER.debug("Wiechart preparation:")
+    LOGGER.debug("Weichert preparation:")
     LOGGER.debug(np.column_stack([cent_mag, t_per, n_obs]))
 
     return cent_mag, t_per, n_obs
 
 
-def wiechart(tper, fmag, nobs, mrate=0.0, beta=1.5, itstab=1E-5):
+def weichert(tper, fmag, nobs, mrate=0.0, beta=1.5, itstab=1E-5):
     """
-    Wiechart algorithm
+    Weichert algorithm
 
     :param tper: length of observation period corresponding to magnitude
     :type tper: numpy.ndarray (float)
