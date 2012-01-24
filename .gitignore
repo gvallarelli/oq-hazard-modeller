@@ -1,2 +1,6 @@
 *.pyc
 docs/build/
+nosetest*
+.coverage
+debug.log
+tests/data/output.xml
