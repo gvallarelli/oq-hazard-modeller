@@ -105,3 +105,14 @@ def haversine(lon1, lat1, lon2, lat2, radians=False, earth_rad=6371.227):
                                                     np.sqrt(1 - aval))).T
         i += 1
     return distance
+
+
+def greg2julian(year, month, day, hour, minute, second):
+    """ Function to convert a date from Gregorian to Julian format"""
+    timeut = hour + (minute / 60.0) + (second / 3600.0)
+    jd = (367.0 * year) - np.floor(7.0 * (year +
+             np.floor((month + 9.0) / 12.0)) / 4.0) - np.floor(3.0 *
+             (np.floor((year + (month - 9.0) / 7.0) / 100.0) + 1.0) /
+             4.0) + np.floor((275.0 * month) / 9.0) + day +\
+             1721028.5 + (timeut / 24.0)
+    return jd

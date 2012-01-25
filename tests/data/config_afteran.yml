@@ -1,0 +1,53 @@
+# *********************************************************
+# MT Workflow configuration file 
+# *********************************************************
+
+# =========================================================
+# Input/Output files
+# =========================================================
+
+# Path to the file defining the eq catalog.
+eq_catalog_file: tests/data/declustering_input_test.csv 
+
+# Path to the file defining the source model.
+source_model_file: tests/data/area_source_model_processing.xml 
+
+# Boolean flag to declare
+# if processing jobs are needed.
+apply_processing_jobs: no
+
+# =========================================================
+# List of preprocessing jobs
+# =========================================================
+
+
+# Choose one algorithm per preprocessing job,
+# algorithms will be executed in the specified
+# order.
+preprocessing_jobs:
+
+# =========================================================
+# List of processing jobs
+# =========================================================
+
+
+# Choose one algorithm per preprocessing job,
+# algorithms will be executed in the specified
+# order.
+processing_jobs:
+
+
+# =========================================================
+# Preprocessing jobs in detail
+# =========================================================
+
+# Declustering jobs
+
+Afteran: {
+    # Possible values: GardnerKnopoff, Uhrhammer, Gruenthal.
+    time_dist_windows: Uhrhammer,
+    
+    # float >= 0 
+    # Length (in days) of moving time window
+    time_window: 150.8
+}

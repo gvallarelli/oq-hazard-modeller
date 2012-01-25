@@ -49,7 +49,6 @@ preprocessing_jobs:
 processing_jobs:
 - Recurrence
 
-
 # =========================================================
 # Preprocessing jobs in detail
 # =========================================================
@@ -63,6 +62,41 @@ GardnerKnopoff: {
   # float >= 0 proportion of aftershock time windows 
   # to use to search for foreshock.
   foreshock_time_window: 0
+}
+
+Afteran: {
+    # Possible values: GardnerKnopoff, Uhrhammer, Gruenthal.
+    time_dist_windows: Uhrhammer,
+    
+    # float >= 0 
+    # Length (in days) of moving time window
+    time_window: 60.0
+}
+
+Reasenberg: {
+    # Interaction radius for dependent events (km)
+    # float >= 0
+    rfact: 10.0,
+
+    # Effective lower magnitude cut-off for the catalogue
+    # float 
+    xmeff: 1.5,
+
+    # Factor to raise the lower magnitude within clusters
+    # float >= 0
+    xk: 0.5,
+
+    # Minimum look-ahead time for non clustered events
+    # float >= 0
+    taumin: 1.0,
+
+    # Maximum look ahead time for clustered events
+    # float >= 0
+    taumax: 10.0,
+
+    # Confidence Level for the next event in the sequence
+    # float >= 0 in range 0.0 <= plev <= 1.0
+    plev: 0.95
 }
 
 # Completeness jobs
