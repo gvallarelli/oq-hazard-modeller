@@ -41,16 +41,17 @@ class ContextTestCase(unittest.TestCase):
     def test_load_config_file(self):
         expected_config_dict = {
             'apply_processing_jobs': None,
-            'pprocessing_result_file': 'path_to_file',
+            'pprocessing_result_file': 'tests/data/preprocessed_catalogue.csv',
             'GardnerKnopoff': {'time_dist_windows': False,
                     'foreshock_time_window': 0},
             'Stepp': {'increment_lock': True,
             'magnitude_windows': 0.2,
             'sensitivity': 0.1,
-            'time_window': 5},
+            'time_window': 1},
             'result_file': 'path_to_file',
-            'eq_catalog_file': 'tests/data/ISC_correct.csv',
+            'eq_catalog_file': 'tests/data/completeness_input_test.csv',
             'preprocessing_jobs': ['GardnerKnopoff', 'Stepp'],
+            'processing_jobs': None,
             'source_model_file': 'path_to_file'}
 
         self.assertEqual(expected_config_dict,

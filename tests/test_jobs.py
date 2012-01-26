@@ -20,7 +20,7 @@
 import unittest
 import numpy as np
 
-from qa_tests.helper import create_workflow, create_context, run
+from tests.helper import create_workflow, create_context, run
 
 from mtoolkit.source_model import (AreaSource, AREA_BOUNDARY, POINT,
                                     TRUNCATED_GUTEN_RICHTER,
@@ -45,8 +45,12 @@ class JobsTestCase(unittest.TestCase):
 
         self.eq_catalog_filename = get_data_path(
             'ISC_small_data.csv', DATA_DIR)
+
         self.smodel_filename = get_data_path(
             'area_source_model.xml', DATA_DIR)
+
+        self.preprocessing_config = get_data_path(
+            'preprocessing_config.yml', DATA_DIR)
 
     def test_read_eq_catalog(self):
         self.context.config['eq_catalog_file'] = self.eq_catalog_filename
@@ -168,3 +172,8 @@ class JobsTestCase(unittest.TestCase):
 
         self.context.map_sc['recurrence'] = assert_parameters
         recurrence(self.context)
+
+
+    def test_store_catalog_in_csv_format_after_preprocessing(self):
+        pass
+

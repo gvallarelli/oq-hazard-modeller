@@ -7,12 +7,12 @@
 # =========================================================
 
 # Path to the file defining the eq catalog.
-eq_catalog_file: tests/data/ISC_correct.csv 
+eq_catalog_file: tests/data/completeness_input_test.csv 
 
 # Path to the file defining the transformed 
 # eq catalog after the preprocessing jobs.
 # If not defined no file will be written.
-pprocessing_result_file: path_to_file
+pprocessing_result_file: tests/data/preprocessed_catalogue.csv
 
 # Path to the file defining the source model.
 source_model_file: path_to_file
@@ -23,7 +23,7 @@ result_file: path_to_file
 
 # Boolean flag to declare
 # if processing jobs are needed.
-apply_processing_jobs: #yes/no
+apply_processing_jobs:
 
 # =========================================================
 # List of preprocessing jobs
@@ -36,6 +36,17 @@ apply_processing_jobs: #yes/no
 preprocessing_jobs:
 - GardnerKnopoff
 - Stepp
+
+# =========================================================
+# List of processing jobs
+# =========================================================
+
+
+# Choose one algorithm per preprocessing job,
+# algorithms will be executed in the specified
+# order.
+processing_jobs:
+
 
 # =========================================================
 # Preprocessing jobs in detail
@@ -56,7 +67,7 @@ GardnerKnopoff: {
 
 Stepp: {
   # Time Window of each step (in years)
-  time_window: 5,
+  time_window: 1,
 
   # Magnitude window of each step (in Mw units)
   magnitude_windows: 0.2,

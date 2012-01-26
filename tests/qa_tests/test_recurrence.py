@@ -19,7 +19,7 @@
 
 import unittest
 
-from qa_tests.helper import create_context, create_workflow, run
+from tests.helper import create_context, create_workflow, run
 
 
 class RecurrenceTestCase(unittest.TestCase):
