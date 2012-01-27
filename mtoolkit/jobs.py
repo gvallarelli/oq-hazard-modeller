@@ -194,7 +194,6 @@ def stepp(context):
     LOGGER.debug(context.completeness_table)
 
 
-@logged_job
 def create_selected_eq_vector(context):
     """
     Apply selected_eq_flag_vector algorithm to

@@ -18,8 +18,10 @@
 # <http://www.gnu.org/licenses/lgpl-3.0.txt> for a copy of the LGPLv3 License.
 
 import unittest
+import filecmp
 
 from mtoolkit.eqcatalog import (CsvReader, EqEntryReader,
+                                EqEntryWriter,
                                 EqEntryValidationError)
 
 from nrml.nrml_xml import get_data_path, DATA_DIR, FILE_NAME_ERROR
@@ -222,3 +224,51 @@ class EqEntryReaderTestCase(unittest.TestCase):
             EqEntryReader.EMPTY_STRING)
         self.assertEqual(eq_entry['ErrorStrike'],
             EqEntryReader.EMPTY_STRING)
+
+
+class EqEntryWriterTestCase(unittest.TestCase):
+
+    def setUp(self):
+        self.pprocessing_result_filename = get_data_path('out.csv', DATA_DIR)
+
+        self.first_data_row = {'eventID': 1, 'Agency': 'AAA', 'month': 1,
+                                'depthError': 0.5, 'second': 13.0,
+                                'SemiMajor90': 2.43, 'year': 2000,
+                                'ErrorStrike': 298.0, 'timeError': 0.02,
+                                'sigmamb': '', 'latitude': 44.368,
+                                'sigmaMw': 0.355, 'sigmaMs': '',
+                                'Mw': 1.71, 'Ms': '',
+                                'Identifier': 20000102034913, 'day': 2,
+                                'minute': 49, 'hour': 3,
+                                'mb': '', 'SemiMinor90': 1.01,
+                                'longitude': 7.282, 'depth': 9.3,
+                                'ML': 1.7, 'sigmaML': 0.1}
+
+        self.second_data_row = {'eventID': 2, 'Agency': 'AAA', 'month': 1,
+                                'depthError': 0.5, 'second': 57.0,
+                                'SemiMajor90': 0.77, 'year': 2000,
+                                'ErrorStrike': 315.0, 'timeError': 0.1,
+                                'sigmamb': 0.1, 'latitude': 44.318,
+                                'sigmaMw': 0.199, 'sigmaMs': '',
+                                'Mw': 3.89, 'Ms': '',
+                                'Identifier': 20000105132157, 'day': 5,
+                                'minute': 21, 'hour': 13,
+                                'mb': 3.8, 'SemiMinor90': 0.25,
+                                'longitude': 11.988, 'depth': 7.9,
+                                'ML': '', 'sigmaML': ''}
+
+        self.writer = EqEntryWriter(self.pprocessing_result_filename)
+
+        self.expected_csv = get_data_path('expected_entries.csv', DATA_DIR)
+
+    def test_an_incorrect_csv_dirname_raise_exception(self):
+        self.assertRaises(IOError, EqEntryWriter, 'invalid/dir/name')
+
+    def test_write_csv_file(self):
+        cr = self.writer.write_row()
+        cr.next()
+        cr.send(self.first_data_row)
+        cr.send(self.second_data_row)
+
+        self.assertTrue(filecmp.cmp(self.expected_csv,
+            self.pprocessing_result_filename))

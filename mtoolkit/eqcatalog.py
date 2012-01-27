@@ -299,3 +299,32 @@ class EqEntryValidationError(Exception):
         "at line number: %s" % (field, value, line_number)
         Exception.__init__(self, msg)
         self.args = (field, msg)
+
+
+class EqEntryWriter(object):
+    """
+    EqEntryWriter allows the user to write
+    eq entries in a csv file
+    """
+
+    FIELDNAMES = ['eventID', 'Agency', 'Identifier', 'year', 'month',
+            'day', 'hour', 'minute', 'second', 'timeError', 'longitude',
+            'latitude', 'SemiMajor90', 'SemiMinor90', 'ErrorStrike',
+            'depth', 'depthError', 'Mw', 'sigmaMw', 'Ms', 'sigmaMs',
+            'mb', 'sigmamb', 'ML', 'sigmaML']
+
+    def __init__(self, output_filename):
+        output_dir = os.path.dirname(output_filename)
+        if not os.path.exists(output_dir):
+            raise IOError('Invalid dir: %s' % output_dir)
+        self.output_filename = output_filename
+
+    def write_row(self):
+        """Write rows in the csv file"""
+
+        with open(self.output_filename, 'w') as output_file:
+            writer = csv.DictWriter(output_file, EqEntryWriter.FIELDNAMES)
+            writer.writeheader()
+            while True:
+                line = (yield)
+                writer.writerow(line)
