@@ -46,7 +46,7 @@ class DeclusteringTestCase(unittest.TestCase):
         gardner_knopoff(context)
 
         self.assertTrue(np.array_equal(expected_vmain_shock,
-                context.catalog_matrix))
+                context.working_catalog))
         self.assertTrue(np.array_equal(expected_vcl, context.vcl))
         self.assertTrue(np.array_equal(expected_flag_vector,
                 context.flag_vector))

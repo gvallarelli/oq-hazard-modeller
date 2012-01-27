@@ -142,3 +142,44 @@ def stepp_analysis(year, mw, dm=0.1, dt=1, ttol=0.2, iloc=True):
         [end_time - comp_length, mbin[:-1].T])
 
     return completeness_table
+
+
+def selected_eq_flag_vector(year, mw, cyear, cmw, flag_vector):
+    """
+    Creates a vector representing selected earthquakes events
+    after declustering and completeness jobs
+
+    :param year: catalog matrix year column
+    :type year: numpy.ndarray
+    :param mw: catalog matrix magnitude column
+    :type mw: numpy.ndarray
+    :param cyear: completeness table year column
+    :type cyear: numpy.ndarray
+    :param cmw: completeness table magnitude column
+    :type cmw: numpy.ndarray
+    :param flag_vector:
+    :type flag_vector: numpy.ndarray
+    :returns: selected_eq_vector representing the selected
+              events after preprocessing jobs (declustering,
+              completeness)
+    :rtype: numpy.ndarray
+
+    """
+
+    neq = np.shape(year)[0]
+    ncat = np.shape(cyear)[0]  # Number of magnitude-time categories
+    temp_flag = np.zeros(neq, dtype=int)
+    i = 0
+    while i < ncat:
+        id0 = np.logical_and(year < cyear[i], mw < cmw[i])
+        temp_flag[id0] = 1
+        i += 1
+
+    # Flag vector is input for the catalogue and has the same
+    # length as the catalogue - merge the two
+
+    selected_flag_vector = np.zeros(neq, dtype=int)
+    id0 = np.logical_or(temp_flag != 0, flag_vector != 0)
+    selected_flag_vector[id0] = 1
+
+    return selected_flag_vector

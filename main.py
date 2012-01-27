@@ -21,11 +21,12 @@ import logging
 
 from mtoolkit.console import cmd_line, build_logger
 
-from mtoolkit.workflow import Context, PipeLineBuilder, Workflow
-
-from mtoolkit.catalog_filter import CatalogFilter, SourceModelCatalogFilter
+from mtoolkit.workflow import (Context, PreprocessingBuilder,
+                                ProcessingBuilder, Workflow)
 
 from nrml.writer import AreaSourceWriter
+
+from mtoolkit.catalog_filter import CatalogFilter, SourceModelCatalogFilter
 
 
 if __name__ == '__main__':
@@ -42,13 +43,9 @@ if __name__ == '__main__':
 
         CONTEXT = Context(INPUT_CONFIG_FILENAME)
 
-        PIPELINE_PREPROCESSING = PipeLineBuilder().build(
-                CONTEXT.config,
-                PipeLineBuilder.PREPROCESSING_JOBS_CONFIG_KEY)
+        PIPELINE_PREPROCESSING = PreprocessingBuilder().build(CONTEXT.config)
 
-        PIPELINE_PROCESSING = PipeLineBuilder().build(
-                CONTEXT.config,
-                PipeLineBuilder.PROCESSING_JOBS_CONFIG_KEY)
+        PIPELINE_PROCESSING = ProcessingBuilder().build(CONTEXT.config)
 
         if CONTEXT.config['source_model_file']:
             CATALOG_FILTER = CatalogFilter(SourceModelCatalogFilter())

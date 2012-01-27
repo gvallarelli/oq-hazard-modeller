@@ -22,7 +22,8 @@ This module provide helper functions used in
 tests.
 """
 
-from mtoolkit.workflow import Context, PipeLineBuilder, Workflow
+from mtoolkit.workflow import (Context, PreprocessingBuilder,
+                                ProcessingBuilder, Workflow)
 
 from mtoolkit.catalog_filter import CatalogFilter, SourceModelCatalogFilter
 
@@ -32,12 +33,9 @@ from nrml.nrml_xml import get_data_path, DATA_DIR
 def create_workflow(config):
     """Create a workflow based on the config"""
 
-    builder = PipeLineBuilder()
-    preprocessing_pipeline = builder.build(config,
-        PipeLineBuilder.PREPROCESSING_JOBS_CONFIG_KEY)
+    preprocessing_pipeline = PreprocessingBuilder().build(config)
 
-    processing_pipeline = builder.build(config,
-        PipeLineBuilder.PROCESSING_JOBS_CONFIG_KEY)
+    processing_pipeline = ProcessingBuilder().build(config)
 
     return Workflow(preprocessing_pipeline, processing_pipeline)
 

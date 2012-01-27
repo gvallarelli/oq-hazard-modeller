@@ -12,7 +12,7 @@ eq_catalog_file: tests/data/completeness_input_test.csv
 # Path to the file defining the transformed 
 # eq catalog after the preprocessing jobs.
 # If not defined no file will be written.
-pprocessing_result_file: path_to_file
+pprocessing_result_file: test/data/preprocessed_catalogue.csv
 
 # Path to the file defining the source model.
 source_model_file: tests/data/area_source_model_processing.xml

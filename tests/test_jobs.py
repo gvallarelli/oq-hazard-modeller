@@ -17,8 +17,10 @@
 # version 3 along with MToolkit. If not, see
 # <http://www.gnu.org/licenses/lgpl-3.0.txt> for a copy of the LGPLv3 License.
 
-import unittest
 import numpy as np
+import filecmp
+import unittest
+
 
 from tests.helper import create_workflow, create_context, run
 
@@ -30,8 +32,8 @@ from mtoolkit.source_model import (AreaSource, AREA_BOUNDARY, POINT,
                                     default_area_source)
 
 from mtoolkit.jobs import (read_eq_catalog, read_source_model,
-                           gardner_knopoff, recurrence,
-                           create_default_source_model)
+                           gardner_knopoff, store_preprocessed_catalog,
+                           recurrence, create_default_source_model)
 
 from nrml.nrml_xml import get_data_path, DATA_DIR
 
@@ -51,6 +53,9 @@ class JobsTestCase(unittest.TestCase):
 
         self.preprocessing_config = get_data_path(
             'preprocessing_config.yml', DATA_DIR)
+
+        self.expected_preprocessed_catalogue = get_data_path(
+            'expected_preprocessed_catalogue.csv', DATA_DIR)
 
     def test_read_eq_catalog(self):
         self.context.config['eq_catalog_file'] = self.eq_catalog_filename
@@ -118,6 +123,7 @@ class JobsTestCase(unittest.TestCase):
 
     def test_parameters_gardner_knopoff(self):
         context = create_context('config_gardner_knopoff.yml')
+        context.working_catalog = None
 
         context.catalog_matrix = []
 
@@ -140,6 +146,7 @@ class JobsTestCase(unittest.TestCase):
             self.assertEqual(magnitude_windows, 0.1)
             self.assertEqual(sensitivity, 0.2)
             self.assertTrue(iloc)
+            return np.array([[0, 0]])
 
         context.map_sc['stepp'] = assert_parameters
 
@@ -173,7 +180,12 @@ class JobsTestCase(unittest.TestCase):
         self.context.map_sc['recurrence'] = assert_parameters
         recurrence(self.context)
 
+    @unittest.skip
+    def test_store_catalog_in_csv_after_preprocessing(self):
+        context = create_context(self.preprocessing_config)
+        workflow = create_workflow(context.config)
+        run(workflow, context)
+        store_preprocessed_catalog(context)
 
-    def test_store_catalog_in_csv_format_after_preprocessing(self):
-        pass
-
+        self.asserTrue(filecmp.filecmp(self.expected_preprocessed_catalogue,
+                context.pprocessing_result_file))

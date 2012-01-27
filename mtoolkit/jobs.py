@@ -18,9 +18,8 @@
 # <http://www.gnu.org/licenses/lgpl-3.0.txt> for a copy of the LGPLv3 License.
 
 """
-The purpose of this module is to provide functions
-which tackle specific job, some of them wrap scientific
-functions defined in the scientific module.
+The purpose of this module is to provide functions which tackle specific job,
+some of them wrap scientific functions defined in the scientific module.
 """
 
 import logging
@@ -31,11 +30,14 @@ from nrml.reader import NRMLReader
 from nrml.nrml_xml import get_data_path, SCHEMA_DIR
 from mtoolkit.source_model import default_area_source
 
+
 NRML_SCHEMA_PATH = get_data_path('nrml.xsd', SCHEMA_DIR)
-CATALOG_MATRIX_YEAR_INDEX = 0
+CATALOG_COMPLETENESS_MATRIX_YEAR_INDEX = 0
 CATALOG_MATRIX_MW_INDEX = 5
 CATALOG_MATRIX_FIXED_COLOUMNS = ['year', 'month', 'day',
                                 'longitude', 'latitude', 'Mw']
+COMPLETENESS_TABLE_MW_INDEX = 1
+
 LOGGER = logging.getLogger('mt_logger')
 
 
@@ -58,7 +60,7 @@ def logged_job(job):
 @logged_job
 def read_eq_catalog(context):
     """
-    Create eq entries by reading an eq catalog.
+    Create eq entries by reading an e] catalog.
     :param context: shared datastore across different jobs
         in a pipeline
     """
@@ -116,7 +118,9 @@ def create_catalog_matrix(context):
     for eq_entry in context.eq_catalog:
         matrix.append([eq_entry[coloumn] for coloumn in
                         CATALOG_MATRIX_FIXED_COLOUMNS])
+
     context.catalog_matrix = np.array(matrix)
+    context.working_catalog = np.array(matrix)
 
 
 @logged_job
@@ -128,9 +132,10 @@ def create_default_values(context):
         in a pipeline
     """
 
-    context.flag_vector = np.zeros(len(context.catalog_matrix))
-    min_year = context.catalog_matrix[:, CATALOG_MATRIX_YEAR_INDEX].min()
-    min_magnitude = context.catalog_matrix[:, CATALOG_MATRIX_MW_INDEX].min()
+    context.flag_vector = np.zeros(len(context.working_catalog))
+    min_year = context.working_catalog[:,
+        CATALOG_COMPLETENESS_MATRIX_YEAR_INDEX].min()
+    min_magnitude = context.working_catalog[:, CATALOG_MATRIX_MW_INDEX].min()
     context.completeness_table = np.array([[min_year, min_magnitude]])
 
 
@@ -143,12 +148,12 @@ def gardner_knopoff(context):
     """
 
     vcl, vmain_shock, flag_vector = context.map_sc['gardner_knopoff'](
-            context.catalog_matrix,
+            context.working_catalog,
             context.config['GardnerKnopoff']['time_dist_windows'],
             context.config['GardnerKnopoff']['foreshock_time_window'])
 
     context.vcl = vcl
-    context.catalog_matrix = vmain_shock
+    context.working_catalog = vmain_shock
     context.flag_vector = flag_vector
 
     LOGGER.debug(
@@ -172,8 +177,8 @@ def stepp(context):
     """
 
     context.completeness_table = context.map_sc['stepp'](
-        context.catalog_matrix[:, CATALOG_MATRIX_YEAR_INDEX],
-        context.catalog_matrix[:, CATALOG_MATRIX_MW_INDEX],
+        context.working_catalog[:, CATALOG_COMPLETENESS_MATRIX_YEAR_INDEX],
+        context.working_catalog[:, CATALOG_MATRIX_MW_INDEX],
         context.config['Stepp']['magnitude_windows'],
         context.config['Stepp']['time_window'],
         context.config['Stepp']['sensitivity'],
@@ -181,12 +186,38 @@ def stepp(context):
 
     LOGGER.debug(
         "* Number of events into completeness algorithm: %s"
-            % len(context.catalog_matrix))
+            % len(context.working_catalog))
 
     LOGGER.debug(
         "* Completeness table: ")
 
     LOGGER.debug(context.completeness_table)
+
+
+@logged_job
+def create_selected_eq_vector(context):
+    """
+    Apply selected_eq_flag_vector algorithm to
+    the catalog matrix and completeness table
+    :param context: shared datastore across different jobs
+        in a pipeline
+    """
+
+    context.selected_eq_vector = context.map_sc['select_eq_vector'](
+        context.catalog_matrix[:, CATALOG_COMPLETENESS_MATRIX_YEAR_INDEX],
+        context.catalog_matrix[:, CATALOG_MATRIX_MW_INDEX],
+        context.completeness_table[:, CATALOG_COMPLETENESS_MATRIX_YEAR_INDEX],
+        context.completeness_table[:, COMPLETENESS_TABLE_MW_INDEX],
+        context.flag_vector)
+
+
+@logged_job
+def store_preprocessed_catalog(context):
+    """
+    Write in a csv file the earthquake
+    catalog after preprocessing jobs (i.e.
+    gardner_knopoff, stepp)
+    """
 
 
 @logged_job
@@ -199,7 +230,8 @@ def recurrence(context):
     """
 
     bval, sigb, a_m, siga_m = context.map_sc['recurrence'](
-            context.current_filtered_eq[:, CATALOG_MATRIX_YEAR_INDEX],
+            context.current_filtered_eq[:,
+                CATALOG_COMPLETENESS_MATRIX_YEAR_INDEX],
             context.current_filtered_eq[:, CATALOG_MATRIX_MW_INDEX],
             context.completeness_table,
             context.config['Recurrence']['magnitude_window'],

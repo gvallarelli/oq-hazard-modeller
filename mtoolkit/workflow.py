@@ -23,16 +23,23 @@ to process a series of jobs in a sequential
 order. The order is determined by the queue of jobs.
 """
 
+import abc
+
 import yaml
 
 from mtoolkit.jobs import (gardner_knopoff, stepp, recurrence,
                             read_eq_catalog, read_source_model,
                             create_default_source_model,
                             create_catalog_matrix,
-                            create_default_values)
+                            create_default_values,
+                            create_selected_eq_vector,
+                            store_preprocessed_catalog)
 
 from mtoolkit.scientific.declustering import gardner_knopoff_decluster
-from mtoolkit.scientific.completeness import stepp_analysis
+
+from mtoolkit.scientific.completeness import (stepp_analysis,
+                                                selected_eq_flag_vector)
+
 from mtoolkit.scientific.recurrence import recurrence_analysis
 
 
@@ -42,14 +49,13 @@ class PipeLine(object):
     jobs and execute them in order.
     """
 
-    def __init__(self, name, jobs_list=None):
+    def __init__(self, jobs_list=None):
         """
         Initialize a PipeLine object having
         attributes: name and jobs, a list
         of callable objects.
         """
 
-        self.name = name
         self.jobs = []
         if jobs_list != None:
             self.jobs = jobs_list
@@ -57,8 +63,7 @@ class PipeLine(object):
     def __eq__(self, other):
         """Equal operator for pipeline"""
 
-        return self.name == other.name \
-                and self.jobs == other.jobs
+        return self.jobs == other.jobs
 
     def __ne__(self, other):
         """Not equal operator for pipeline"""
@@ -92,42 +97,84 @@ class PipeLineBuilder(object):
     specified in the config file.
     """
 
-    PREPROCESSING_JOBS_CONFIG_KEY = 'preprocessing_jobs'
-    PROCESSING_JOBS_CONFIG_KEY = 'processing_jobs'
+    __metaclass__ = abc.ABCMeta
 
     def __init__(self):
-        self.map_job_callable = {'GardnerKnopoff': gardner_knopoff,
-                                  'Stepp': stepp,
-                                  'Recurrence': recurrence}
 
-    def build(self, config, pipeline_type):
+        self.map_job_callable = {'GardnerKnopoff': gardner_knopoff,
+                                 'Stepp': stepp,
+                                 'Recurrence': recurrence,
+                                 'Create_eq_vector':
+                                   create_selected_eq_vector,
+                                 'Store_eq_catalog':
+                                   store_preprocessed_catalog}
+
+    @abc.abstractmethod
+    def build(self, config):
         """
         Build method creates the pipeline by
         assembling all the steps required.
         The steps described in the config
         could be preprocessing or processing
-        steps.
+        steps
         """
 
-        if pipeline_type == self.PREPROCESSING_JOBS_CONFIG_KEY:
+    def append_jobs(self, pipeline, jobs):
+        """
+        Add jobs to the pipeline by looking
+        at the list of jobs defined in the
+        config
+        """
 
-            if config['source_model_file']:
-                source_model_creation = read_source_model
+        for job in jobs:
+            if job in self.map_job_callable:
+                pipeline.add_job(self.map_job_callable[job])
             else:
-                source_model_creation = create_default_source_model
+                raise RuntimeError('Invalid job: %s' % job)
 
-            pipeline = PipeLine(pipeline_type,
-                    [read_eq_catalog, source_model_creation,
-                    create_catalog_matrix, create_default_values])
+        return pipeline
+
+
+class PreprocessingBuilder(PipeLineBuilder):
+
+    PREPROCESSING_JOBS_KEY = 'preprocessing_jobs'
+    PPROCESSING_RESULT_KEY = 'pprocessing_result_file'
+
+    def build(self, config):
+
+        # Checks if source model is defined
+        if config['source_model_file']:
+            source_model_creation = read_source_model
         else:
-            pipeline = PipeLine(pipeline_type)
+            source_model_creation = create_default_source_model
 
-        if config[pipeline_type] != None:
-            for job in config[pipeline_type]:
-                if job in self.map_job_callable:
-                    pipeline.add_job(self.map_job_callable[job])
-                else:
-                    raise RuntimeError('Invalid job: %s' % job)
+        # Add compulsory jobs to the pipeline'])
+        pipeline = PipeLine([read_eq_catalog, source_model_creation,
+                    create_catalog_matrix, create_default_values])
+
+        # Add preprocessing jobs
+        if config[PreprocessingBuilder.PREPROCESSING_JOBS_KEY] != None:
+            self.append_jobs(pipeline,
+                    config[PreprocessingBuilder.PREPROCESSING_JOBS_KEY])
+
+            # Add store eq catalog jobs if result file is defined
+            if config[PreprocessingBuilder.PPROCESSING_RESULT_KEY] != None:
+                pipeline.add_job(self.map_job_callable['Create_eq_vector'])
+                pipeline.add_job(self.map_job_callable['Store_eq_catalog'])
+
+        return pipeline
+
+
+class ProcessingBuilder(PipeLineBuilder):
+
+    PROCESSING_JOBS_CONFIG_KEY = 'processing_jobs'
+
+    def build(self, config):
+        pipeline = PipeLine()
+
+        if config[ProcessingBuilder.PROCESSING_JOBS_CONFIG_KEY] != None:
+            self.append_jobs(pipeline,
+                    config[ProcessingBuilder.PROCESSING_JOBS_CONFIG_KEY])
 
         return pipeline
 
@@ -143,7 +190,8 @@ class Context(object):
         self.config = dict()
         self.map_sc = {'gardner_knopoff': gardner_knopoff_decluster,
                         'stepp': stepp_analysis,
-                        'recurrence': recurrence_analysis}
+                        'recurrence': recurrence_analysis,
+                        'select_eq_vector': selected_eq_flag_vector}
 
         if config_filename:
             config_file = open(config_filename, 'r')
