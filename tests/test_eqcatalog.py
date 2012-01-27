@@ -269,6 +269,7 @@ class EqEntryWriterTestCase(unittest.TestCase):
         cr.next()
         cr.send(self.first_data_row)
         cr.send(self.second_data_row)
+        cr.close()
 
         self.assertTrue(filecmp.cmp(self.expected_csv,
             self.pprocessing_result_filename))
