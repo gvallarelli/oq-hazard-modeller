@@ -417,12 +417,6 @@ def fun_distance(i, bgevent, lon, lat, depth, ac, err, derr):
     cosdel2 = (np.sin(acol[1]) * np.sin(bcol)) * np.cos(diflon[:, 1]) + \
                (np.cos(acol[1]) * np.cos(bcol))
     cosdel = np.column_stack([cosdel1, cosdel2])
-    if np.any(np.abs(cosdel) > 1.):
-        # If two events are at the same location then arccos produces a
-        # floating point error! This statement should correct the problem
-        # without introducing to much additional error!
-        cosdel[cosdel < -1.] = -1. + 1E-12
-        cosdel[cosdel > 1.] = 1 - 1E-12
     delr = np.arccos(cosdel)
     colat = pi2 - ((alatr1 + blatr) / 2.)
     colat = np.column_stack([colat, pi2 - ((alatr2 + blatr) / 2.)])
@@ -451,10 +445,7 @@ def reasenberg_decluster(catalogue_matrix, rfact=10., xmeff=1.5, xk=0.5,
     ||Reasenberg, P. A. (1985), "Second Order Moment of Central California
     Seismicity, 1969 - 1982". Journal of Geophysical Research. 90(B7),
     5479 - 5495||
-    :param catalogue_matrix: Earthquake Catalogue in extended format
-                             [year, month, day, long, lat, mw, sigma_mw,
-                              depth, depth_error, semimajor90, hour, minute,
-                              second]
+    :param catalogue_matrix: Earthquake Catalogue - standard format
     :type catalogue_matrix: numpy.ndarray
     :keyword rfact: Interaction radius for dependent events (km)
     :type rfact: Positive float
@@ -486,8 +477,8 @@ def reasenberg_decluster(catalogue_matrix, rfact=10., xmeff=1.5, xk=0.5,
     # Get earthquake time in Julian days - hour, minute & second
     # not used, so replace with zeros
     eqtime = greg2julian(catalogue_matrix[:, 0], catalogue_matrix[:, 1],
-                         catalogue_matrix[:, 2], catalogue_matrix[:, 10],
-                         catalogue_matrix[:, 11], catalogue_matrix[:, 12])
+                         catalogue_matrix[:, 2], np.zeros(neq),
+                         np.zeros(neq), np.zeros(neq))
     # Pre-allocate declustering output vector vcl
     vcl = np.zeros(neq, dtype='int32')
     kindex = 0
@@ -522,7 +513,7 @@ def reasenberg_decluster(catalogue_matrix, rfact=10., xmeff=1.5, xk=0.5,
         if np.shape(a_c)[0] != 0:
             # Some events qualify for further examination
             if k_1 != 0:
-                # Event i is already related to a cluster
+                # Event i is already related to a vclter
                 tml = np.nonzero(vcl[a_c] != k_1)[0]
                 if np.shape(tml)[0] != 0:
                     a_c = a_c[tml]
@@ -536,20 +527,18 @@ def reasenberg_decluster(catalogue_matrix, rfact=10., xmeff=1.5, xk=0.5,
             # most recent earthquake
             if k_1 == 0:
                 # THIS STILL NEEDS TO BE FIXED WITH NEW CATALOGUE LOCAIONS
-                # New catalogue locations: long (3), lat (4), depth (7)
-                #  semimajor90 (9), depthError (8)
-                dist1, dist2 = fun_distance(i, i, catalogue_matrix[:, 3],
-                                            catalogue_matrix[:, 4],
-                                            catalogue_matrix[:, 7], a_c,
-                                            catalogue_matrix[:, 9],
-                                            catalogue_matrix[:, 8])
+                dist1, dist2 = fun_distance(i, i, catalogue_matrix[:, 10],
+                                            catalogue_matrix[:, 11],
+                                            catalogue_matrix[:, 15], a_c,
+                                            catalogue_matrix[:, 12],
+                                            catalogue_matrix[:, 16])
             else:
                 dist1, dist2 = fun_distance(i, bgevent[k_1 - 1],
-                                            catalogue_matrix[:, 3],
-                                            catalogue_matrix[:, 4],
-                                            catalogue_matrix[:, 7], a_c,
-                                            catalogue_matrix[:, 9],
-                                            catalogue_matrix[:, 8])
+                                            catalogue_matrix[:, 10],
+                                            catalogue_matrix[:, 11],
+                                            catalogue_matrix[:, 15], a_c,
+                                            catalogue_matrix[:, 12],
+                                            catalogue_matrix[:, 16])
 
             # Extract earthquakes that fit the spatial interaction time
             sl0 = np.nonzero(np.logical_or(dist1 <= rtest1,
@@ -558,9 +547,9 @@ def reasenberg_decluster(catalogue_matrix, rfact=10., xmeff=1.5, xk=0.5,
             if np.shape(sl0)[0] != 0:
                 # Some earthquakes qualify for further examination
                 l_l = a_c[sl0]   # EQs fit spatio-temporal criteria
-                # EQs already assigned to a cluster
+                # EQs already assigned to a vclter
                 lla = l_l[np.nonzero(vcl[l_l] != 0)[0]]
-                # EQs not assigned to cluster
+                # EQs not assigned to vclter
                 llb = l_l[np.nonzero(vcl[l_l] == 0)[0]]
                 if np.shape(lla)[0] != 0:
                     # Find the smallest cluster number -
@@ -581,7 +570,7 @@ def reasenberg_decluster(catalogue_matrix, rfact=10., xmeff=1.5, xk=0.5,
                         if vcl[j1] != k_1:
                             sl5 = np.nonzero(vcl == vcl[j1])[0]
                             tm2 = np.shape(sl5)[0]
-                            vcl[sl5] = k_1 * np.ones(tm2, dtype = int)
+                            vcl[sl5] = k_1 * np.ones((tm2, 1))
 
                 if k_1 == 0:
                     kindex = kindex + 1
@@ -591,8 +580,7 @@ def reasenberg_decluster(catalogue_matrix, rfact=10., xmeff=1.5, xk=0.5,
                     bgevent = np.hstack([bgevent, i])
 
                 if np.shape(llb)[0] > 0:
-                    #print vcl[llb], float(k_1) * np.ones(np.shape(llb)[0])
-                    vcl[llb] = k_1 * np.ones(np.shape(llb)[0], dtype = int)
+                    vcl[llb] = k_1 * np.ones((np.shape(llb)[0], 1))
 
     # The array "vcl" should indicate which clustter each event belons to
     # 0 if not allocated to a cluster
