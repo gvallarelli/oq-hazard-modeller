@@ -25,7 +25,7 @@ some of them wrap scientific functions defined in the scientific module.
 import logging
 import numpy as np
 
-from mtoolkit.eqcatalog import EqEntryReader
+from mtoolkit.eqcatalog import EqEntryReader, EqEntryWriter
 from nrml.reader import NRMLReader
 from nrml.nrml_xml import get_data_path, SCHEMA_DIR
 from mtoolkit.source_model import default_area_source
@@ -217,6 +217,26 @@ def store_preprocessed_catalog(context):
     catalog after preprocessing jobs (i.e.
     gardner_knopoff, stepp)
     """
+
+    writer = EqEntryWriter(
+        context.config['pprocessing_result_file'])
+    writer_cr = writer.write_row()
+    writer_cr.next()
+
+    number_written_eq = 0
+    index = 0
+
+    for index, entry in enumerate(
+        context.selected_eq_vector):
+        if entry == 0:
+            writer_cr.send(context.eq_catalog[index])
+            number_written_eq += 1
+    writer_cr.close()
+
+    LOGGER.debug("* Stored Eq entries: %d" % number_written_eq)
+
+    LOGGER.debug("* Number of events removed after preprocessing jobs: %d" %
+        ((index + 1) - number_written_eq))
 
 
 @logged_job

@@ -52,7 +52,7 @@ class JobsTestCase(unittest.TestCase):
             'area_source_model.xml', DATA_DIR)
 
         self.preprocessing_config = get_data_path(
-            'preprocessing_config.yml', DATA_DIR)
+            'config_preprocessing.yml', DATA_DIR)
 
         self.expected_preprocessed_catalogue = get_data_path(
             'expected_preprocessed_catalogue.csv', DATA_DIR)
@@ -180,12 +180,11 @@ class JobsTestCase(unittest.TestCase):
         self.context.map_sc['recurrence'] = assert_parameters
         recurrence(self.context)
 
-    @unittest.skip
     def test_store_catalog_in_csv_after_preprocessing(self):
         context = create_context(self.preprocessing_config)
         workflow = create_workflow(context.config)
         run(workflow, context)
         store_preprocessed_catalog(context)
 
-        self.asserTrue(filecmp.filecmp(self.expected_preprocessed_catalogue,
-                context.pprocessing_result_file))
+        self.assertTrue(filecmp.cmp(self.expected_preprocessed_catalogue,
+                context.config['pprocessing_result_file']))

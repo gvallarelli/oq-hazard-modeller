@@ -50,11 +50,11 @@ class ContextTestCase(unittest.TestCase):
             'magnitude_windows': 0.2,
             'sensitivity': 0.1,
             'time_window': 1},
-            'result_file': 'path_to_file',
+            'result_file': None,
             'eq_catalog_file': 'tests/data/completeness_input_test.csv',
             'preprocessing_jobs': ['GardnerKnopoff', 'Stepp'],
             'processing_jobs': None,
-            'source_model_file': 'path_to_file'}
+            'source_model_file': 'tests/data/area_source_model.xml'}
 
         self.assertEqual(expected_config_dict,
             self.context_preprocessing.config)
