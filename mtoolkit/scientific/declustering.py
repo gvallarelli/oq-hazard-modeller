@@ -30,8 +30,7 @@ import numpy as np
 import logging
 
 from mtoolkit.scientific.catalogue_utilities import (decimal_year,
-                                                        haversine,
-                                                        greg2julian)
+                                                        haversine)
 
 
 LOGGER = logging.getLogger('mt_logger')
