@@ -138,7 +138,7 @@ class EqEntryReaderTestCase(unittest.TestCase):
 
         self.assertFalse(self.eq_reader.check_positive_value(
             compulsory_field_name, eq_entry))
-        self.assertEqual(EqEntryReader.EMPTY_STRING, eq_entry['sigmaMs'])
+        self.assertEqual(0, eq_entry['sigmaMs'])
 
     def test_check_year(self):
         field_name = 'year'
@@ -181,7 +181,7 @@ class EqEntryReaderTestCase(unittest.TestCase):
         eq_entry = {field_name: invalid_second}
         self.eq_reader.check_second(field_name, eq_entry)
 
-        self.assertEqual(eq_entry['second'], EqEntryReader.EMPTY_STRING)
+        self.assertEqual(eq_entry['second'], 0.0)
 
     def test_check_longitude(self):
         field_name = 'longitude'
@@ -199,17 +199,18 @@ class EqEntryReaderTestCase(unittest.TestCase):
 
     def test_check_epicentre_error_location(self):
         field_name = 'ErrorStrike'
+
         eq_entry = {field_name: 45, 'SemiMajor90': 5,
             'SemiMinor90': EqEntryReader.EMPTY_STRING}
         self.eq_reader.check_epicentre_error_location(
             field_name, eq_entry)
 
         self.assertEqual(eq_entry['SemiMajor90'],
-            EqEntryReader.EMPTY_STRING)
+            0.0)
         self.assertEqual(eq_entry['SemiMinor90'],
-            EqEntryReader.EMPTY_STRING)
+            0.0)
         self.assertEqual(eq_entry['ErrorStrike'],
-            EqEntryReader.EMPTY_STRING)
+            0.0)
 
         eq_entry['SemiMajor90'] = 5
         eq_entry['SemiMinor90'] = 4
@@ -217,8 +218,8 @@ class EqEntryReaderTestCase(unittest.TestCase):
             field_name, eq_entry)
 
         self.assertEqual(eq_entry['SemiMajor90'],
-            EqEntryReader.EMPTY_STRING)
+            5)
         self.assertEqual(eq_entry['SemiMinor90'],
-            EqEntryReader.EMPTY_STRING)
+            4)
         self.assertEqual(eq_entry['ErrorStrike'],
-            EqEntryReader.EMPTY_STRING)
+            0.0)

@@ -200,7 +200,7 @@ class EqEntryReader(object):
         if field in self.compulsory_fields:
             return eq_entry[field] > 0
         if eq_entry[field] < 0:
-            eq_entry[field] = EqEntryReader.EMPTY_STRING
+            eq_entry[field] = 0
         return True
 
     def check_year(self, field, eq_entry):
@@ -247,8 +247,8 @@ class EqEntryReader(object):
         of the value in the eq_entry.
         """
 
-        if not 0 <= eq_entry[field] <= 59:
-            eq_entry[field] = EqEntryReader.EMPTY_STRING
+        if not 0 <= eq_entry[field] <= 60:
+            eq_entry[field] = 0.0
         return True
 
     def check_longitude(self, field, eq_entry):
@@ -279,9 +279,7 @@ class EqEntryReader(object):
             eq_entry['SemiMajor90'] == EqEntryReader.EMPTY_STRING or \
             not (eq_entry['SemiMinor90'] <= eq_entry['SemiMajor90']):
             eq_entry['SemiMinor90'] = eq_entry['SemiMajor90'] \
-            = eq_entry[field] = EqEntryReader.EMPTY_STRING
-
-        return True
+            = eq_entry[field] = 0.0
 
 
 class EqEntryValidationError(Exception):

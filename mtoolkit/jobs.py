@@ -36,7 +36,9 @@ CATALOG_MATRIX_YEAR_INDEX = 0
 CATALOG_MATRIX_MW_INDEX = 5
 CATALOG_MATRIX_FIXED_COLOUMNS = ['year', 'month', 'day',
                                 'longitude', 'latitude', 'Mw',
-                                ]
+                                'sigmaMw', 'depth', 'depthError',
+                                'SemiMajor90', 'hour', 'minute', 'second']
+
 LOGGER = logging.getLogger('mt_logger')
 
 
@@ -118,6 +120,8 @@ def create_catalog_matrix(context):
         matrix.append([eq_entry[coloumn] for coloumn in
                         CATALOG_MATRIX_FIXED_COLOUMNS])
     context.catalog_matrix = np.array(matrix)
+
+    LOGGER.debug(context.catalog_matrix)
 
 
 @logged_job
