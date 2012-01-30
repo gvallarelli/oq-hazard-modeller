@@ -194,38 +194,6 @@ def afteran(context):
 
 
 @logged_job
-def reasenberg(context):
-    """
-    Apply reasenberg declustering algorithm to the eq catalog.
-    :param context: shared datastore across different jobs
-        in a pipeline
-    """
-    vcl, vmain_shock, flag_vector = context.map_sc['reasenberg'](
-            context.catalog_matrix,
-            context.config['Reasenberg']['rfact'],
-            context.config['Reasenberg']['xmeff'],
-            context.config['Reasenberg']['xk'],
-            context.config['Reasenberg']['taumin'],
-            context.config['Reasenberg']['taumax'],
-            context.config['Reasenberg']['plev'])
-
-    context.vcl = vcl
-    context.catalog_matrix = vmain_shock
-    context.flag_vector = flag_vector
-
-    LOGGER.debug(
-        "* Number of events after declustering: %s" % len(vmain_shock))
-
-    LOGGER.debug(
-        "* Number of events removed during declustering: %s" %
-        (np.sum(flag_vector != 0)))
-
-    LOGGER.debug(
-        "* Number of clusters identified: %s" %
-        (np.size(np.unique(vcl), 0) - 1))
-
-
-@logged_job
 def stepp(context):
     """
     Apply step algorithm to the catalog matrix

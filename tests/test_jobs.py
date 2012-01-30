@@ -30,8 +30,7 @@ from mtoolkit.source_model import (AreaSource, AREA_BOUNDARY, POINT,
                                     default_area_source)
 
 from mtoolkit.jobs import (read_eq_catalog, read_source_model,
-                           gardner_knopoff, afteran,
-                           reasenberg, recurrence,
+                           gardner_knopoff, afteran, recurrence,
                            create_default_source_model)
 
 from nrml.nrml_xml import get_data_path, DATA_DIR
@@ -138,23 +137,6 @@ class JobsTestCase(unittest.TestCase):
 
         context.map_sc['afteran'] = assert_parameters
         afteran(context)
-
-    def test_parameters_reasenberg(self):
-        context = create_context('config_reasenberg.yml')
-
-        context.catalog_matrix = []
-
-        def assert_parameters(data, rfact, xmeff, xk, taumin, taumax, plev):
-            self.assertEquals(10.6, rfact)
-            self.assertEquals(2.5, xmeff)
-            self.assertEquals(1.5, xk)
-            self.assertEquals(1.2, taumin)
-            self.assertEquals(9.0, taumax)
-            self.assertEquals(0.94, plev)
-            return [], [], []
-
-        context.map_sc['reasenberg'] = assert_parameters
-        reasenberg(context)
 
     def test_parameters_stepp(self):
         context = create_context('config_stepp.yml')
