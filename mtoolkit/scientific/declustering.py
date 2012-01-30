@@ -38,7 +38,6 @@ from mtoolkit.scientific.catalogue_utilities import (decimal_year,
 LOGGER = logging.getLogger('mt_logger')
 
 
-
 def calc_windows(magnitude, window_opt):
     """
     Allows to calculate distance and time windows (sw, search window)
@@ -202,8 +201,8 @@ def afteran_decluster(
     eqid = np.arange(0, neq, 1)  # Initial Position Identifier
 
     # Pre-allocate cluster index vectors
-    vcl = np.zeros(neq, dtype=int)
-    flagvector = np.zeros(neq, dtype=int)
+    vcl = np.zeros((neq, 1), dtype=int)
+    flagvector = np.zeros((neq, 1), dtype=int)
     # Sort magnitudes into descending order
     id0 = np.flipud(np.argsort(mag, kind='heapsort'))
     mag = mag[id0]
@@ -213,59 +212,65 @@ def afteran_decluster(
     eqid = eqid[id0]
 
     i = 0
+    clust_index = 0
     while i < neq:
-        # Perform distance calculation
-        mdist = haversine(catalogue_matrix[:, 3], catalogue_matrix[:, 4],
+        if vcl[i] == 0:
+            # Earthquake not allocated to cluster - perform calculation
+            # Perform distance calculation
+            mdist = haversine(catalogue_matrix[:, 3], catalogue_matrix[:, 4],
                           catalogue_matrix[i, 3], catalogue_matrix[i, 4])
 
+            # Select earthquakes inside distance window and not in cluster
+            vsel = np.logical_and(mdist <= sw_space[i], vcl == 0).flatten()
+            dtime = year_dec[vsel] - year_dec[i]
 
-        # Select earthquakes inside distance window
-        vsel = (mdist <= sw_space[i]).flatten()
-        dtime = year_dec[vsel] - year_dec[i]
-        nval = np.shape(dtime)[0]  # Number of events inside valid window
-
-
-        # Pre-allocate boolean array
-        vsel1 = np.array(np.zeros(nval), dtype=bool)
-        vsel2 = np.copy(vsel1)
-        initval = dtime[0]  # Start with the mainshock
-        # Search for aftershocks
-        j = 1
-        while j < nval:
-            ddt = dtime[j] - initval
-            # Is event after after previous event and within time window?
-            vsel1[j] = np.logical_and(ddt >= 0.0, ddt <= time_window)
-            if vsel1[j]:
-                # Reset time window to new event time
-                initval = dtime[j]
-            j += 1
-        # Now search for foreshocks
-        j = 1
-        initval = dtime[0]
-
-        while j < nval:
-            if vsel1[j]:
-                # Event already allocated as an aftershock - skip
-                j += 1
-            else:
+            nval = np.shape(dtime)[0]  # Number of events inside valid window
+            # Pre-allocate boolean array (all True)
+            vsel1 = np.array(np.ones(nval), dtype=bool)
+            initval = dtime[0]  # Start with the mainshock
+            # Search for aftershocks
+            j = 1
+            while j < nval:
                 ddt = dtime[j] - initval
-                # Is event before previous event and within time window?
-                vsel2[j] = np.logical_and(ddt <= 0.0, ddt >= -(time_window))
-                if vsel2[j]:
-                    # Yes, reset time window to new event
+                # Is event after previous event and within time window?
+                vsel1[j] = np.logical_and(ddt >= 0.0, ddt <= time_window)
+                if vsel1[j]:
+                    # Reset time window to new event time
                     initval = dtime[j]
                 j += 1
-        LOGGER.debug('vsel \n')
-        LOGGER.debug(vsel[vsel1])
-        LOGGER.debug('\n')
-        LOGGER.debug(vsel[vsel2])
-        LOGGER.debug('\n')
-        flagvector[vsel[vsel1]] = 1
-        flagvector[vsel[vsel2]] = -1
-        vsel[vsel] = np.logical_or(vsel1, vsel2)
-        vcl[vsel] = i + 1
-        i += 1
 
+            # Now search for foreshocks
+            j = 1
+            vsel2 = np.array(np.zeros(nval), dtype=bool)
+            initval = dtime[0]
+            while j < nval:
+                if vsel1[j]:
+                    # Event already allocated as an aftershock - skip
+                    j += 1
+                else:
+                    ddt = dtime[j] - initval
+                    # Is event before previous event and within time window?
+                    vsel2[j] = np.logical_and(ddt <= 0.0,
+                                              ddt >= -(time_window))
+                    if vsel2[j]:
+                        # Yes, reset time window to new event
+                        initval = dtime[j]
+                    j += 1
+            temp_vsel = np.copy(vsel)
+            temp_vsel[vsel] = np.logical_or(vsel1, vsel2)
+            if np.shape(np.nonzero(temp_vsel)[0])[0] > 1:
+                # Contains clustered events - allocate a cluster index
+                vcl[temp_vsel] = clust_index + 1
+                # Remove mainshock from cluster
+                vsel1[0] = False
+                # Assign markers to aftershocks and foreshocks
+                temp_vsel = np.copy(vsel)
+                temp_vsel[vsel] = vsel1
+                flagvector[temp_vsel] = 1
+                vsel[vsel] = vsel2
+                flagvector[vsel] = -1
+                clust_index += 1
+        i += 1
 
     # Now have events - re-sort array back into chronological order
     # Re-sort the data into original order
@@ -275,16 +280,10 @@ def afteran_decluster(
     vcl = vcl[id1]
     flagvector = flagvector[id1]
 
-    LOGGER.debug('vcl \n')
-    LOGGER.debug(vcl)
-
-    LOGGER.debug('flagvector \n')
-    LOGGER.debug(flagvector)
-
     # Now to produce a catalogue with aftershocks purged
-    vmain_shock = catalogue_matrix[np.nonzero(vcl == 0)[0], :]
+    vmain_shock = catalogue_matrix[np.nonzero(flagvector == 0)[0], :]
 
-    return vcl, vmain_shock, flagvector
+    return vcl.flatten(), vmain_shock, flagvector.flatten()
 
 
 def fun_interact(mag, rfact):

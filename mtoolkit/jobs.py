@@ -160,7 +160,7 @@ def gardner_knopoff(context):
         (np.sum(flag_vector != 0)))
 
     LOGGER.debug(
-        "* Number of cluster identified: %s" %
+        "* Number of clusters identified: %s" %
         (np.size(np.unique(vcl), 0) - 1))
 
 
@@ -189,7 +189,7 @@ def afteran(context):
         (np.sum(flag_vector != 0)))
 
     LOGGER.debug(
-        "* Number of cluster identified: %s" %
+        "* Number of clusters identified: %s" %
         (np.size(np.unique(vcl), 0) - 1))
 
 
@@ -221,7 +221,7 @@ def reasenberg(context):
         (np.sum(flag_vector != 0)))
 
     LOGGER.debug(
-        "* Number of cluster identified: %s" %
+        "* Number of clusters identified: %s" %
         (np.size(np.unique(vcl), 0) - 1))
 
 
