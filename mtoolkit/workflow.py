@@ -153,12 +153,12 @@ class PreprocessingBuilder(PipeLineBuilder):
                     create_catalog_matrix, create_default_values])
 
         # Add preprocessing jobs
-        if config[PreprocessingBuilder.PREPROCESSING_JOBS_KEY] != None:
+        if config[PreprocessingBuilder.PREPROCESSING_JOBS_KEY]:
             self.append_jobs(pipeline,
                     config[PreprocessingBuilder.PREPROCESSING_JOBS_KEY])
 
             # Add store eq catalog jobs if result file is defined
-            if config[PreprocessingBuilder.PPROCESSING_RESULT_KEY] != None:
+            if config[PreprocessingBuilder.PPROCESSING_RESULT_KEY]:
                 pipeline.add_job(self.map_job_callable['Create_eq_vector'])
                 pipeline.add_job(self.map_job_callable['Store_eq_catalog'])
 
@@ -172,7 +172,7 @@ class ProcessingBuilder(PipeLineBuilder):
     def build(self, config):
         pipeline = PipeLine()
 
-        if config[ProcessingBuilder.PROCESSING_JOBS_CONFIG_KEY] != None:
+        if config[ProcessingBuilder.PROCESSING_JOBS_CONFIG_KEY]:
             self.append_jobs(pipeline,
                     config[ProcessingBuilder.PROCESSING_JOBS_CONFIG_KEY])
 
