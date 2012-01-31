@@ -220,23 +220,19 @@ def store_preprocessed_catalog(context):
 
     writer = EqEntryWriter(
         context.config['pprocessing_result_file'])
-    writer_cr = writer.write_row()
-    writer_cr.next()
+    indexes_entries_to_store = np.where(context.selected_eq_vector == 0)[0]
+    number_written_eq = len(indexes_entries_to_store)
 
-    number_written_eq = 0
-    index = 0
+    entries = []
+    for index in indexes_entries_to_store:
+        entries.append(context.eq_catalog[index])
 
-    for index, entry in enumerate(
-        context.selected_eq_vector):
-        if entry == 0:
-            writer_cr.send(context.eq_catalog[index])
-            number_written_eq += 1
-    writer_cr.close()
+    writer.write_rows(entries)
 
     LOGGER.debug("* Stored Eq entries: %d" % number_written_eq)
 
     LOGGER.debug("* Number of events removed after preprocessing jobs: %d" %
-        ((index + 1) - number_written_eq))
+        (len(context.catalog_matrix) - number_written_eq))
 
 
 @logged_job

@@ -265,11 +265,8 @@ class EqEntryWriterTestCase(unittest.TestCase):
         self.assertRaises(IOError, EqEntryWriter, 'invalid/dir/name')
 
     def test_write_csv_file(self):
-        cr = self.writer.write_row()
-        cr.next()
-        cr.send(self.first_data_row)
-        cr.send(self.second_data_row)
-        cr.close()
+        rows = [self.first_data_row, self.second_data_row]
+        self.writer.write_rows(rows)
 
         self.assertTrue(filecmp.cmp(self.expected_csv,
             self.pprocessing_result_filename))

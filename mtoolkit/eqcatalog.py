@@ -319,12 +319,10 @@ class EqEntryWriter(object):
             raise IOError('Invalid dir: %s' % output_dir)
         self.output_filename = output_filename
 
-    def write_row(self):
+    def write_rows(self, entries):
         """Write rows in the csv file"""
 
         with open(self.output_filename, 'w') as output_file:
             writer = csv.DictWriter(output_file, EqEntryWriter.FIELDNAMES)
             writer.writeheader()
-            while True:
-                line = (yield)
-                writer.writerow(line)
+            writer.writerows(entries)
