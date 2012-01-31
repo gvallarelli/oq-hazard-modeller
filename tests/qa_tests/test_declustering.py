@@ -23,7 +23,7 @@ import numpy as np
 
 from tests.helper import create_context, create_workflow, run
 
-from mtoolkit.jobs import gardner_knopoff
+from mtoolkit.jobs import gardner_knopoff, afteran
 
 
 class DeclusteringTestCase(unittest.TestCase):
@@ -48,5 +48,30 @@ class DeclusteringTestCase(unittest.TestCase):
         self.assertTrue(np.array_equal(expected_vmain_shock,
                 context.working_catalog))
         self.assertTrue(np.array_equal(expected_vcl, context.vcl))
+        self.assertTrue(np.array_equal(expected_flag_vector,
+                context.flag_vector))
+
+    def test_afteran(self):
+        context = create_context('config_afteran.yml')
+
+        workflow = create_workflow(context.config)
+        run(workflow, context)
+
+        expected_vmain_shock = np.delete(
+            context.catalog_matrix, [4, 10, 19], 0)
+
+        expected_vcl = np.array([0, 0, 0, 2, 2, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0,
+            0, 0, 0, 3, 3])
+
+        expected_flag_vector = np.array([0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0,
+            0, 0, 0, 0, 0, 0, 1])
+
+        afteran(context)
+
+        self.assertTrue(np.array_equal(expected_vmain_shock,
+                context.catalog_matrix))
+
+        self.assertTrue(np.array_equal(expected_vcl, context.vcl))
+
         self.assertTrue(np.array_equal(expected_flag_vector,
                 context.flag_vector))

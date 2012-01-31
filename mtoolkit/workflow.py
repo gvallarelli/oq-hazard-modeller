@@ -27,7 +27,8 @@ import abc
 
 import yaml
 
-from mtoolkit.jobs import (gardner_knopoff, stepp, recurrence,
+from mtoolkit.jobs import (gardner_knopoff, afteran,
+                            stepp, recurrence,
                             read_eq_catalog, read_source_model,
                             create_default_source_model,
                             create_catalog_matrix,
@@ -35,10 +36,11 @@ from mtoolkit.jobs import (gardner_knopoff, stepp, recurrence,
                             create_selected_eq_vector,
                             store_preprocessed_catalog)
 
-from mtoolkit.scientific.declustering import gardner_knopoff_decluster
-
 from mtoolkit.scientific.completeness import (stepp_analysis,
                                                 selected_eq_flag_vector)
+
+from mtoolkit.scientific.declustering import (gardner_knopoff_decluster,
+                                                afteran_decluster)
 
 from mtoolkit.scientific.recurrence import recurrence_analysis
 
@@ -100,8 +102,8 @@ class PipeLineBuilder(object):
     __metaclass__ = abc.ABCMeta
 
     def __init__(self):
-
         self.map_job_callable = {'GardnerKnopoff': gardner_knopoff,
+                                 'Afteran': afteran,
                                  'Stepp': stepp,
                                  'Recurrence': recurrence,
                                  'Create_eq_vector':
@@ -136,6 +138,10 @@ class PipeLineBuilder(object):
 
 
 class PreprocessingBuilder(PipeLineBuilder):
+    """
+    PreprocessingBuilder allows to build a
+    preprocessing pipeLine
+    """
 
     PREPROCESSING_JOBS_KEY = 'preprocessing_jobs'
     PPROCESSING_RESULT_KEY = 'pprocessing_result_file'
@@ -166,6 +172,10 @@ class PreprocessingBuilder(PipeLineBuilder):
 
 
 class ProcessingBuilder(PipeLineBuilder):
+    """
+    ProcessingBuilder allows to build a
+    processing pipeLine
+    """
 
     PROCESSING_JOBS_CONFIG_KEY = 'processing_jobs'
 
@@ -189,6 +199,7 @@ class Context(object):
     def __init__(self, config_filename=None):
         self.config = dict()
         self.map_sc = {'gardner_knopoff': gardner_knopoff_decluster,
+                        'afteran': afteran_decluster,
                         'stepp': stepp_analysis,
                         'recurrence': recurrence_analysis,
                         'select_eq_vector': selected_eq_flag_vector}
