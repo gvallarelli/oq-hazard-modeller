@@ -30,7 +30,7 @@ from mtoolkit.source_model import (AreaSource, AREA_BOUNDARY, POINT,
                                     default_area_source)
 
 from mtoolkit.jobs import (read_eq_catalog, read_source_model,
-                           gardner_knopoff, recurrence,
+                           gardner_knopoff, afteran, recurrence,
                            create_default_source_model)
 
 from nrml.nrml_xml import get_data_path, DATA_DIR
@@ -124,6 +124,19 @@ class JobsTestCase(unittest.TestCase):
 
         context.map_sc['gardner_knopoff'] = assert_parameters
         gardner_knopoff(context)
+
+    def test_parameters_afteran(self):
+        context = create_context('config_afteran.yml')
+
+        context.catalog_matrix = []
+
+        def assert_parameters(data, time_dist_windows, time_window):
+            self.assertEquals("Uhrhammer", time_dist_windows)
+            self.assertEquals(150.8, time_window)
+            return [], [], []
+
+        context.map_sc['afteran'] = assert_parameters
+        afteran(context)
 
     def test_parameters_stepp(self):
         context = create_context('config_stepp.yml')

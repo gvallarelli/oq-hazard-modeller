@@ -25,13 +25,16 @@ order. The order is determined by the queue of jobs.
 
 import yaml
 
-from mtoolkit.jobs import (gardner_knopoff, stepp, recurrence,
+from mtoolkit.jobs import (gardner_knopoff, afteran,
+                            stepp, recurrence,
                             read_eq_catalog, read_source_model,
                             create_default_source_model,
                             create_catalog_matrix,
                             create_default_values)
 
-from mtoolkit.scientific.declustering import gardner_knopoff_decluster
+from mtoolkit.scientific.declustering import (gardner_knopoff_decluster,
+                                                afteran_decluster)
+
 from mtoolkit.scientific.completeness import stepp_analysis
 from mtoolkit.scientific.recurrence import recurrence_analysis
 
@@ -97,8 +100,9 @@ class PipeLineBuilder(object):
 
     def __init__(self):
         self.map_job_callable = {'GardnerKnopoff': gardner_knopoff,
-                                  'Stepp': stepp,
-                                  'Recurrence': recurrence}
+                                    'Afteran': afteran,
+                                    'Stepp': stepp,
+                                    'Recurrence': recurrence}
 
     def build(self, config, pipeline_type):
         """
@@ -142,6 +146,7 @@ class Context(object):
     def __init__(self, config_filename=None):
         self.config = dict()
         self.map_sc = {'gardner_knopoff': gardner_knopoff_decluster,
+                        'afteran': afteran_decluster,
                         'stepp': stepp_analysis,
                         'recurrence': recurrence_analysis}
 

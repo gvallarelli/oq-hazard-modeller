@@ -36,6 +36,7 @@ CATALOG_MATRIX_YEAR_INDEX = 0
 CATALOG_MATRIX_MW_INDEX = 5
 CATALOG_MATRIX_FIXED_COLOUMNS = ['year', 'month', 'day',
                                 'longitude', 'latitude', 'Mw']
+
 LOGGER = logging.getLogger('mt_logger')
 
 
@@ -159,7 +160,36 @@ def gardner_knopoff(context):
         (np.sum(flag_vector != 0)))
 
     LOGGER.debug(
-        "* Number of cluster identified: %s" %
+        "* Number of clusters identified: %s" %
+        (np.size(np.unique(vcl), 0) - 1))
+
+
+@logged_job
+def afteran(context):
+    """
+    Apply afteran declustering algorithm to the eq catalog.
+    :param context: shared datastore across different jobs
+        in a pipeline
+    """
+
+    vcl, vmain_shock, flag_vector = context.map_sc['afteran'](
+            context.catalog_matrix,
+            context.config['Afteran']['time_dist_windows'],
+            context.config['Afteran']['time_window'])
+
+    context.vcl = vcl
+    context.catalog_matrix = vmain_shock
+    context.flag_vector = flag_vector
+
+    LOGGER.debug(
+        "* Number of events after declustering: %s" % len(vmain_shock))
+
+    LOGGER.debug(
+        "* Number of events removed during declustering: %s" %
+        (np.sum(flag_vector != 0)))
+
+    LOGGER.debug(
+        "* Number of clusters identified: %s" %
         (np.size(np.unique(vcl), 0) - 1))
 
 
