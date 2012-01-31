@@ -20,7 +20,7 @@
 import unittest
 import numpy as np
 
-from qa_tests.helper import create_context, create_workflow, run
+from tests.helper import create_context, create_workflow, run
 
 
 class CompletenessTestCase(unittest.TestCase):

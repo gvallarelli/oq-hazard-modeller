@@ -20,14 +20,16 @@
 import unittest
 from mock import Mock, MagicMock
 
-from mtoolkit.workflow import PipeLine, PipeLineBuilder, Context
+from mtoolkit.workflow import (PipeLine, PreprocessingBuilder,
+                                ProcessingBuilder, Context)
 
 from mtoolkit.workflow import Workflow
 
 from mtoolkit.jobs import (read_eq_catalog, create_catalog_matrix,
                             gardner_knopoff, stepp, recurrence,
                             read_source_model, create_default_source_model,
-                            create_default_values)
+                            create_default_values, create_selected_eq_vector,
+                            store_preprocessed_catalog)
 
 from nrml.nrml_xml import get_data_path, DATA_DIR
 
@@ -41,17 +43,18 @@ class ContextTestCase(unittest.TestCase):
     def test_load_config_file(self):
         expected_config_dict = {
             'apply_processing_jobs': None,
-            'pprocessing_result_file': 'path_to_file',
+            'pprocessing_result_file': 'tests/data/preprocessed_catalogue.csv',
             'GardnerKnopoff': {'time_dist_windows': False,
                     'foreshock_time_window': 0},
             'Stepp': {'increment_lock': True,
             'magnitude_windows': 0.2,
             'sensitivity': 0.1,
-            'time_window': 5},
-            'result_file': 'path_to_file',
-            'eq_catalog_file': 'tests/data/ISC_correct.csv',
+            'time_window': 1},
+            'result_file': None,
+            'eq_catalog_file': 'tests/data/completeness_input_test.csv',
             'preprocessing_jobs': ['GardnerKnopoff', 'Stepp'],
-            'source_model_file': 'path_to_file'}
+            'processing_jobs': None,
+            'source_model_file': 'tests/data/area_source_model.xml'}
 
         self.assertEqual(expected_config_dict,
             self.context_preprocessing.config)
@@ -72,8 +75,7 @@ class PipeLineTestCase(unittest.TestCase):
         self.square_job = square_job
         self.double_job = double_job
 
-        self.pipeline_name = 'square pipeline'
-        self.pipeline = PipeLine(self.pipeline_name)
+        self.pipeline = PipeLine()
 
         self.context_preprocessing = Context(
             get_data_path('config_preprocessing.yml', DATA_DIR))
@@ -98,34 +100,39 @@ class PipeLineTestCase(unittest.TestCase):
 class PipeLineBuilderTestCase(unittest.TestCase):
 
     def setUp(self):
-        self.pipeline_builder = PipeLineBuilder()
+
         self.context_preprocessing = Context(
             get_data_path('config_preprocessing.yml', DATA_DIR))
+
+        self.preprocessing_builder = PreprocessingBuilder()
+
         self.context_processing = Context(
             get_data_path('config_processing.yml', DATA_DIR))
+
+        self.processing_builder = ProcessingBuilder()
 
     def test_build_pipeline(self):
         # Two different kinds of pipeline can be built:
         # preprocessing and processing pipeline
 
-        expected_preprocessing_pipeline = PipeLine('preprocessing_jobs')
+        expected_preprocessing_pipeline = PipeLine()
         expected_preprocessing_pipeline.add_job(read_eq_catalog)
         expected_preprocessing_pipeline.add_job(read_source_model)
         expected_preprocessing_pipeline.add_job(create_catalog_matrix)
         expected_preprocessing_pipeline.add_job(create_default_values)
         expected_preprocessing_pipeline.add_job(gardner_knopoff)
         expected_preprocessing_pipeline.add_job(stepp)
+        expected_preprocessing_pipeline.add_job(create_selected_eq_vector)
+        expected_preprocessing_pipeline.add_job(store_preprocessed_catalog)
 
-        expected_processing_pipeline = PipeLine('processing_jobs')
+        expected_processing_pipeline = PipeLine()
         expected_processing_pipeline.add_job(recurrence)
 
-        pprocessing_built_pipeline = self.pipeline_builder.build(
-            self.context_preprocessing.config,
-            PipeLineBuilder.PREPROCESSING_JOBS_CONFIG_KEY)
+        pprocessing_built_pipeline = self.preprocessing_builder.build(
+            self.context_preprocessing.config)
 
-        processing_built_pipeline = self.pipeline_builder.build(
-            self.context_processing.config,
-            PipeLineBuilder.PROCESSING_JOBS_CONFIG_KEY)
+        processing_built_pipeline = self.processing_builder.build(
+            self.context_processing.config)
 
         self.assertEqual(expected_preprocessing_pipeline,
             pprocessing_built_pipeline)
@@ -134,17 +141,18 @@ class PipeLineBuilderTestCase(unittest.TestCase):
 
     def test_build_pipeline_source_model_undefined(self):
         self.context_preprocessing.config['source_model_file'] = None
-        expected_preprocessing_pipeline = PipeLine('preprocessing_jobs')
+        expected_preprocessing_pipeline = PipeLine()
         expected_preprocessing_pipeline.add_job(read_eq_catalog)
         expected_preprocessing_pipeline.add_job(create_default_source_model)
         expected_preprocessing_pipeline.add_job(create_catalog_matrix)
         expected_preprocessing_pipeline.add_job(create_default_values)
         expected_preprocessing_pipeline.add_job(gardner_knopoff)
         expected_preprocessing_pipeline.add_job(stepp)
+        expected_preprocessing_pipeline.add_job(create_selected_eq_vector)
+        expected_preprocessing_pipeline.add_job(store_preprocessed_catalog)
 
-        pprocessing_built_pipeline = self.pipeline_builder.build(
-            self.context_preprocessing.config,
-            PipeLineBuilder.PREPROCESSING_JOBS_CONFIG_KEY)
+        pprocessing_built_pipeline = self.preprocessing_builder.build(
+            self.context_preprocessing.config)
 
         self.assertEqual(expected_preprocessing_pipeline,
             pprocessing_built_pipeline)
@@ -154,13 +162,11 @@ class PipeLineBuilderTestCase(unittest.TestCase):
         self.context_preprocessing.config['preprocessing_jobs'] = [invalid_job]
         self.context_processing.config['processing_jobs'] = [invalid_job]
 
-        self.assertRaises(RuntimeError, self.pipeline_builder.build,
-                self.context_preprocessing.config,
-                PipeLineBuilder.PREPROCESSING_JOBS_CONFIG_KEY)
+        self.assertRaises(RuntimeError, self.preprocessing_builder.build,
+                self.context_preprocessing.config)
 
-        self.assertRaises(RuntimeError, self.pipeline_builder.build,
-                self.context_processing.config,
-                PipeLineBuilder.PROCESSING_JOBS_CONFIG_KEY)
+        self.assertRaises(RuntimeError, self.processing_builder.build,
+                self.context_processing.config)
 
     def test_workflow_execute_pipelines(self):
         context = Context()
