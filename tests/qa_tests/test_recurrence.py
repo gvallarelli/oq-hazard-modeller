@@ -29,6 +29,7 @@ class RecurrenceTestCase(unittest.TestCase):
 
     def test_recurrence_weichert_algorithm(self):
         context = create_context('config_recurrence_weichert.yml')
+
         workflow = create_workflow(context.config)
 
         run(workflow, context)

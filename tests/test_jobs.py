@@ -33,7 +33,7 @@ from mtoolkit.source_model import (AreaSource, AREA_BOUNDARY, POINT,
 
 from mtoolkit.jobs import (read_eq_catalog, read_source_model,
                            gardner_knopoff, afteran,
-                           store_preprocessed_catalog, recurrence,
+                           recurrence,
                            create_default_source_model)
 
 from nrml.nrml_xml import get_data_path, DATA_DIR
@@ -57,6 +57,9 @@ class JobsTestCase(unittest.TestCase):
 
         self.expected_preprocessed_catalogue = get_data_path(
             'expected_preprocessed_catalogue.csv', DATA_DIR)
+
+        self.expected_preprocessed_ctable = get_data_path(
+            'expected_completeness_table.csv', DATA_DIR)
 
     def test_read_eq_catalog(self):
         self.context.config['eq_catalog_file'] = self.eq_catalog_filename
@@ -198,7 +201,15 @@ class JobsTestCase(unittest.TestCase):
         context = create_context(self.preprocessing_config)
         workflow = create_workflow(context.config)
         run(workflow, context)
-        store_preprocessed_catalog(context)
 
         self.assertTrue(filecmp.cmp(self.expected_preprocessed_catalogue,
                 context.config['pprocessing_result_file']))
+
+    def test_store_completeness_table(self):
+        context = create_context(self.preprocessing_config)
+        workflow = create_workflow(context.config)
+        run(workflow, context)
+
+        self.assertTrue(filecmp.cmp(
+            self.expected_preprocessed_ctable,
+            context.config['completeness_table_file']))

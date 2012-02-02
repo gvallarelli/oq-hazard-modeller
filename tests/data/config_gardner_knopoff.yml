@@ -10,7 +10,9 @@
 eq_catalog_file: tests/data/declustering_input_test.csv 
 
 # Path to the file defining the source model.
-source_model_file: tests/data/area_source_model_processing.xml 
+source_model_file: tests/data/area_source_model_processing.xml
+
+completeness_table_file: tests/data/completeness_table.csv
 
 # Boolean flag to declare
 # if processing jobs are needed.
