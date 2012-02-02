@@ -213,3 +213,32 @@ class JobsTestCase(unittest.TestCase):
         self.assertTrue(filecmp.cmp(
             self.expected_preprocessed_ctable,
             context.config['completeness_table_file']))
+
+    def test_retrieve_completeness_table(self):
+        context = create_context(self.preprocessing_config)
+        ctable_filename = 'tests/data/expected_completeness_table.csv'
+        context.config['preprocessing_jobs'] = None
+        context.config['completeness_table_file'] = ctable_filename
+        workflow = create_workflow(context.config)
+        run(workflow, context)
+
+        expected_table = np.array([[1991.00000, 4.00000],
+                                    [1991.00000, 4.20000],
+                                    [1961.00000, 4.40000],
+                                    [1961.00000, 4.60000],
+                                    [1961.00000, 4.80000],
+                                    [1961.00000, 5.00000],
+                                    [1961.00000, 5.20000],
+                                    [1912.00000, 5.40000],
+                                    [1912.00000, 5.60000],
+                                    [1911.00000, 5.80000],
+                                    [1911.00000, 6.00000],
+                                    [1911.00000, 6.20000],
+                                    [1911.00000, 6.40000],
+                                    [1911.00000, 6.60000],
+                                    [1911.00000, 6.80000],
+                                    [1911.00000, 7.00000],
+                                    [1911.00000, 7.20000]])
+
+        self.assertTrue(np.array_equal(expected_table,
+            context.completeness_table))
