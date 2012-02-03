@@ -286,7 +286,7 @@ def weichert_prep(year, fmag, ctime, cmag, d_m, d_t):
         if np.logical_or(np.shape(idx)[0] == 0, np.shape(idy)[0] == 0):
             i += 1
         else:
-            fullcount1[:idx[-1], :idy[-1]] = 0
+            fullcount1[:idx[-1]+1, :idy[-1]+1] = 0
             i += 1
     n_obs = np.zeros(n_y)
     t_per = np.zeros(n_y)
