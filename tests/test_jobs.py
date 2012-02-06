@@ -17,8 +17,12 @@
 # version 3 along with MToolkit. If not, see
 # <http://www.gnu.org/licenses/lgpl-3.0.txt> for a copy of the LGPLv3 License.
 
+from mock import Mock
+
 import numpy as np
+
 import filecmp
+
 import unittest
 
 
@@ -124,17 +128,15 @@ class JobsTestCase(unittest.TestCase):
 
     def test_parameters_gardner_knopoff(self):
         context = create_context('config_gardner_knopoff.yml')
-        context.working_catalog = None
+        mocked_func = Mock(return_value=([], [], []))
+        context.map_sc['gardner_knopoff'] = mocked_func
 
-        context.catalog_matrix = []
-
-        def assert_parameters(data, time_dist_windows, foreshock_time_window):
-            self.assertEquals("GardnerKnopoff", time_dist_windows)
-            self.assertEquals(0.5, foreshock_time_window)
-            return [], [], []
-
-        context.map_sc['gardner_knopoff'] = assert_parameters
         gardner_knopoff(context)
+
+        self.assertTrue(mocked_func.called)
+        mocked_func.assert_called_with(None, 'GardnerKnopoff', 0.5)
+        self.assertRaises(AssertionError, mocked_func.assert_called_with,
+            'Uhrhammer', 0.1)
 
     def test_parameters_afteran(self):
         context = create_context('config_afteran.yml')
