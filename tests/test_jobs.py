@@ -36,7 +36,7 @@ from mtoolkit.source_model import (AreaSource, AREA_BOUNDARY, POINT,
                                     default_area_source)
 
 from mtoolkit.jobs import (read_eq_catalog, read_source_model,
-                           gardner_knopoff, afteran,
+                           gardner_knopoff, afteran, stepp,
                            store_preprocessed_catalog, recurrence,
                            create_default_source_model)
 
@@ -140,33 +140,29 @@ class JobsTestCase(unittest.TestCase):
 
     def test_parameters_afteran(self):
         context = create_context('config_afteran.yml')
+        mocked_func = Mock(return_value=([], [], []))
+        context.map_sc['afteran'] = mocked_func
 
-        context.catalog_matrix = []
-
-        def assert_parameters(data, time_dist_windows, time_window):
-            self.assertEquals("Uhrhammer", time_dist_windows)
-            self.assertEquals(150.8, time_window)
-            return [], [], []
-
-        context.map_sc['afteran'] = assert_parameters
         afteran(context)
+
+        self.assertTrue(mocked_func.called)
+        mocked_func.assert_called_with(None, 'Uhrhammer', 150.8)
+        self.assertRaises(AssertionError, mocked_func.assert_called_with,
+            'Gruenthal', 3.1)
 
     def test_parameters_stepp(self):
         context = create_context('config_stepp.yml')
+        context.working_catalog = np.array([[1, 2, 3, 4, 5, 6]])
+        mocked_func = Mock()
+        context.map_sc['stepp'] = mocked_func
 
-        workflow = create_workflow(context.config)
+        stepp(context)
 
-        def assert_parameters(year, mw, magnitude_windows, time_window,
-                sensitivity, iloc):
-            self.assertEqual(time_window, 5)
-            self.assertEqual(magnitude_windows, 0.1)
-            self.assertEqual(sensitivity, 0.2)
-            self.assertTrue(iloc)
-            return np.array([[0, 0]])
-
-        context.map_sc['stepp'] = assert_parameters
-
-        run(workflow, context)
+        self.assertTrue(mocked_func.called)
+        mocked_func.assert_called_with(context.working_catalog[:, 0],
+            context.working_catalog[:, 5], 0.1, 5, 0.2, True)
+        self.assertRaises(AssertionError, mocked_func.assert_called_with,
+            None, None, 3.4, 8, 0.5, False)
 
     def test_parameters_recurrence(self):
         self.context.config['Recurrence']['magnitude_window'] = 0.5
