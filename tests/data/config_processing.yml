@@ -92,12 +92,12 @@ Recurrence: {
     # Width of magnitude window positive float
     magnitude_window: 0.5,
     
-    # Choose one among Wiechart or MLE
-    recurrence_algorithm: Wiechart,
+    # Choose one among Weichert or MLE
+    recurrence_algorithm: Weichert,
 
     # A float
     reference_magnitude: 1.1,
 
-    # Greater than zero (float), used only with Wiechart
+    # Greater than zero (float), used only with Weichert
     time_window: 0.3
 }

@@ -212,6 +212,7 @@ class Context(object):
         self.sm_definitions = None
         self.catalog_matrix = None
         self.working_catalog = None
+        self.completeness_table = None
 
 
 class Workflow(object):

@@ -162,35 +162,26 @@ class JobsTestCase(unittest.TestCase):
         mocked_func.assert_called_with(context.working_catalog[:, 0],
             context.working_catalog[:, 5], 0.1, 5, 0.2, True)
         self.assertRaises(AssertionError, mocked_func.assert_called_with,
-            None, None, 3.4, 8, 0.5, False)
+            context.working_catalog[:, 0], context.working_catalog[:, 5],
+            3.4, 8, 0.5, False)
 
-    def test_parameters_recurrence(self):
-        self.context.config['Recurrence']['magnitude_window'] = 0.5
-        self.context.config['Recurrence']['recurrence_algorithm'] = 'Wiechart'
-        self.context.config['Recurrence']['referece_magnitude'] = 1.1
-        self.context.config['Recurrence']['time_window'] = 0.3
+    def test_param_recurrence(self):
+        context = create_context('config_processing.yml')
+        context.current_filtered_eq = np.array([[1, 2, 3, 4, 5, 6]])
+        context.completeness_table = np.array([[1, 0]])
+        context.cur_sm = Mock()
+        mocked_func = Mock(return_value=(0, 0, 0, 0))
+        context.map_sc['recurrence'] = mocked_func
 
-        # Fake values for used attributes
-        self.context.cur_sm = AreaSource()
-        tgr = TRUNCATED_GUTEN_RICHTER('', '', '', '', '')
-        rrm = RUPTURE_RATE_MODEL(tgr, '', '', '')
-        self.context.cur_sm.rupture_rate_model = rrm
+        recurrence(context)
 
-        self.context.completeness_table = []
-        self.context.current_filtered_eq = np.array([[1, 2, 3, 4, 5, 6]])
-
-        def assert_parameters(year_col, magnitude_col, completeness_table,
-            magnitude_window, recurrence_algorithm, reference_magnitude,
-            time_window):
-
-            self.assertEqual(magnitude_window, 0.5)
-            self.assertEqual(recurrence_algorithm, 'Wiechart')
-            self.assertEqual(reference_magnitude, 1.1)
-            self.assertEqual(time_window, 0.3)
-            return 0.0, 0.0, 0.0, 0.0
-
-        self.context.map_sc['recurrence'] = assert_parameters
-        recurrence(self.context)
+        self.assertTrue(mocked_func.called)
+        mocked_func.assert_called_with(context.current_filtered_eq[:, 0],
+            context.current_filtered_eq[:, 5], context.completeness_table,
+            0.5, 'Weichert', 1.1, 0.3)
+        self.assertRaises(AssertionError, mocked_func.assert_called_with,
+            context.current_filtered_eq[:, 0], context.current_filtered_eq[:, 5],
+            None, 3.4, 'Graeme', 0.5, 7.6)
 
     def test_store_catalog_in_csv_after_preprocessing(self):
         context = create_context(self.preprocessing_config)
