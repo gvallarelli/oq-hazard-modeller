@@ -219,8 +219,12 @@ class Context(object):
         if config_filename:
             config_file = open(config_filename, 'r')
             self.config = yaml.load(config_file)
+
+        self.eq_catalog = None
+        self.sm_definitions = None
         self.catalog_matrix = None
         self.working_catalog = None
+        self.completeness_table = None
 
 
 class Workflow(object):

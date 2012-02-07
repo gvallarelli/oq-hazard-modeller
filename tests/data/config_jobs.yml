@@ -7,15 +7,17 @@
 # =========================================================
 
 # Path to the file defining the eq catalog.
-eq_catalog_file: tests/data/completeness_input_test.csv 
+eq_catalog_file: tests/data/ISC_small_data.csv
 
 # Path to the file defining the transformed 
 # eq catalog after the preprocessing jobs.
 # If not defined no file will be written.
-pprocessing_result_file: path_to_file
+pprocessing_result_file: tests/data/preprocessed_catalogue.csv
+
+completeness_table_file: tests/data/ctable.csv
 
 # Path to the file defining the source model.
-source_model_file: tests/data/area_source_model_processing.xml 
+source_model_file: tests/data/area_source_model.xml 
 
 # Path to the file defining the results 
 # of computation.
@@ -54,13 +56,22 @@ processing_jobs:
 
 # Declustering jobs
 
+Afteran: {
+    # Possible values: GardnerKnopoff, Uhrhammer, Gruenthal.
+    time_dist_windows: Uhrhammer,
+    
+    # float >= 0 
+    # Length (in days) of moving time window
+    time_window: 150.8
+}
+
 GardnerKnopoff: {
   # Possible values: GardnerKnopoff, Uhrhammer, Gruenthal.
-  time_dist_windows: no,
+  time_dist_windows: GardnerKnopoff,
 
   # float >= 0 proportion of aftershock time windows 
   # to use to search for foreshock.
-  foreshock_time_window: 0
+  foreshock_time_window: 0.5
 }
 
 # Completeness jobs
@@ -70,10 +81,10 @@ Stepp: {
   time_window: 5,
 
   # Magnitude window of each step (in Mw units)
-  magnitude_windows: 0.2,
+  magnitude_windows: 0.1,
   
   # Sensitivity parameter (see documentation)
-  sensitivity: 0.1,
+  sensitivity: 0.2,
   
   # Increment Lock (fixes that the completeness magnitude
   # will always increase further back in time)
