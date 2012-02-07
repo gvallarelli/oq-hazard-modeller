@@ -152,6 +152,18 @@ class EqEntryReader(object):
                             eq_entry[field], self.current_line)
             yield eq_entry
 
+    def read_eq_catalog(self):
+        """
+        Return a list of eq entry
+        representing the earthquake
+        catalogue.
+        """
+
+        eq_catalog = []
+        for eq_entry in self.read():
+            eq_catalog.append(eq_entry)
+        return eq_catalog
+
     def convert_values(self, dict_fields_values):
         """
         Return an eq dictionary with all fields

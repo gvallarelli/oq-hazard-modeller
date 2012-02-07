@@ -27,8 +27,6 @@ import unittest
 
 from tests.helper import create_context
 
-from mtoolkit.eqcatalog import EqEntryReader
-
 from mtoolkit.source_model import (AreaSource, AREA_BOUNDARY, POINT,
                                     TRUNCATED_GUTEN_RICHTER,
                                     RUPTURE_RATE_MODEL,
@@ -47,14 +45,6 @@ from mtoolkit.jobs import (read_eq_catalog, read_source_model,
 from nrml.nrml_xml import get_data_path, DATA_DIR
 
 RUPTURE_KEY = 'rupture_rate_model'
-
-
-def acquire_catalog(pathname):
-    eq_catalog = []
-    reader = EqEntryReader(pathname)
-    for eq_entry in reader.read():
-        eq_catalog.append(eq_entry)
-    return eq_catalog
 
 
 class JobsTestCase(unittest.TestCase):
@@ -132,9 +122,6 @@ class JobsTestCase(unittest.TestCase):
 
         mocked_func.assert_called_with(None, 'GardnerKnopoff', 0.5)
 
-        self.assertRaises(AssertionError, mocked_func.assert_called_with,
-            'Uhrhammer', 0.1)
-
     def test_parameters_afteran(self):
         mocked_func = Mock(return_value=([], [], []))
         self.context_jobs.map_sc['afteran'] = mocked_func
@@ -143,9 +130,6 @@ class JobsTestCase(unittest.TestCase):
         self.assertTrue(mocked_func.called)
 
         mocked_func.assert_called_with(None, 'Uhrhammer', 150.8)
-
-        self.assertRaises(AssertionError, mocked_func.assert_called_with,
-            'Gruenthal', 3.1)
 
     def test_parameters_stepp(self):
         self.context_jobs.working_catalog = np.array([[1, 2, 3, 4, 5, 6]])
@@ -158,11 +142,6 @@ class JobsTestCase(unittest.TestCase):
         mocked_func.assert_called_with(
             self.context_jobs.working_catalog[:, 0],
             self.context_jobs.working_catalog[:, 5], 0.1, 5, 0.2, True)
-
-        self.assertRaises(AssertionError, mocked_func.assert_called_with,
-            self.context_jobs.working_catalog[:, 0],
-            self.context_jobs.working_catalog[:, 5],
-            3.4, 8, 0.5, False)
 
     def test_param_recurrence(self):
         self.context_jobs.current_filtered_eq = np.array([[1, 2, 3, 4, 5, 6]])
@@ -180,16 +159,10 @@ class JobsTestCase(unittest.TestCase):
             self.context_jobs.completeness_table,
             0.5, 'Weichert', 1.1, 0.3)
 
-        self.assertRaises(AssertionError, mocked_func.assert_called_with,
-            self.context_jobs.current_filtered_eq[:, 0],
-            self.context_jobs.current_filtered_eq[:, 5],
-            None, 3.4, 'Graeme', 0.5, 7.6)
-
     def test_store_catalog_in_csv_after_preprocessing(self):
         self.context_jobs.selected_eq_vector = np.array(
             [0, 0, 0, 1, 1, 0, 1, 0, 1, 0])
-        self.context_jobs.eq_catalog = acquire_catalog(
-            self.context_jobs.config['eq_catalog_file'])
+        read_eq_catalog(self.context_jobs)
         self.context_jobs.catalog_matrix = self.context_jobs.eq_catalog
         store_preprocessed_catalog(self.context_jobs)
 

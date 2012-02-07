@@ -66,10 +66,7 @@ def read_eq_catalog(context):
     """
 
     reader = EqEntryReader(context.config['eq_catalog_file'])
-    eq_entries = []
-    for eq_entry in reader.read():
-        eq_entries.append(eq_entry)
-    context.eq_catalog = eq_entries
+    context.eq_catalog = reader.read_eq_catalog()
 
     LOGGER.debug("* Eq catalog length: %s" % len(context.eq_catalog))
 
