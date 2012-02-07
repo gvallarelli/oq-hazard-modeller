@@ -182,7 +182,7 @@ def afteran(context):
             context.config['Afteran']['time_window'])
 
     context.vcl = vcl
-    context.catalog_matrix = vmain_shock
+    context.working_catalog = vmain_shock
     context.flag_vector = flag_vector
 
     LOGGER.debug(
@@ -223,6 +223,7 @@ def stepp(context):
     LOGGER.debug(context.completeness_table)
 
 
+@logged_job
 def create_selected_eq_vector(context):
     """
     Apply selected_eq_flag_vector algorithm to
@@ -245,6 +246,8 @@ def store_preprocessed_catalog(context):
     Write in a csv file the earthquake
     catalog after preprocessing jobs (i.e.
     gardner_knopoff, stepp)
+    :param context: shared datastore across different jobs
+        in a pipeline
     """
 
     writer = EqEntryWriter(
@@ -262,6 +265,37 @@ def store_preprocessed_catalog(context):
 
     LOGGER.debug("* Number of events removed after preprocessing jobs: %d" %
         (len(context.catalog_matrix) - number_written_eq))
+
+
+@logged_job
+def store_completeness_table(context):
+    """
+    Store in a csv file the completeness
+    table after preprocessing jobs (i.e.
+    gardner_knopoff, stepp)
+    :param context: shared datastore across different jobs
+        in a pipeline
+    """
+
+    np.savetxt(context.config['completeness_table_file'],
+        context.completeness_table, fmt='%10.5f', delimiter=',')
+
+    LOGGER.debug("* Completeness Table stored")
+
+
+@logged_job
+def retrieve_completeness_table(context):
+    """
+    Retrieve from a csv file the completeness
+    table
+    :param context: shared datastore across different jobs
+        in a pipeline
+    """
+
+    context.completeness_table = np.genfromtxt(
+        context.config['completeness_table_file'], delimiter=',')
+
+    LOGGER.debug("* Completeness Table retrieved")
 
 
 @logged_job

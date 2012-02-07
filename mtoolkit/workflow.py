@@ -34,7 +34,9 @@ from mtoolkit.jobs import (gardner_knopoff, afteran,
                             create_catalog_matrix,
                             create_default_values,
                             create_selected_eq_vector,
-                            store_preprocessed_catalog)
+                            store_preprocessed_catalog,
+                            store_completeness_table,
+                            retrieve_completeness_table)
 
 from mtoolkit.scientific.completeness import (stepp_analysis,
                                                 selected_eq_flag_vector)
@@ -109,7 +111,11 @@ class PipeLineBuilder(object):
                                  'Create_eq_vector':
                                    create_selected_eq_vector,
                                  'Store_eq_catalog':
-                                   store_preprocessed_catalog}
+                                   store_preprocessed_catalog,
+                                 'Store_completeness_table':
+                                   store_completeness_table,
+                                 'Retrieve_completeness_table':
+                                   retrieve_completeness_table}
 
     @abc.abstractmethod
     def build(self, config):
@@ -167,6 +173,12 @@ class PreprocessingBuilder(PipeLineBuilder):
             if config[PreprocessingBuilder.PPROCESSING_RESULT_KEY]:
                 pipeline.add_job(self.map_job_callable['Create_eq_vector'])
                 pipeline.add_job(self.map_job_callable['Store_eq_catalog'])
+                pipeline.add_job(
+                    self.map_job_callable['Store_completeness_table'])
+        else:
+            if config['completeness_table_file']:
+                pipeline.add_job(
+                    self.map_job_callable['Retrieve_completeness_table'])
 
         return pipeline
 

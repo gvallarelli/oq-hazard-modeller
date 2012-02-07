@@ -14,6 +14,8 @@ eq_catalog_file: tests/data/completeness_input_test.csv
 # If not defined no file will be written.
 pprocessing_result_file: tests/data/preprocessed_catalogue.csv
 
+completeness_table_file: tests/data/completeness_table.csv
+
 # Path to the file defining the source model.
 source_model_file: tests/data/area_source_model_processing.xml 
 
