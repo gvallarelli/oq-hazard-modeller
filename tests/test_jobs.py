@@ -204,7 +204,6 @@ class JobsTestCase(unittest.TestCase):
             [1911., 5.8], [1911., 6.], [1911., 6.2],
             [1911., 6.4], [1911., 6.6], [1911., 6.8],
             [1911., 7.], [1911., 7.2]])
-
         store_completeness_table(self.context_jobs)
 
         self.assertTrue(filecmp.cmp(
@@ -219,7 +218,6 @@ class JobsTestCase(unittest.TestCase):
             [1911., 5.8], [1911., 6.], [1911., 6.2],
             [1911., 6.4], [1911., 6.6], [1911., 6.8],
             [1911., 7.], [1911., 7.2]])
-
         retrieve_completeness_table(self.context_jobs)
 
         self.assertTrue(np.array_equal(expected_table,
