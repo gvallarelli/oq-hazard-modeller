@@ -38,7 +38,10 @@ from mtoolkit.source_model import (AreaSource, AREA_BOUNDARY, POINT,
 
 from mtoolkit.jobs import (read_eq_catalog, read_source_model,
                            gardner_knopoff, afteran, stepp,
-                           store_preprocessed_catalog, recurrence,
+                           store_preprocessed_catalog,
+                           store_completeness_table,
+                           retrieve_completeness_table,
+                           recurrence,
                            create_default_source_model)
 
 from nrml.nrml_xml import get_data_path, DATA_DIR
@@ -57,10 +60,14 @@ def acquire_catalog(pathname):
 class JobsTestCase(unittest.TestCase):
 
     def setUp(self):
+
         self.context_jobs = create_context('config_jobs.yml')
 
         self.expected_preprocessed_catalogue = get_data_path(
             'expected_preprocessed_catalogue.csv', DATA_DIR)
+
+        self.expected_preprocessed_ctable = get_data_path(
+            'expected_completeness_table.csv', DATA_DIR)
 
     def test_read_eq_catalog(self):
         expected_first_eq_entry = {'eventID': 1, 'Agency': 'AAA', 'month': 1,
@@ -188,3 +195,32 @@ class JobsTestCase(unittest.TestCase):
 
         self.assertTrue(filecmp.cmp(self.expected_preprocessed_catalogue,
                 self.context_jobs.config['pprocessing_result_file']))
+
+    def test_store_completeness_table(self):
+        self.context_jobs.completeness_table = np.array([
+            [1991., 4.], [1991., 4.2], [1961., 4.4],
+            [1961., 4.6], [1961., 4.8], [1961., 5.],
+            [1961., 5.2], [1912., 5.4], [1912., 5.6],
+            [1911., 5.8], [1911., 6.], [1911., 6.2],
+            [1911., 6.4], [1911., 6.6], [1911., 6.8],
+            [1911., 7.], [1911., 7.2]])
+
+        store_completeness_table(self.context_jobs)
+
+        self.assertTrue(filecmp.cmp(
+            self.expected_preprocessed_ctable,
+            self.context_jobs.config['completeness_table_file']))
+
+    def test_retrieve_completeness_table(self):
+        expected_table = np.array([
+            [1991., 4.], [1991., 4.2], [1961., 4.4],
+            [1961., 4.6], [1961., 4.8], [1961., 5.],
+            [1961., 5.2], [1912., 5.4], [1912., 5.6],
+            [1911., 5.8], [1911., 6.], [1911., 6.2],
+            [1911., 6.4], [1911., 6.6], [1911., 6.8],
+            [1911., 7.], [1911., 7.2]])
+
+        retrieve_completeness_table(self.context_jobs)
+
+        self.assertTrue(np.array_equal(expected_table,
+            self.context_jobs.completeness_table))

@@ -29,7 +29,9 @@ from mtoolkit.jobs import (read_eq_catalog, create_catalog_matrix,
                             gardner_knopoff, stepp, recurrence,
                             read_source_model, create_default_source_model,
                             create_default_values, create_selected_eq_vector,
-                            store_preprocessed_catalog)
+                            store_preprocessed_catalog,
+                            store_completeness_table,
+                            retrieve_completeness_table)
 
 from nrml.nrml_xml import get_data_path, DATA_DIR
 
@@ -44,6 +46,7 @@ class ContextTestCase(unittest.TestCase):
         expected_config_dict = {
             'apply_processing_jobs': None,
             'pprocessing_result_file': 'tests/data/preprocessed_catalogue.csv',
+            'completeness_table_file': 'tests/data/completeness_table.csv',
             'GardnerKnopoff': {'time_dist_windows': False,
                     'foreshock_time_window': 0},
             'Stepp': {'increment_lock': True,
@@ -124,6 +127,8 @@ class PipeLineBuilderTestCase(unittest.TestCase):
         expected_preprocessing_pipeline.add_job(stepp)
         expected_preprocessing_pipeline.add_job(create_selected_eq_vector)
         expected_preprocessing_pipeline.add_job(store_preprocessed_catalog)
+        expected_preprocessing_pipeline.add_job(
+            store_completeness_table)
 
         expected_processing_pipeline = PipeLine()
         expected_processing_pipeline.add_job(recurrence)
@@ -150,6 +155,24 @@ class PipeLineBuilderTestCase(unittest.TestCase):
         expected_preprocessing_pipeline.add_job(stepp)
         expected_preprocessing_pipeline.add_job(create_selected_eq_vector)
         expected_preprocessing_pipeline.add_job(store_preprocessed_catalog)
+        expected_preprocessing_pipeline.add_job(
+            store_completeness_table)
+
+        pprocessing_built_pipeline = self.preprocessing_builder.build(
+            self.context_preprocessing.config)
+
+        self.assertEqual(expected_preprocessing_pipeline,
+            pprocessing_built_pipeline)
+
+    def test_build_pipeline_preprocessing_jobs_undefined(self):
+        self.context_preprocessing.config['preprocessing_jobs'] = None
+        expected_preprocessing_pipeline = PipeLine()
+        expected_preprocessing_pipeline.add_job(read_eq_catalog)
+        expected_preprocessing_pipeline.add_job(read_source_model)
+        expected_preprocessing_pipeline.add_job(create_catalog_matrix)
+        expected_preprocessing_pipeline.add_job(create_default_values)
+        expected_preprocessing_pipeline.add_job(
+            retrieve_completeness_table)
 
         pprocessing_built_pipeline = self.preprocessing_builder.build(
             self.context_preprocessing.config)
