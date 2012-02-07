@@ -48,13 +48,7 @@ RUPTURE_KEY = 'rupture_rate_model'
 class JobsTestCase(unittest.TestCase):
 
     def setUp(self):
-        self.context = create_context('config_processing.yml')
-
-        self.eq_catalog_filename = get_data_path(
-            'ISC_small_data.csv', DATA_DIR)
-
-        self.smodel_filename = get_data_path(
-            'area_source_model.xml', DATA_DIR)
+        self.context_jobs = create_context('config_jobs.yml')
 
         self.preprocessing_config = get_data_path(
             'config_preprocessing.yml', DATA_DIR)
@@ -63,7 +57,6 @@ class JobsTestCase(unittest.TestCase):
             'expected_preprocessed_catalogue.csv', DATA_DIR)
 
     def test_read_eq_catalog(self):
-        self.context.config['eq_catalog_file'] = self.eq_catalog_filename
         expected_first_eq_entry = {'eventID': 1, 'Agency': 'AAA', 'month': 1,
                 'depthError': 0.5, 'second': 13.0, 'SemiMajor90': 2.43,
                 'year': 2000, 'ErrorStrike': 298.0, 'timeError': 0.02,
@@ -73,15 +66,13 @@ class JobsTestCase(unittest.TestCase):
                 'hour': 3, 'mb': '', 'SemiMinor90': 1.01, 'longitude': 7.282,
                 'depth': 9.3, 'ML': 1.7, 'sigmaML': 0.1}
 
-        read_eq_catalog(self.context)
+        read_eq_catalog(self.context_jobs)
 
-        self.assertEqual(10, len(self.context.eq_catalog))
+        self.assertEqual(10, len(self.context_jobs.eq_catalog))
         self.assertEqual(expected_first_eq_entry,
-                self.context.eq_catalog[0])
+                self.context_jobs.eq_catalog[0])
 
     def test_read_smodel(self):
-        self.context.config['source_model_file'] = self.smodel_filename
-
         asource = AreaSource()
         asource.nrml_id = "n1"
         asource.source_model_id = "sm1"
@@ -114,24 +105,23 @@ class JobsTestCase(unittest.TestCase):
 
         asource.hypocentral_depth = 5000.0
 
-        read_source_model(self.context)
-        self.assertEqual(1, len(self.context.sm_definitions))
+        read_source_model(self.context_jobs)
+        self.assertEqual(1, len(self.context_jobs.sm_definitions))
         self.assertEqual(asource,
-                self.context.sm_definitions[0])
+                self.context_jobs.sm_definitions[0])
 
     def test_create_default_source_model(self):
         default_as = [default_area_source()]
 
-        create_default_source_model(self.context)
+        create_default_source_model(self.context_jobs)
 
-        self.assertEqual(default_as, self.context.sm_definitions)
+        self.assertEqual(default_as, self.context_jobs.sm_definitions)
 
     def test_parameters_gardner_knopoff(self):
-        context = create_context('config_gardner_knopoff.yml')
         mocked_func = Mock(return_value=([], [], []))
-        context.map_sc['gardner_knopoff'] = mocked_func
+        self.context_jobs.map_sc['gardner_knopoff'] = mocked_func
 
-        gardner_knopoff(context)
+        gardner_knopoff(self.context_jobs)
 
         self.assertTrue(mocked_func.called)
         mocked_func.assert_called_with(None, 'GardnerKnopoff', 0.5)
@@ -139,11 +129,10 @@ class JobsTestCase(unittest.TestCase):
             'Uhrhammer', 0.1)
 
     def test_parameters_afteran(self):
-        context = create_context('config_afteran.yml')
         mocked_func = Mock(return_value=([], [], []))
-        context.map_sc['afteran'] = mocked_func
+        self.context_jobs.map_sc['afteran'] = mocked_func
 
-        afteran(context)
+        afteran(self.context_jobs)
 
         self.assertTrue(mocked_func.called)
         mocked_func.assert_called_with(None, 'Uhrhammer', 150.8)
@@ -151,36 +140,43 @@ class JobsTestCase(unittest.TestCase):
             'Gruenthal', 3.1)
 
     def test_parameters_stepp(self):
-        context = create_context('config_stepp.yml')
-        context.working_catalog = np.array([[1, 2, 3, 4, 5, 6]])
+        self.context_jobs.working_catalog = np.array([[1, 2, 3, 4, 5, 6]])
         mocked_func = Mock()
-        context.map_sc['stepp'] = mocked_func
+        self.context_jobs.map_sc['stepp'] = mocked_func
 
-        stepp(context)
+        stepp(self.context_jobs)
 
         self.assertTrue(mocked_func.called)
-        mocked_func.assert_called_with(context.working_catalog[:, 0],
-            context.working_catalog[:, 5], 0.1, 5, 0.2, True)
+
+        mocked_func.assert_called_with(
+            self.context_jobs.working_catalog[:, 0],
+            self.context_jobs.working_catalog[:, 5], 0.1, 5, 0.2, True)
+
         self.assertRaises(AssertionError, mocked_func.assert_called_with,
-            context.working_catalog[:, 0], context.working_catalog[:, 5],
+            self.context_jobs.working_catalog[:, 0],
+            self.context_jobs.working_catalog[:, 5],
             3.4, 8, 0.5, False)
 
     def test_param_recurrence(self):
-        context = create_context('config_processing.yml')
-        context.current_filtered_eq = np.array([[1, 2, 3, 4, 5, 6]])
-        context.completeness_table = np.array([[1, 0]])
-        context.cur_sm = Mock()
+        self.context_jobs.current_filtered_eq = np.array([[1, 2, 3, 4, 5, 6]])
+        self.context_jobs.completeness_table = np.array([[1, 0]])
+        self.context_jobs.cur_sm = Mock()
         mocked_func = Mock(return_value=(0, 0, 0, 0))
-        context.map_sc['recurrence'] = mocked_func
+        self.context_jobs.map_sc['recurrence'] = mocked_func
 
-        recurrence(context)
+        recurrence(self.context_jobs)
 
         self.assertTrue(mocked_func.called)
-        mocked_func.assert_called_with(context.current_filtered_eq[:, 0],
-            context.current_filtered_eq[:, 5], context.completeness_table,
+
+        mocked_func.assert_called_with(
+            self.context_jobs.current_filtered_eq[:, 0],
+            self.context_jobs.current_filtered_eq[:, 5],
+            self.context_jobs.completeness_table,
             0.5, 'Weichert', 1.1, 0.3)
+
         self.assertRaises(AssertionError, mocked_func.assert_called_with,
-            context.current_filtered_eq[:, 0], context.current_filtered_eq[:, 5],
+            self.context_jobs.current_filtered_eq[:, 0],
+            self.context_jobs.current_filtered_eq[:, 5],
             None, 3.4, 'Graeme', 0.5, 7.6)
 
     def test_store_catalog_in_csv_after_preprocessing(self):

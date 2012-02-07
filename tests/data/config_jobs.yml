@@ -1,0 +1,112 @@
+# *********************************************************
+# MT Workflow configuration file 
+# *********************************************************
+
+# =========================================================
+# Input/Output files
+# =========================================================
+
+# Path to the file defining the eq catalog.
+eq_catalog_file: tests/data/ISC_small_data.csv
+
+# Path to the file defining the transformed 
+# eq catalog after the preprocessing jobs.
+# If not defined no file will be written.
+pprocessing_result_file: path_to_file
+
+# Path to the file defining the source model.
+source_model_file: tests/data/area_source_model.xml 
+
+# Path to the file defining the results 
+# of computation.
+result_file: path_to_file
+
+# Boolean flag to declare
+# if processing jobs are needed.
+apply_processing_jobs: yes
+
+# =========================================================
+# List of preprocessing jobs
+# =========================================================
+
+
+# Choose one algorithm per preprocessing job,
+# algorithms will be executed in the specified
+# order.
+preprocessing_jobs:
+
+
+# =========================================================
+# List of processing jobs
+# =========================================================
+
+
+# Choose one algorithm per preprocessing job,
+# algorithms will be executed in the specified
+# order.
+processing_jobs:
+- Recurrence
+
+
+# =========================================================
+# Preprocessing jobs in detail
+# =========================================================
+
+# Declustering jobs
+
+Afteran: {
+    # Possible values: GardnerKnopoff, Uhrhammer, Gruenthal.
+    time_dist_windows: Uhrhammer,
+    
+    # float >= 0 
+    # Length (in days) of moving time window
+    time_window: 150.8
+}
+
+GardnerKnopoff: {
+  # Possible values: GardnerKnopoff, Uhrhammer, Gruenthal.
+  time_dist_windows: GardnerKnopoff,
+
+  # float >= 0 proportion of aftershock time windows 
+  # to use to search for foreshock.
+  foreshock_time_window: 0.5
+}
+
+# Completeness jobs
+
+Stepp: {
+  # Time Window of each step (in years)
+  time_window: 5,
+
+  # Magnitude window of each step (in Mw units)
+  magnitude_windows: 0.1,
+  
+  # Sensitivity parameter (see documentation)
+  sensitivity: 0.2,
+  
+  # Increment Lock (fixes that the completeness magnitude
+  # will always increase further back in time)
+  increment_lock: True 
+} 
+
+
+# =========================================================
+# Processing jobs in detail
+# =========================================================
+
+# Recurrence job
+
+Recurrence: {
+    
+    # Width of magnitude window positive float
+    magnitude_window: 0.5,
+    
+    # Choose one among Weichert or MLE
+    recurrence_algorithm: Weichert,
+
+    # A float
+    reference_magnitude: 1.1,
+
+    # Greater than zero (float), used only with Weichert
+    time_window: 0.3
+}
