@@ -6,38 +6,28 @@
 # Input/Output files
 # =========================================================
 
-# Path to the file defining the eq catalog.
 eq_catalog_file: tests/data/declustering_input_test.csv 
 
-# Path to the file defining the source model.
-source_model_file: tests/data/area_source_model_processing.xml
+source_model_file:
 
-completeness_table_file: tests/data/completeness_table.csv
+completeness_table_file:
 
-# Boolean flag to declare
-# if processing jobs are needed.
+pprocessing_result_file:
+
 apply_processing_jobs: no
 
 # =========================================================
 # List of preprocessing jobs
 # =========================================================
 
-
-# Choose one algorithm per preprocessing job,
-# algorithms will be executed in the specified
-# order.
 preprocessing_jobs:
+- Afteran
 
 # =========================================================
 # List of processing jobs
 # =========================================================
 
-
-# Choose one algorithm per preprocessing job,
-# algorithms will be executed in the specified
-# order.
 processing_jobs:
-
 
 # =========================================================
 # Preprocessing jobs in detail
