@@ -289,11 +289,10 @@ def retrieve_completeness_table(context):
         in a pipeline
     """
 
-    # Temporary fix
     temp = np.genfromtxt(
         context.config['completeness_table_file'], delimiter=',')
 
-    if np.shape(temp) == (2,):
+    if np.shape(temp) == (2,):  # completeness table with default values
         context.completeness_table = np.reshape(temp, [1, 2])
     else:
         context.completeness_table = temp
