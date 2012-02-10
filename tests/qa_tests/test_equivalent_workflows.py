@@ -31,18 +31,24 @@ from tests.helper import create_workflow, run
 
 class EquivalentWorkflowsTestCase(unittest.TestCase):
 
-    # Todo: Add 'MLE'
-    recurrence_alg = ['Weichert']
+    recurrence_alg = ['Weichert', 'MLE']
 
     def evaluate_values(self, preprocessed_sm, no_preprocessed_sm):
         for i in range(len(preprocessed_sm)):
-            self.assertEqual(preprocessed_sm[i].rupture_rate_model,
-                no_preprocessed_sm[i].rupture_rate_model)
 
-            self.assertEqual(preprocessed_sm[i].recurrence_sigb,
+            rrm_pp = preprocessed_sm[i].rupture_rate_model
+            rrm_npp = no_preprocessed_sm[i].rupture_rate_model
+
+            self.assertAlmostEqual(rrm_pp.truncated_gutenberg_richter.a_value,
+                rrm_npp.truncated_gutenberg_richter.a_value)
+
+            self.assertAlmostEqual(rrm_pp.truncated_gutenberg_richter.b_value,
+            rrm_npp.truncated_gutenberg_richter.b_value)
+
+            self.assertAlmostEqual(preprocessed_sm[i].recurrence_sigb,
                 no_preprocessed_sm[i].recurrence_sigb)
 
-            self.assertEqual(preprocessed_sm[i].recurrence_siga_m,
+            self.assertAlmostEqual(preprocessed_sm[i].recurrence_siga_m,
                 no_preprocessed_sm[i].recurrence_siga_m)
 
     def run_config(self, wprep, wnoprep):
@@ -86,9 +92,9 @@ class EquivalentWorkflowsTestCase(unittest.TestCase):
             },
 
             'processing_jobs': ['Recurrence'],
-            'Recurrence': {'magnitude_window': 0.2,
+            'Recurrence': {'magnitude_window': 0.5,
                 'recurrence_algorithm': None,
-                'reference_magnitude': 3.7,
+                'reference_magnitude': 2.0,
                 'time_window': 1.0
             }
         }
@@ -101,44 +107,40 @@ class EquivalentWorkflowsTestCase(unittest.TestCase):
             'completeness_table_file': 'tests/data/completeness_table.csv',
             'preprocessing_jobs': None,
             'processing_jobs': ['Recurrence'],
-            'Recurrence': {'magnitude_window': 0.2,
+            'Recurrence': {'magnitude_window': 0.5,
                 'recurrence_algorithm': None,
-                'reference_magnitude': 3.7,
+                'reference_magnitude': 2.0,
                 'time_window': 1.0
             }
         }
 
+        self.wnoprep = create_workflow(self.config_noprep)
+
+    def execute(self, config_prep):
+        wprep = create_workflow(config_prep)
+        self.run_config(wprep, self.wnoprep)
+
     # GardnerKnopoff, Recurrence
     def test_first_configuration(self):
         self.config_prep['preprocessing_jobs'] = ['GardnerKnopoff']
-        wprep = create_workflow(self.config_prep)
-        wnoprep = create_workflow(self.config_noprep)
-        self.run_config(wprep, wnoprep)
+        self.execute(self.config_prep)
 
     # Afteran, Recurrence
     def test_second_configuration(self):
         self.config_prep['preprocessing_jobs'] = ['Afteran']
-        wprep = create_workflow(self.config_prep)
-        wnoprep = create_workflow(self.config_noprep)
-        self.run_config(wprep, wnoprep)
+        self.execute(self.config_prep)
 
     # GardnerKnopoff, Stepp, Recurrence
     def test_third_configuration(self):
         self.config_prep['preprocessing_jobs'] = ['GardnerKnopoff', 'Stepp']
-        wprep = create_workflow(self.config_prep)
-        wnoprep = create_workflow(self.config_noprep)
-        self.run_config(wprep, wnoprep)
+        self.execute(self.config_prep)
 
     # Afteran, Stepp, Recurrence
     def test_fourth_configuration(self):
         self.config_prep['preprocessing_jobs'] = ['Afteran', 'Stepp']
-        wprep = create_workflow(self.config_prep)
-        wnoprep = create_workflow(self.config_noprep)
-        self.run_config(wprep, wnoprep)
+        self.execute(self.config_prep)
 
     # Stepp, Recurrence
     def test_fifth_configuration(self):
         self.config_prep['preprocessing_jobs'] = ['Stepp']
-        wprep = create_workflow(self.config_prep)
-        wnoprep = create_workflow(self.config_noprep)
-        self.run_config(wprep, wnoprep)
+        self.execute(self.config_prep)

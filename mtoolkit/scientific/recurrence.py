@@ -201,7 +201,9 @@ def b_maxlike_time(year, mag, ctime, cmag, dmag, ref_mag=0.0):
         m_c = np.min(cmag[id0])
         # Find events later than cut-off year, and with magnitude
         # greater than or equal to the corresponding completeness magnitude
-        id1 = np.logical_and(year >= ctime[ival], mag >= m_c)
+        # m_c - 1E-5 requires the arbitrarily small value to correct
+        # for floating point differences
+        id1 = np.logical_and(year >= ctime[ival], mag >= (m_c - 1E-5))
         nyr = np.float(np.max(year[id1]) - np.min(year[id1]) + 1)
 
         # Get a- and b- value for the selected events
@@ -286,7 +288,7 @@ def weichert_prep(year, fmag, ctime, cmag, d_m, d_t):
         if np.logical_or(np.shape(idx)[0] == 0, np.shape(idy)[0] == 0):
             i += 1
         else:
-            fullcount1[:idx[-1]+1, :idy[-1]+1] = 0
+            fullcount1[:idx[-1] + 1, :idy[-1] + 1] = 0
             i += 1
     n_obs = np.zeros(n_y)
     t_per = np.zeros(n_y)
