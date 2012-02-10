@@ -25,10 +25,13 @@ Architecture
 User Guide
 ===============================================================================
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
     
    user/installation.rst
    user/configuration.rst
+   user/catalogue.rst
+   user/completeness_table.rst
+   user/area_source.rst
 
 Developer Guide
 ===============================================================================

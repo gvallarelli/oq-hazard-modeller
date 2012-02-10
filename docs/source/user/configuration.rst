@@ -9,7 +9,7 @@ Overview
 MToolkit configuration file is written in `yaml`_, it allows to define:
 
     1. Input files
-    2. Output file
+    2. Output files
     3. The order of execution and type of preprocessing jobs to apply
     4. The order of execution and type of processing jobs to apply
     5. Parameters for preprocessing or processing jobs
@@ -19,13 +19,13 @@ All the properties are specified as::
     
     property_name: value
 
-Input/Output files
+Input, output files
 -------------------------------------------------------------------------------
 
-MToolkit needs for its execution an earthquake catalogue in `csv` format and a
-source model in the `Nrml`_ format, it's also important to specify where
-results of computation should be stored. These values should be filled inside
-the configuration file in:
+MToolkit needs for its execution an :ref:`earthquake catalogue in csv format
+<catalogue>` and a :ref:`source model<area_source>` in the `Nrml`_ format,
+it is also important to specify where results of computation should be stored.
+These values should be filled inside the configuration file in:
 
 .. code-block:: yaml
     :linenos:
@@ -38,6 +38,23 @@ the configuration file in:
 
 Results are stored in a `nrml` document. MToolkit adds new information to the
 starting source model document.
+
+It's possible to skip preprocessing jobs by starting from the previously
+preprocessed results. In that case it is necessary to declare an input
+preprocessed earthquake catalogue as well as an input :ref:`completeness table
+<completeness>` by using:
+
+.. code-block:: yaml
+   :linenos:
+
+   pprocessing_result_file: path/to/preprocessed_catalogue.csv
+
+   completeness_table_file: path/to/completeness_table.csv
+
+The preprocessed earthquake catalogue is in the same :ref:`format<catalogue>`
+as the input one, while the :ref:`completeness table<completeness>` is a two
+column file csv file.
+
 
 Sequence of preprocessing/processing jobs
 -------------------------------------------------------------------------------
