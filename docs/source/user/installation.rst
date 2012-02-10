@@ -6,8 +6,9 @@ Installation
 External Dependencies
 -------------------------------------------------------------------------------
 This part of the documentation covers the installation of MToolkit.
-The first step is getting external dependencies properly installed.
-MToolkit requires these libraries in order to be used:
+MToolkit uses `Python 2.7.x`_ version of the interpreter. The first step
+is getting external dependencies properly installed. MToolkit requires
+these libraries in order to be used:
 
 * Lxml_ >= 2.3
 * Numpy_ >= 1.6.1
@@ -44,7 +45,7 @@ Go inside MToolkit root directory::
 
 Run MToolkit with::
 
-    $ python main -i config.yml
+    $ python main.py -i config.yml
 
 All settings are defined in the :ref:`configuration file <configuration>`.
 
@@ -54,4 +55,4 @@ All settings are defined in the :ref:`configuration file <configuration>`.
 .. _Numpy: http://numpy.org/
 .. _PyYaml: http://pyyaml.org/
 .. _Shapely: https://github.com/sgillies/shapely
-
+.. _Python 2.7.x: http://www.python.org/getit/releases/2.7/

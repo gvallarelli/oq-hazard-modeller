@@ -30,5 +30,5 @@ The :mod:`Recurrence` Module
 .. autofunction:: recurrence_table
 .. autofunction:: b_max_likelihood
 .. autofunction:: b_maxlike_time
-.. autofunction:: wiechert_prep
-.. autofunction:: wiechart
+.. autofunction:: weichert_prep
+.. autofunction:: weichert
