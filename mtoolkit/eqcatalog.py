@@ -120,7 +120,7 @@ class EqEntryReader(object):
                 'depth': self.check_positive_value,
                 'depthError': self.check_positive_value,
                 'Mw': self.no_check,
-                'sigmaMw': self.check_positive_value,
+                'sigmaMw': self.check_sigma_mw,
                 'Ms': self.no_check,
                 'sigmaMs': self.check_positive_value,
                 'mb': self.no_check,
@@ -292,6 +292,21 @@ class EqEntryReader(object):
             not (eq_entry['SemiMinor90'] <= eq_entry['SemiMajor90']):
             eq_entry['SemiMinor90'] = eq_entry['SemiMajor90'] \
             = eq_entry[field] = EqEntryReader.EMPTY_STRING
+
+        return True
+
+    def check_sigma_mw(self, field, eq_entry):
+        """
+        Return a bool stating that some checks are applied
+        if the non compulsory field sigmaMw doesn't pass
+        the check a default value is placed instead
+        of the value in the eq_entry.
+        """
+
+        if eq_entry[field] == EqEntryReader.EMPTY_STRING or \
+            eq_entry[field] < 0:
+
+            eq_entry[field] = 0.0
 
         return True
 

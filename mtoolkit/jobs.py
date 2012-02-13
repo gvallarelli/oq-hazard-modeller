@@ -35,7 +35,7 @@ NRML_SCHEMA_PATH = get_data_path('nrml.xsd', SCHEMA_DIR)
 CATALOG_COMPLETENESS_MATRIX_YEAR_INDEX = 0
 CATALOG_MATRIX_MW_INDEX = 5
 CATALOG_MATRIX_FIXED_COLOUMNS = ['year', 'month', 'day',
-                                'longitude', 'latitude', 'Mw']
+                                'longitude', 'latitude', 'Mw', 'sigmaMw']
 COMPLETENESS_TABLE_MW_INDEX = 1
 
 LOGGER = logging.getLogger('mt_logger')
