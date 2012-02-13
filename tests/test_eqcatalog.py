@@ -225,6 +225,18 @@ class EqEntryReaderTestCase(unittest.TestCase):
         self.assertEqual(eq_entry['ErrorStrike'],
             EqEntryReader.EMPTY_STRING)
 
+    def test_check_sigma_mw(self):
+        field_name = 'sigmaMw'
+        eq_entry = {field_name: EqEntryReader.EMPTY_STRING}
+        self.eq_reader.check_sigma_mw(field_name, eq_entry)
+
+        self.assertEqual(0.0, eq_entry[field_name])
+
+        eq_entry = {field_name: - 0.34}
+        self.eq_reader.check_sigma_mw(field_name, eq_entry)
+
+        self.assertEqual(0.0, eq_entry[field_name])
+
 
 class EqEntryWriterTestCase(unittest.TestCase):
 
