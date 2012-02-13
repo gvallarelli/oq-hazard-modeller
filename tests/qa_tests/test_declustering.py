@@ -55,7 +55,7 @@ class DeclusteringTestCase(unittest.TestCase):
 
         expected_vcl = np.array([0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0,
             0, 0, 0, 0, 6])
-        print context.working_catalog[:, 6]
+
         self.assertTrue(np.array_equal(self.expected_vmain_shock,
                 context.working_catalog))
         self.assertTrue(np.array_equal(expected_vcl, context.vcl))
