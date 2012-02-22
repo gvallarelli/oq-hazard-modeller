@@ -26,6 +26,7 @@ algorithms are:
 * Afteran
 """
 
+import abc
 import numpy as np
 import logging
 
@@ -35,43 +36,81 @@ from mtoolkit.scientific.catalogue_utilities import (decimal_year,
 
 LOGGER = logging.getLogger('mt_logger')
 
+TDW_GARDNERKNOPOFF = 'GardnerKnopoff'
+TDW_GRUENTHAL = 'Gruenthal'
+TDW_UHRHAMMER = 'Uhrhammer'
 
-def calc_windows(magnitude, window_opt):
+
+# Time dist window objects
+
+class Window(object):
+
+    __metaclass__ = abc.ABCMeta
+
+    @abc.abstractmethod
+    def calc(self, magnitude):
+        """
+        Allows to calculate distance and time windows (sw_space, sw_time)
+        see reference: `Van Stiphout et al (2010)`.
+
+        :param magnitude: magnitude
+        :type magnitude: float
+        :returns: distance and time windows
+        :rtype: numpy.ndarray
+        """
+        return
+
+
+class GardnerKnopoffWindow(Window):
     """
-    Allows to calculate distance and time windows (sw, search window)
-    see reference: `Van Stiphout et al (2010)`.
-
-    :param magnitude: magnitude
-    :type magnitude: float
-    :param window_opt: window option can be one between: `Gruenthal`,
-                       `Uhrhammer`, `GardnerKnopoff`
-    :type window_opt: string
-    :returns: distance and time windows
-    :rtype: numpy.ndarray
+    Gardner Knopoff method for calculating
+    distance and time windows
     """
 
-    if window_opt == 'Gruenthal':
+    def calc(self, magnitude):
+        sw_space = np.power(10.0, 0.1238 * magnitude + 0.983)
+        sw_time = np.power(10.0, 0.032 * magnitude + 2.7389) / 365.
+        sw_time[magnitude < 6.5] = np.power(
+            10.0, 0.5409 * magnitude[magnitude < 6.5] - 0.547) / 365.
+
+        return sw_space, sw_time
+
+
+class GruenthalWindow(Window):
+    """
+    Gruenthal method for calculating
+    distance and time windows
+    """
+
+    def calc(self, magnitude):
         sw_space = np.exp(1.77 + np.sqrt(0.037 + 1.02 * magnitude))
         sw_time = np.abs(
             (np.exp(-3.95 + np.sqrt(0.62 + 17.32 * magnitude))) / 365.)
         sw_time[magnitude >= 6.5] = np.power(
             10, 2.8 + 0.024 * magnitude[magnitude >= 6.5]) / 365.
 
-    elif window_opt == 'Uhrhammer':
+        return sw_space, sw_time
+
+
+class UhrhammerWindow(Window):
+    """
+    Uhrhammer method for calculating
+    distance and time windows
+    """
+
+    def calc(self, magnitude):
         sw_space = np.exp(-1.024 + 0.804 * magnitude)
         sw_time = np.exp(-2.87 + 1.235 * magnitude / 365.)
 
-    else:
-        sw_space = np.power(10.0, 0.1238 * magnitude + 0.983)
-        sw_time = np.power(10.0, 0.032 * magnitude + 2.7389) / 365.
-        sw_time[magnitude < 6.5] = np.power(
-            10.0, 0.5409 * magnitude[magnitude < 6.5] - 0.547) / 365.
+        return sw_space, sw_time
 
-    return sw_space, sw_time
+time_dist_windows = {TDW_GARDNERKNOPOFF: GardnerKnopoffWindow(),
+                     TDW_GRUENTHAL: GruenthalWindow(),
+                     TDW_UHRHAMMER: UhrhammerWindow()}
 
 
 def gardner_knopoff_decluster(
-    catalog_matrix, window_opt='GardnerKnopoff', fs_time_prop=0):
+    catalog_matrix, window_opt=TDW_GARDNERKNOPOFF, fs_time_prop=0):
     """
     Gardner Knopoff algorithm.
 
@@ -97,7 +136,7 @@ def gardner_knopoff_decluster(
     year_dec = decimal_year(
         catalog_matrix[:, 0], catalog_matrix[:, 1], catalog_matrix[:, 2])
     # Get space and time windows corresponding to each event
-    sw_space, sw_time = calc_windows(m, window_opt)
+    sw_space, sw_time = time_dist_windows[window_opt].calc(m)
     eqid = np.arange(0, neq, 1)  # Initial Position Identifier
 
     # Pre-allocate cluster index vectors
@@ -111,53 +150,43 @@ def gardner_knopoff_decluster(
     sw_time = sw_time[id0]
     year_dec = year_dec[id0]
     eqid = eqid[id0]
+    flagvector = np.zeros(neq, dtype=int)
     #Begin cluster identification
-    i = 0
-    while i < neq:
+    clust_index = 0
+    for i in range(0, neq - 1):
         if vcl[i] == 0:
             # Find Events inside both fore- and aftershock time windows
             dt = year_dec - year_dec[i]
-            ick = np.zeros(neq, dtype=int)
             vsel = np.logical_and(dt >= (-sw_time[i] * fs_time_prop),
-                                              dt <= sw_time[i], vcl == 0)
+                                              dt <= sw_time[i],
+                                              flagvector == 0)
             # Of those events inside time window, find those inside distance
             # window
             vsel1 = haversine(
                 catalog_matrix[vsel, 3], catalog_matrix[vsel, 4],
                 catalog_matrix[i, 3], catalog_matrix[i, 4]) <= sw_space[i]
-            # Update logical array so that those events inside time window
-            # but outside distance window are switched to False
             vsel[vsel] = vsel1
-            # Allocate a cluster number
-            vcl[vsel] = i + 1
-            ick[vsel] = i + 1
-            # Number of elements in cluster
-            ick[i] = 0  # Remove mainshock from cluster
-            # Indicate the foreshocks
-            tempick = ick[vsel]
-            id2 = year_dec[vsel] < year_dec[i]
-            tempick[id2] = -1 * (i + 1)
-            vcl[vsel] = tempick
-
-            # vcl indicates the cluster to which an event belongs
-            # +vcl = aftershock, -vcl = foreshock
-            i += 1
-        else:
-            # Already allocated to cluster - skip event
-            i += 1
+            temp_vsel = np.copy(vsel)
+            temp_vsel[i] = False
+            if any(temp_vsel):
+                # Allocate a cluster number
+                vcl[vsel] = clust_index + 1
+                flagvector[vsel] = 1
+                # For those events in the cluster before the main event,
+                # flagvector is equal to -1
+                temp_vsel[dt >= 0.0] = False
+                flagvector[temp_vsel] = -1
+                flagvector[i] = 0
+                clust_index += 1
 
     # Re-sort the catalog_matrix into original order
     id1 = np.argsort(eqid, kind='heapsort')
     eqid = eqid[id1]
     catalog_matrix = catalog_matrix[id1, :]
     vcl = vcl[id1]
+    flagvector = flagvector[id1]
     # Now to produce a catalogue with aftershocks purged
-    vmain_shock = catalog_matrix[np.nonzero(vcl == 0)[0], :]
-    # Also create a simple flag vector which, for each event, takes
-    # a value of 1 if aftershock, -1 if foreshock, and 0 otherwise
-    flagvector = np.copy(vcl)
-    flagvector[vcl < 0] = -1
-    flagvector[vcl > 0] = 1
+    vmain_shock = catalog_matrix[np.nonzero(flagvector == 0)[0], :]
 
     return vcl, vmain_shock, flagvector
 
@@ -229,7 +258,7 @@ def _find_foreshocks(dtime, nval, time_window, vsel_aftershocks):
 
 
 def afteran_decluster(
-    catalogue_matrix, window_opt='GardnerKnopoff', time_window=60.):
+    catalogue_matrix, window_opt=TDW_GARDNERKNOPOFF, time_window=60.):
     '''AFTERAN declustering algorithm.
     ||(Musson, 1999, "Probabilistic Seismic Hazard Maps for the North Balkan
        region", Annali di Geofisica, 42(6), 1109 - 1124) ||
@@ -260,7 +289,7 @@ def afteran_decluster(
                             catalogue_matrix[:, 2])
 
     # Get space windows corresponding to each event
-    sw_space = calc_windows(mag, window_opt)[0]
+    sw_space = time_dist_windows[window_opt].calc(mag)[0]
 
     eqid = np.arange(0, neq, 1)  # Initial Position Identifier
 

@@ -4,4 +4,4 @@
 
 find . -name "*.pyc" -delete
 
-nosetests tests/ --with-coverage  --cover-package=mtoolkit --with-xunit --xunit-file='nosetests.xml'
+nosetests tests/ --with-coverage  --cover-package=mtoolkit --with-xunit --xunit-file='nosetests.xml' --exclude-dir=tests/qa_tests
