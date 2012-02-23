@@ -24,13 +24,14 @@ from mtoolkit.scientific.declustering import (TDW_GARDNERKNOPOFF,
     TDW_GRUENTHAL, TDW_UHRHAMMER, gardner_knopoff_decluster, afteran_decluster)
 
 from tests.declustering.data._declustering_test_data import (
-    CATALOG_MATRIX_ALL_CLUSTER, CATALOG_MATRIX_NO_CLUSTERS)
+    CATALOG_MATRIX_ALL_IN_A_CLUSTER, CATALOG_MATRIX_NO_CLUSTERS)
 
 
 class DeclusteringTestCase(unittest.TestCase):
 
     def setUp(self):
-        self.catalog_matrix_all_cluster = np.array(CATALOG_MATRIX_ALL_CLUSTER)
+        self.catalog_matrix_all_cluster = np.array(
+            CATALOG_MATRIX_ALL_IN_A_CLUSTER)
 
         self.catalog_matrix_no_clusters = np.array(CATALOG_MATRIX_NO_CLUSTERS)
 
