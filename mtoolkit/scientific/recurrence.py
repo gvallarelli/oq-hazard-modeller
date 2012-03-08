@@ -196,14 +196,16 @@ def b_maxlike_time(year, mag, ctime, cmag, dmag, ref_mag=0.0):
     """
 
     ival = 0
+    mag_eq_tolerance = 1E-5
     while ival < np.shape(ctime)[0]:
-        id0 = np.abs(ctime - ctime[ival]) < 1E-5
+        id0 = np.abs(ctime - ctime[ival]) < mag_eq_tolerance
         m_c = np.min(cmag[id0])
         # Find events later than cut-off year, and with magnitude
-        # greater than or equal to the corresponding completeness magnitude
-        # m_c - 1E-5 requires the arbitrarily small value to correct
-        # for floating point differences
-        id1 = np.logical_and(year >= ctime[ival], mag >= (m_c - 1E-5))
+        # greater than or equal to the corresponding completeness magnitude.
+        # m_c - mag_eq_tolerance is required to correct floating point
+        # differences.
+        id1 = np.logical_and(year >= ctime[ival],
+                    mag >= (m_c - mag_eq_tolerance))
         nyr = np.float(np.max(year[id1]) - np.min(year[id1]) + 1)
 
         # Get a- and b- value for the selected events
