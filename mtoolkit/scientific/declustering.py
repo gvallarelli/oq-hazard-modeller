@@ -44,7 +44,11 @@ TDW_UHRHAMMER = 'Uhrhammer'
 # Time dist window objects
 
 class Window(object):
-
+    """
+    Defines the space and time windows,
+    within which an event is identified
+    as a cluster.
+    """
     __metaclass__ = abc.ABCMeta
 
     @abc.abstractmethod
@@ -68,6 +72,19 @@ class GardnerKnopoffWindow(Window):
     """
 
     def calc(self, magnitude):
+        """
+        >>> import numpy as np
+        >>> gw = GardnerKnopoffWindow()
+        >>> mag = np.array([4.0, 4.7, 8.9])
+        >>> sw_space, sw_time = gw.calc(mag)
+        >>> np.allclose(\
+                sw_space, np.array([30.07460971, 36.71639218, 121.56820382]))
+        True
+        >>> np.allclose(\
+                sw_time, np.array([ 0.11332015,  0.27097994, 2.89339106]))
+        True
+        """
+
         sw_space = np.power(10.0, 0.1238 * magnitude + 0.983)
         sw_time = np.power(10.0, 0.032 * magnitude + 2.7389) / 365.
         sw_time[magnitude < 6.5] = np.power(
@@ -83,6 +100,19 @@ class GruenthalWindow(Window):
     """
 
     def calc(self, magnitude):
+        """
+        >>> import numpy as np
+        >>> gw = GruenthalWindow()
+        >>> mag = np.array([4.0, 4.7, 8.9])
+        >>> sw_space, sw_time = gw.calc(mag)
+        >>> np.allclose(\
+                sw_space, np.array([44.65825539, 52.87621383, 120.19384661]))
+        True
+        >>> np.allclose(\
+                sw_time, np.array([0.22553603, 0.45240063, 2.82687845]))
+        True
+        """
+
         sw_space = np.exp(1.77 + np.sqrt(0.037 + 1.02 * magnitude))
         sw_time = np.abs(
             (np.exp(-3.95 + np.sqrt(0.62 + 17.32 * magnitude))) / 365.)
@@ -99,6 +129,19 @@ class UhrhammerWindow(Window):
     """
 
     def calc(self, magnitude):
+        """
+        >>> import numpy as np
+        >>> uw = UhrhammerWindow()
+        >>> mag = np.array([4.0, 4.7, 8.9])
+        >>> sw_space, sw_time = uw.calc(mag)
+        >>> np.allclose(\
+                sw_space, np.array([8.95310142, 15.71789701, 460.17184693]))
+        True
+        >>> np.allclose(\
+                sw_time, np.array([0.05747152, 0.0576078, 0.05843231]))
+        True
+        """
+
         sw_space = np.exp(-1.024 + 0.804 * magnitude)
         sw_time = np.exp(-2.87 + 1.235 * magnitude / 365.)
 
