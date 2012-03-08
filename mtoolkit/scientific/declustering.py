@@ -81,7 +81,7 @@ class GardnerKnopoffWindow(Window):
                 sw_space, np.array([30.07460971, 36.71639218, 121.56820382]))
         True
         >>> np.allclose(\
-                sw_time, np.array([ 0.11332015,  0.27097994, 2.89339106]))
+                sw_time, np.array([0.11332015, 0.27097994, 2.89339106]))
         True
         """
 
