@@ -289,16 +289,8 @@ def retrieve_completeness_table(context):
         in a pipeline
     """
 
-    temp = np.genfromtxt(
-        context.config['completeness_table_file'], delimiter=',')
-
-    # With a default completeness table the original shape (i.e. (1, 2))
-    # is lost by genfromtxt which returns a different shape (i.e. (2,))
-    # reshaping it's necessary to come back to the original shape.
-    if np.shape(temp) == (2,):
-        context.completeness_table = np.reshape(temp, [1, 2])
-    else:
-        context.completeness_table = temp
+    context.completeness_table = np.loadtxt(
+        context.config['completeness_table_file'], delimiter=',', ndmin=2)
 
     LOGGER.debug("* Completeness Table retrieved")
 
