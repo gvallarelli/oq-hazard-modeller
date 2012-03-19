@@ -289,8 +289,8 @@ def retrieve_completeness_table(context):
         in a pipeline
     """
 
-    context.completeness_table = np.genfromtxt(
-        context.config['completeness_table_file'], delimiter=',')
+    context.completeness_table = np.loadtxt(
+        context.config['completeness_table_file'], delimiter=',', ndmin=2)
 
     LOGGER.debug("* Completeness Table retrieved")
 
