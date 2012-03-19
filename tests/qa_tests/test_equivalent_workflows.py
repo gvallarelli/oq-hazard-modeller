@@ -81,7 +81,7 @@ class EquivalentWorkflowsTestCase(unittest.TestCase):
                 'time_window': 60.0
             },
             'GardnerKnopoff': {
-                'time_dist_windows': None,
+                'time_dist_windows': 'GardnerKnopoff',
                 'foreshock_time_window': 0.5
             },
 
