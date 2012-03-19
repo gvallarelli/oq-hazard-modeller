@@ -290,7 +290,8 @@ def retrieve_completeness_table(context):
     """
 
     context.completeness_table = np.loadtxt(
-        context.config['completeness_table_file'], delimiter=',', ndmin=2)
+        context.config['completeness_table_file'], delimiter=',').reshape(
+            (-1, 2))
 
     LOGGER.debug("* Completeness Table retrieved")
 
