@@ -53,8 +53,8 @@ class DeclusteringTestCase(unittest.TestCase):
         workflow = create_workflow(context.config)
         run(workflow, context)
 
-        expected_vcl = np.array([0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0,
-            0, 0, 0, 0, 6])
+        expected_vcl = np.array([0, 0, 0, 2, 2, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0,
+            0, 0, 0, 3, 3])
 
         self.assertTrue(np.array_equal(self.expected_vmain_shock,
                 context.working_catalog))
