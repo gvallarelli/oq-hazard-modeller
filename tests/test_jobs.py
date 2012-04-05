@@ -1,20 +1,21 @@
 # -*- coding: utf-8 -*-
+# vim: tabstop=4 shiftwidth=4 softtabstop=4
 
-# Copyright (c) 2010-2012, GEM Foundation.
+# Copyright (c) 2010-2011, GEM Foundation.
 #
-# OpenQuake is free software: you can redistribute it and/or modify it
-# under the terms of the GNU Affero General Public License as published
-# by the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
+# MToolkit is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License version 3
+# only, as published by the Free Software Foundation.
 #
-# OpenQuake is distributed in the hope that it will be useful,
+# MToolkit is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
+# GNU Lesser General Public License version 3 for more details
+# (a copy is included in the LICENSE file that accompanied this code).
 #
-# You should have received a copy of the GNU Affero General Public License
-# along with OpenQuake. If not, see <http://www.gnu.org/licenses/>.
-
+# You should have received a copy of the GNU Lesser General Public License
+# version 3 along with MToolkit. If not, see
+# <http://www.gnu.org/licenses/lgpl-3.0.txt> for a copy of the LGPLv3 License.
 
 from mock import Mock
 
@@ -39,7 +40,8 @@ from mtoolkit.jobs import (read_eq_catalog, read_source_model,
                            store_completeness_table,
                            retrieve_completeness_table,
                            recurrence,
-                           create_default_source_model)
+                           create_default_source_model,
+                           maximum_magnitude)
 
 from nrml.nrml_xml import get_data_path, DATA_DIR
 
@@ -194,3 +196,20 @@ class JobsTestCase(unittest.TestCase):
 
         self.assertTrue(np.array_equal(expected_table,
             self.context_jobs.completeness_table))
+
+    def test_param_maximum_magnitude(self):
+        self.context_jobs.current_filtered_eq = np.array(
+            [[1, 2, 3, 4, 5, 6, 7]])
+        cur_sm = Mock()
+        cur_sm.rupture_rate_model.truncated_gutenberg_richter.b_value = 4.2
+        cur_sm.recurrence_sigb = 0.3
+        self.context_jobs.cur_sm = cur_sm
+        mocked_func = Mock(return_value=(0, 0))
+        self.context_jobs.map_sc['maximum_magnitude'] = mocked_func
+        maximum_magnitude(self.context_jobs)
+
+        self.assertTrue(mocked_func.called)
+
+        mocked_func.assert_called_with(
+            np.array([1]), np.array([6]), np.array([7]), 4.2, 0.3,
+            'Cumulative_Moment', 1.0E-5, 1000, 5.8, 0.3, 200, 51, 100)

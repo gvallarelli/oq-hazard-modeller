@@ -1,20 +1,21 @@
 # -*- coding: utf-8 -*-
+# vim: tabstop=4 shiftwidth=4 softtabstop=4
 
-# Copyright (c) 2010-2012, GEM Foundation.
+# Copyright (c) 2010-2011, GEM Foundation.
 #
-# OpenQuake is free software: you can redistribute it and/or modify it
-# under the terms of the GNU Affero General Public License as published
-# by the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
+# MToolkit is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License version 3
+# only, as published by the Free Software Foundation.
 #
-# OpenQuake is distributed in the hope that it will be useful,
+# MToolkit is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
+# GNU Lesser General Public License version 3 for more details
+# (a copy is included in the LICENSE file that accompanied this code).
 #
-# You should have received a copy of the GNU Affero General Public License
-# along with OpenQuake. If not, see <http://www.gnu.org/licenses/>.
-
+# You should have received a copy of the GNU Lesser General Public License
+# version 3 along with MToolkit. If not, see
+# <http://www.gnu.org/licenses/lgpl-3.0.txt> for a copy of the LGPLv3 License.
 
 """
 The purpose of this module is to provide functions which tackle specific job,
@@ -36,6 +37,7 @@ CATALOG_MATRIX_MW_INDEX = 5
 CATALOG_MATRIX_FIXED_COLOUMNS = ['year', 'month', 'day',
                                 'longitude', 'latitude', 'Mw', 'sigmaMw']
 COMPLETENESS_TABLE_MW_INDEX = 1
+SIGMA_MW_INDEX = 6
 
 LOGGER = logging.getLogger('mt_logger')
 
@@ -288,7 +290,7 @@ def retrieve_completeness_table(context):
         in a pipeline
     """
 
-    context.completeness_table = np.loadtxt(
+    context.completeness_table = np.genfromtxt(
         context.config['completeness_table_file'], delimiter=',').reshape(
             (-1, 2))
 
@@ -304,6 +306,7 @@ def recurrence(context):
         in a pipeline
     """
 
+    print np.shape(context.completeness_table)
     bval, sigb, a_m, siga_m = context.map_sc['recurrence'](
             context.current_filtered_eq[:,
                 CATALOG_COMPLETENESS_MATRIX_YEAR_INDEX],
@@ -328,3 +331,41 @@ def recurrence(context):
 
     LOGGER.debug("Bvalue: %3.3f, Sigma_b: %3.3f, Avalue: %3.3f, Sigma_a: %3.3f"
         % (bval, sigb, a_m, siga_m))
+
+
+@logged_job
+def maximum_magnitude(context):
+    """
+    Apply maximum magnitude algorithm to the filtered catalog
+    matrix, completeness table, bvalue and bvalue uncertainty,
+    this job should depends on value computed by recurrence.
+    :param context: shared datastore across different jobs
+        in a pipeline
+    """
+    max_mag, max_mag_sigma = context.map_sc['maximum_magnitude'](
+        context.current_filtered_eq[:,
+            CATALOG_COMPLETENESS_MATRIX_YEAR_INDEX],
+        context.current_filtered_eq[:, CATALOG_MATRIX_MW_INDEX],
+        context.current_filtered_eq[:, SIGMA_MW_INDEX],
+        context.cur_sm.rupture_rate_model.truncated_gutenberg_richter.b_value,
+        context.cur_sm.recurrence_sigb,
+        context.config['MaximumMagnitude']['maxim_mag_algorithm'],
+        context.config['MaximumMagnitude']['iteration_tolerance'],
+        context.config['MaximumMagnitude']['maximum_iterations'],
+        context.config['MaximumMagnitude']['max_observed_mag'],
+        context.config['MaximumMagnitude']['max_observed_mag_unc'],
+        context.config['MaximumMagnitude']['neq'],
+        context.config['MaximumMagnitude']['number_samples'],
+        context.config['MaximumMagnitude']['number_bootstraps'])
+
+    t = context.cur_sm.rupture_rate_model.truncated_gutenberg_richter._replace(
+        max_magnitude=max_mag)
+
+    context.cur_sm.rupture_rate_model = \
+        context.cur_sm.rupture_rate_model._replace(
+                                        truncated_gutenberg_richter=t)
+
+    context.cur_sm.max_mag_sigma = max_mag_sigma
+
+    LOGGER.debug("Max magnitude: %3.3f, Sigma: %3.3f"
+        % (max_mag, max_mag_sigma))
