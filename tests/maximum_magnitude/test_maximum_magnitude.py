@@ -49,13 +49,13 @@ class MaxMagnitudeTestCase(unittest.TestCase):
         self.assertAlmostEqual(self.hfact, 0.11, self.dec_places)
 
     def test_exp_spaced_points(self):
-        self.assert_(np.allclose(SPACED_POINTS,
+        self.assertTrue(np.allclose(SPACED_POINTS,
             exp_spaced_points(5.8, 7.4, self.number_samples)))
 
     def test_gauss_cdf_hastings(self):
         test_array = np.arange(-3., 3.05, 0.05)
         expected_output = GAUSS_CDF
-        self.assert_(np.allclose(expected_output,
+        self.assertTrue(np.allclose(expected_output,
                                  gauss_cdf_hastings(test_array, 0., 1.)))
 
     def test_kijko_npg_intfunc_simps(self):
@@ -64,26 +64,23 @@ class MaxMagnitudeTestCase(unittest.TestCase):
         neq = np.float(np.shape(self.mag_select)[0])
         delta = kijko_npg_intfunc_simps(expected_points, self.mag_select,
                                              self.hfact, neq)
-        self.assertAlmostEqual(delta, 0.0846108731604)
+        self.assertAlmostEqual(delta, 0.08461, self.dec_places)
 
     def test_kijko_nonparametric_gauss(self):
         neq = np.float(np.shape(self.mag_select)[0])
         maxmag, sigmaxmag = kijko_nonparametric_gauss(self.mag_select,
-            self.sigma_select, neq,
-            self.number_samples, iteration_tolerance=0.01,
-            maximum_iterations=1E3, max_observed=False)
-        self.assertAlmostEqual(maxmag, 7.50754931102, self.dec_places)
-        self.assertAlmostEqual(sigmaxmag, 0.146856577316, self.dec_places)
+            self.sigma_select, neq, self.number_samples,
+            iteration_tolerance=0.01, maximum_iterations=1E3,
+            max_observed=False)
+        self.assertAlmostEqual(maxmag, 7.50755, self.dec_places)
+        self.assertAlmostEqual(sigmaxmag, 0.14686, self.dec_places)
 
     def test_cumulative_moment(self):
-        self.assertAlmostEqual(cumulative_moment(self.year,
-                               self.magnitude), 7.4847336)
+        self.assertAlmostEqual(cumulative_moment(self.year, self.magnitude),
+                7.48473, self.dec_places)
 
     def test_cum_mo_uncertainty(self):
-        maxmag, sigmaxmag = cum_mo_uncertainty(self.year,
-                                                    self.magnitude,
-                                                    self.mag_sigma,
-                                                    number_bootstraps=100,
-                                                    seed=19820305)
-        self.assertAlmostEqual(maxmag, 7.5234315, self.dec_places)
-        self.assertAlmostEqual(sigmaxmag, 0.0525644, self.dec_places)
+        maxmag, sigmaxmag = cum_mo_uncertainty(self.year, self.magnitude,
+                self.mag_sigma, number_bootstraps=100, seed=19820305)
+        self.assertAlmostEqual(maxmag, 7.52343, self.dec_places)
+        self.assertAlmostEqual(sigmaxmag, 0.05256, self.dec_places)
