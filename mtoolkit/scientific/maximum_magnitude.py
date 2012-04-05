@@ -217,7 +217,9 @@ def kijko_nonparametric_gauss(mag, mag_sig, neq,
             print 'maximum # of iterations'
             d_t = 0.5 * iteration_tolerance
     mmax_sig = np.sqrt(obsmaxsig ** 2. + delta ** 2.)
-    return mmax, mmax_sig
+    # mmax[()] temporary fix, mmax is a numpy array not a float,
+    # mmax[()] returns the float number inside the zero rank array.
+    return mmax[()], mmax_sig
 
 
 def cumulative_moment(year, mag):

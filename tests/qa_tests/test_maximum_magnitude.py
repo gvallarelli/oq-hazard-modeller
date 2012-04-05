@@ -27,6 +27,7 @@ class MaximumMagnitudeTestCase(unittest.TestCase):
         self.decimal_places = 5
 
     def test_maximum_magnitude_cum_moment(self):
+        # It depends on a random seed so precision is relaxed
         self.decimal_places = 1
         context = create_context('config_maxmag_cum_moment.yml')
 
