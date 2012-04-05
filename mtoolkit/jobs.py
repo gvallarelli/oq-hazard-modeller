@@ -306,7 +306,6 @@ def recurrence(context):
         in a pipeline
     """
 
-    print np.shape(context.completeness_table)
     bval, sigb, a_m, siga_m = context.map_sc['recurrence'](
             context.current_filtered_eq[:,
                 CATALOG_COMPLETENESS_MATRIX_YEAR_INDEX],

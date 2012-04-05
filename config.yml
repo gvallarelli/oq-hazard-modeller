@@ -150,26 +150,26 @@ MaximumMagnitude: {
     maxim_mag_algorithm: Kijko_Npg,
 
     # float > 0, default value 1.0E-5
-    iteration_tolerance: ,
+    iteration_tolerance: 1.0E-5,
 
     # int > 0, default value 1000
-    maximum_iterations: ,
+    maximum_iterations: 1000,
 
     # float > 0
     # better to take from catalogue
-    max_observed_mag: ,
+    max_observed_mag: 0.3,
     
     # float > 0
-    max_observed_mag_unc: ,
+    max_observed_mag_unc: 0.2,
 
     # neq
-    neq: ,
+    neq: 100,
 
     # Used in Kijko_Npg
     # int > 0 default value 51
-    number_samples: ,
+    number_samples: 51,
 
     # Used in Cumulative_Moment
     # int > 0 default value 100
-    number_bootstraps: 
+    number_bootstraps: 100
 }

@@ -16,14 +16,14 @@ def maximum_magnitude_analysis(year_col, magnitude_col,
 
     if maxim_mag_algorithm == 'Kijko_Npg':
         max_mag, max_mag_sigma = kijko_nonparametric_gauss(
-            magnitude_col, sigma_mw, neq=100,
-            number_samples=51, iteration_tolerance=1.0E-3,
-            maximum_iterations=1E3, max_observed=False)
+            magnitude_col, sigma_mw, neq,
+            number_samples, iteration_tolerance,
+            maximum_iterations, max_observed=False)
 
     elif maxim_mag_algorithm == 'Cumulative_Moment':
         max_mag, max_mag_sigma = cum_mo_uncertainty(
             year_col, magnitude_col,
-            sigma_mw, number_bootstraps=1000)
+            sigma_mw, number_bootstraps)
 
     return max_mag, max_mag_sigma
 

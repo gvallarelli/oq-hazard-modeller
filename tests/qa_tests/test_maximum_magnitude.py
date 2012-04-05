@@ -49,8 +49,8 @@ class MaximumMagnitudeTestCase(unittest.TestCase):
 
         sm = context.sm_definitions[0]
 
-        self.assertAlmostEqual(6.44347,
+        self.assertAlmostEqual(6.44392,
             sm.rupture_rate_model.truncated_gutenberg_richter.max_magnitude,
             self.decimal_places)
 
-        self.assertAlmostEqual(0.10904, sm.max_mag_sigma, self.decimal_places)
+        self.assertAlmostEqual(0.10922, sm.max_mag_sigma, self.decimal_places)

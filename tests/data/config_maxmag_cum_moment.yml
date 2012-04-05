@@ -59,10 +59,10 @@ MaximumMagnitude: {
     maxim_mag_algorithm: Cumulative_Moment,
 
     # float > 0, default value 1.0E-5
-    iteration_tolerance: ,
+    iteration_tolerance: 1.45E-5,
 
     # int > 0, default value 1000
-    maximum_iterations: ,
+    maximum_iterations: 1000,
 
     # float > 0
     # better to take from catalogue
@@ -72,7 +72,7 @@ MaximumMagnitude: {
     max_observed_mag_unc: ,
 
     # neq
-    neq: ,
+    neq: 110,
 
     # Used in Kijko_Npg
     # int > 0 default value 51

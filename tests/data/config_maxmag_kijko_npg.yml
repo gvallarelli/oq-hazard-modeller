@@ -62,14 +62,14 @@ MaximumMagnitude: {
     iteration_tolerance: 1.45E-5,
 
     # int > 0, default value 1000
-    maximum_iterations: 700,
+    maximum_iterations: 1000,
 
     # float > 0
     # better to take from catalogue
     max_observed_mag: ,
     
     # float > 0
-    max_observed_mag_unc: 0.7,
+    max_observed_mag_unc: ,
 
     # neq
     neq: 110,
@@ -80,5 +80,5 @@ MaximumMagnitude: {
 
     # Used in Cumulative_Moment
     # int > 0 default value 100
-    number_bootstraps: 
+    number_bootstraps: 100 
 }
