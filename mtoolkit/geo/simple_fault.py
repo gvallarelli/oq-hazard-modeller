@@ -60,43 +60,44 @@ class SimpleFaultGeo(object):
         ensure(0 < dip <= 90,
             'Dip should be greater than zero and less or equal to 90')
 
-        self.trace = trace
-        self.upp_depth = upp_depth
-        self.low_depth = low_depth
-        self.dip = dip
-        self.length = None
-        self.width = None
-        self.area = None
+        self._trace = trace
+        self._upp_depth = upp_depth
+        self._low_depth = low_depth
+        self._dip = dip
+        self._length = None
+        self._width = None
+        self._area = None
 
     def get_length(self):
         """
         Returns the length of the simple fault geometry (in km).
         """
 
-        if self.length:
-            return self.length
-        self.length = self._distance()
-        return self.length
+        if self._length:
+            return self._length
+        self._length = self._distance()
+        return self._length
 
     def get_width(self):
         """
         Returns the width of the simple fault geometry (in km).
         """
 
-        if self.width:
-            return self.width
-        self.width = (self.low_depth - self.upp_depth) / sin(radians(self.dip))
-        return self.width
+        if self._width:
+            return self._width
+        self._width = (
+            (self._low_depth - self._upp_depth) / sin(radians(self._dip)))
+        return self._width
 
     def get_area(self):
         """
         Returns the area of the simple fault geometry (in square km).
         """
 
-        if self.area:
-            return self.area
-        self.area = self.get_length() * self.get_width()
-        return self.area
+        if self._area:
+            return self._area
+        self._area = self.get_length() * self.get_width()
+        return self._area
 
     def _distance(self):
         """
@@ -110,13 +111,13 @@ class SimpleFaultGeo(object):
         distance = 0
         radius = 6371.0
 
-        for i in range(len(self.trace) - 1):
+        for i in range(len(self._trace) - 1):
 
-            lon1 = radians(self.trace[i][0])
-            lat1 = radians(self.trace[i][1])
+            lon1 = radians(self._trace[i][0])
+            lat1 = radians(self._trace[i][1])
 
-            lon2 = radians(self.trace[i + 1][0])
-            lat2 = radians(self.trace[i + 1][1])
+            lon2 = radians(self._trace[i + 1][0])
+            lat2 = radians(self._trace[i + 1][1])
 
             dlon = lon2 - lon1
             dlat = lat2 - lat1
