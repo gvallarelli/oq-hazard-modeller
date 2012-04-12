@@ -36,7 +36,7 @@ class ATectonicRegionShould(unittest.TestCase):
         self.assertEqual({'value': [30.0], 'weight': [1.0]}, asc.smod)
         self.assertEqual(DEFAULT_DLR, asc.dlr)
 
-        vol = self.tr.create_default_tectreg(TectonicRegion.VOLCANIC)
+        vol = self.tectreg.create_default_tr(TectonicRegion.VOLCANIC)
 
         self.assertEqual('005', vol.region_id)
         self.assertEqual(DEFAULT_MSR, vol.msr)

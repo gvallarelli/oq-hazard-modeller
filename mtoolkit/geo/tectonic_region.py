@@ -20,27 +20,70 @@ regions types.
 """
 
 
-DEFAULT_MSR = {'model': ['WC1194'], 'weight': [1.0]}
+DEFAULT_MSR = {'model': ['WC1994'], 'weight': [1.0]}
 DEFAULT_DLR = {'value': [1.25E-5], 'weight': [1.0]}
 VOL_STCON_SMOD = {'value': [29.0], 'weight': [1.0]}
 SUBD_SMOD = {'value': [49.0], 'weight': [1.0]}
+SUPPORTED_MSR = ('Peer', 'WC1994')
 
 
 class TrAttr(object):
     __slots__ = ('region_id msr smod dlr'.split())
 
     def __init__(self, region_id, msr, smod, dlr):
-        if not len(msr['model']) == len(msr['weight']):
-            raise ValueError('Each model shold have a corresponding weight')
-        if not len(smod['value']) == len(smod['weight']):
-            raise ValueError('Each value should have a corresponding weight')
-        if not len(smod['value']) == len(smod['weight']):
-            raise ValueError('Each value should have a corresponding weight')
+        self.check_msr_weight(msr, smod, dlr)
+        self.check_msr(msr['model'])
+        self.check_values(smod['value'], dlr['value'])
+        self.check_weights(msr['weight'], smod['weight'], dlr['weight'])
 
         self.region_id = region_id
         self.msr = msr
         self.smod = smod
         self.dlr = dlr
+
+    @classmethod
+    def check_msr_weight(cls, msr, smod, dlr):
+        if not len(msr['model']) == len(msr['weight']):
+            raise ValueError('Each model shold have a corresponding weight')
+        if not len(smod['value']) == len(smod['weight']):
+            raise ValueError('Each value should have a corresponding weight')
+        if not len(dlr['value']) == len(dlr['weight']):
+            raise ValueError('Each value should have a corresponding weight')
+
+    @classmethod
+    def check_msr(cls, msr):
+        for model in msr:
+            if model not in SUPPORTED_MSR:
+                raise ValueError(
+                    'Magnitude Scaling Relation %s not supported' % model)
+
+    @classmethod
+    def check_values(cls, smod, dlr):
+        for value in smod:
+            if not value > 0:
+                raise ValueError(
+                    'Shear Modulus values should be greater than zero')
+        for value in dlr:
+            if not value > 0:
+                raise ValueError(
+                    'Displacement Length Ratio values should be '
+                    'greater than zero')
+
+    @classmethod
+    def check_weights(cls, msr, smod, dlr):
+        sum_weights_msr = reduce(lambda x, y: x + y, msr)
+        sum_weights_smod = reduce(lambda x, y: x + y, smod)
+        sum_weights_dlr = reduce(lambda x, y: x + y, dlr)
+
+        if sum_weights_msr != 1.0:
+            raise ValueError('The sum of weights for magnitude scaling'
+                            ' relations should be one')
+        if sum_weights_smod != 1.0:
+            raise ValueError('The sum of weights for shear modulus'
+                           ' should be one')
+        if sum_weights_dlr != 1.0:
+            raise ValueError('The sum of weights for displacement length ratio'
+                            ' should be one')
 
 
 class ActiveShallowCrust(TrAttr):
