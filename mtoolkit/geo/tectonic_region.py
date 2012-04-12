@@ -27,8 +27,35 @@ SUBD_SMOD = {'value': [49.0], 'weight': [1.0]}
 SUPPORTED_MSR = ('Peer', 'WC1994')
 
 
-class TrAttr(object):
-    __slots__ = ('region_id msr smod dlr'.split())
+class TectonicRegion(object):
+    """
+    Base class for tectonic region type.
+
+    Subclasses define default values for:
+    region id, magnitude scaling relation,
+    shaer modulus and displacement length
+    ratio.
+
+    :param region_id:
+        tectonic region identifier (literal).
+    :param msr:
+        magnitude scaling relations with associated weights.
+    :type msr:
+        dict with keys: 'model', 'weight' where at each key is associated
+        a list of values.
+    :param smod:
+        shaer modulus values (in GPa [giga-pascals]) with associated weights.
+    :type smod:
+        dict with keys 'value', 'weight' where at each key is associated
+        a list of values.
+    :param dlr:
+        displacement length ratio values with associated weights.
+    :type dlr:
+        dict with keys 'value', 'weight' where at each key is associated
+        a list of values.
+    """
+
+    __slots__ = ('_region_id _msr _smod _dlr'.split())
 
     def __init__(self, region_id, msr, smod, dlr):
         self.check_msr_weight(msr, smod, dlr)
@@ -36,22 +63,45 @@ class TrAttr(object):
         self.check_values(smod['value'], dlr['value'])
         self.check_weights(msr['weight'], smod['weight'], dlr['weight'])
 
-        self.region_id = region_id
-        self.msr = msr
-        self.smod = smod
-        self.dlr = dlr
+        self._region_id = region_id
+        self._msr = msr
+        self._smod = smod
+        self._dlr = dlr
+
+    def __eq__(self, other):
+        return (self._region_id == other._region_id and
+                self._msr == other._msr and
+                self._smod == other._smod and
+                self._dlr == other._dlr)
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
 
     @classmethod
     def check_msr_weight(cls, msr, smod, dlr):
+        """
+        Checks that every model of magnitude scaling relation
+        has an associated weight.
+        :raises ValueError:
+            if not every model has an associated weight.
+        """
+        msg = 'Each model shold have a corresponding weight'
+
         if not len(msr['model']) == len(msr['weight']):
-            raise ValueError('Each model shold have a corresponding weight')
+            raise ValueError(msg)
         if not len(smod['value']) == len(smod['weight']):
-            raise ValueError('Each value should have a corresponding weight')
+            raise ValueError(msg)
         if not len(dlr['value']) == len(dlr['weight']):
-            raise ValueError('Each value should have a corresponding weight')
+            raise ValueError(msg)
 
     @classmethod
     def check_msr(cls, msr):
+        """
+        Checks that the specified models of magnitude scaling relations
+        are the ones.
+        :raises ValueError:
+            if a specified model is not supported.
+        """
         for model in msr:
             if model not in SUPPORTED_MSR:
                 raise ValueError(
@@ -59,6 +109,13 @@ class TrAttr(object):
 
     @classmethod
     def check_values(cls, smod, dlr):
+        """
+        Checks that the values specified for the shaer modulus and the
+        displacement length ratios are greater than zero.
+        :raises ValueError:
+            if a value is not greater than zero.
+        """
+
         for value in smod:
             if not value > 0:
                 raise ValueError(
@@ -71,6 +128,14 @@ class TrAttr(object):
 
     @classmethod
     def check_weights(cls, msr, smod, dlr):
+        """
+        Checks that the sum of weights for magnitude scaling relation
+        models, shaer modulus and displacement length ratio is equal to one.
+        :raises ValueError:
+            if the sum of values for one of msr, smod, dlr
+            is not one.
+        """
+
         sum_weights_msr = reduce(lambda x, y: x + y, msr)
         sum_weights_smod = reduce(lambda x, y: x + y, smod)
         sum_weights_dlr = reduce(lambda x, y: x + y, dlr)
@@ -86,39 +151,70 @@ class TrAttr(object):
                             ' should be one')
 
 
-class ActiveShallowCrust(TrAttr):
+class ActiveShallowCrust(TectonicRegion):
+    """
+    Active shallow crust tectonic region.
+    """
     def __init__(self):
         super(ActiveShallowCrust, self).__init__(
             '001', DEFAULT_MSR,
             {'value': [30.0], 'weight': [1.0]}, DEFAULT_DLR)
 
 
-class SubductionInterface(TrAttr):
+class SubductionInterface(TectonicRegion):
+    """
+    Subduction interface tectonic region.
+    """
     def __init__(self):
         super(SubductionInterface, self).__init__(
             '002', DEFAULT_MSR, SUBD_SMOD, DEFAULT_DLR)
 
 
-class SubductionIntraslab(TrAttr):
+class SubductionIntraslab(TectonicRegion):
+    """
+    Subduction intraslab tectonic region.
+    """
     def __init__(self):
         super(SubductionIntraslab, self).__init__(
             '003', DEFAULT_MSR, SUBD_SMOD, DEFAULT_DLR)
 
 
-class StableContinental(TrAttr):
+class StableContinental(TectonicRegion):
+    """
+    Stable continental tectonic region.
+    """
     def __init__(self):
         super(StableContinental, self).__init__(
             '004', DEFAULT_MSR, VOL_STCON_SMOD,
             {'value': [1.0E-4], 'weight': [1.0]})
 
 
-class Volcanic(TrAttr):
+class Volcanic(TectonicRegion):
+    """
+    Volcanic tectonic region.
+    """
     def __init__(self):
         super(Volcanic, self).__init__(
             '005', DEFAULT_MSR, VOL_STCON_SMOD, DEFAULT_DLR)
 
 
-class TectonicRegion(object):
+class TectonicRegionBuilder(object):
+    """
+    TectonicRegionBuilder builds tectonic region
+    objects. It can create default tectonic regions
+    (i.e. active shallow crust, subduction interface,
+    subduction intraslab, stable continental, volcanic)
+    or original ones by providing the needed parameters.
+
+    >>> asc = TectonicRegionBuilder.create_default_tr(
+    ...     TectonicRegionBuilder.ACTIVE_SHALLOW_CRUST)
+
+    >>> region_id = '006'
+    >>> msr = {'model': ['WC1994', 'Peer'], 'weight':[0.7, 0.3]}
+    >>> smod = {'value': [0.2, 0.4, 0.5], 'weight': [0.2, 0.3, 0.5]}
+    >>> dlr = {'value': [30], 'weight': [1.0]}
+    >>> ntr = TectonicRegionBuilder.create_tr(region_id, msr, smod, dlr)
+    """
 
     ACTIVE_SHALLOW_CRUST = 'Active Shallow Crust'
     SUBDUCTION_INTERFACE = 'Subduction Interface'
@@ -134,13 +230,24 @@ class TectonicRegion(object):
 
     @staticmethod
     def create_default_tr(type_name):
+        """
+        Creates one of the default tectonic region.
+        :raises ValueError:
+            if the specified tectonic region name
+            is not among the default ones.
+        """
+
         tr = None
         try:
-            tr = TectonicRegion._region[type_name]
+            tr = TectonicRegionBuilder._region[type_name]
         except KeyError:
             raise ValueError('Invalid region type')
         return tr
 
     @staticmethod
     def create_tr(region_id, msr, smod, dlr):
-        return TrAttr(region_id, msr, smod, dlr)
+        """
+        Creates an original tectonic region.
+        """
+
+        return TectonicRegion(region_id, msr, smod, dlr)

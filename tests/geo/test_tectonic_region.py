@@ -18,27 +18,59 @@
 
 import unittest
 
-from mtoolkit.geo.tectonic_region import (TectonicRegion, DEFAULT_MSR,
-    DEFAULT_DLR, VOL_STCON_SMOD)
+from mtoolkit.geo.tectonic_region import (TectonicRegionBuilder,
+    ActiveShallowCrust, SubductionInterface, SubductionIntraslab,
+    StableContinental, Volcanic)
 
 
 class ATectonicRegionShould(unittest.TestCase):
 
     def setUp(self):
-        self.tectreg = TectonicRegion()
+        self.tect_builder = TectonicRegionBuilder()
 
     def test_given_the_id_return_the_corresponding_tr(self):
-        asc = self.tectreg.create_default_tr(
-            TectonicRegion.ACTIVE_SHALLOW_CRUST)
+        asc = self.tect_builder.create_default_tr(
+            TectonicRegionBuilder.ACTIVE_SHALLOW_CRUST)
+        sub_inter = self.tect_builder.create_default_tr(
+            TectonicRegionBuilder.SUBDUCTION_INTERFACE)
+        sub_intra = self.tect_builder.create_default_tr(
+            TectonicRegionBuilder.SUBDUCTION_INTRASLAB)
+        sc = self.tect_builder.create_default_tr(
+            TectonicRegionBuilder.STABLE_CONTINENTAL)
+        vol = self.tect_builder.create_default_tr(
+            TectonicRegionBuilder.VOLCANIC)
 
-        self.assertEqual('001', asc.region_id)
-        self.assertEqual(DEFAULT_MSR, asc.msr)
-        self.assertEqual({'value': [30.0], 'weight': [1.0]}, asc.smod)
-        self.assertEqual(DEFAULT_DLR, asc.dlr)
+        self.assertEqual(asc, ActiveShallowCrust())
+        self.assertEqual(sub_inter, SubductionInterface())
+        self.assertEqual(sub_intra, SubductionIntraslab())
+        self.assertEqual(sc, StableContinental())
+        self.assertEqual(vol, Volcanic())
 
-        vol = self.tectreg.create_default_tr(TectonicRegion.VOLCANIC)
+    def test_given_invalid_msr_model_weight_raise_value_ex(self):
+        msr = {'model': ['WC1994', 'Peer'], 'weight': [0.7]}
+        self.assertRaises(ValueError, self.tect_builder.create_tr,
+            None, msr, None, None)
 
-        self.assertEqual('005', vol.region_id)
-        self.assertEqual(DEFAULT_MSR, vol.msr)
-        self.assertEqual(VOL_STCON_SMOD, vol.smod)
-        self.assertEqual(DEFAULT_DLR, vol.dlr)
+    def test_given_unsupported_msr_raise_value_ex(self):
+        msr = {'model': ['Graeme'], 'weight': [0.7]}
+        smod = {'value': [0.2, 0.4, 0.5], 'weight': [0.2, 0.3, 0.5]}
+        dlr = {'value': [30], 'weight': [1.0]}
+
+        self.assertRaises(ValueError, self.tect_builder.create_tr,
+            None, msr, smod, dlr)
+
+    def test_given_invalid_values_smod_dlr_raise_ex(self):
+        msr = {'model': ['Peer'], 'weight': [1.0]}
+        smod = {'value': [0.2, 0.4, 0.5], 'weight': [0.2, 0.3, 0.5]}
+        dlr = {'value': [-45], 'weight': [1.0]}
+
+        self.assertRaises(ValueError, self.tect_builder.create_tr,
+            None, msr, smod, dlr)
+
+    def test_given_invalid_weights_raise_ex(self):
+        msr = {'model': ['Peer'], 'weight': [1.0]}
+        smod = {'value': [0.2, 0.4, 0.5], 'weight': [0.2, 0.1, 0.5]}
+        dlr = {'value': [30], 'weight': [1.0]}
+
+        self.assertRaises(ValueError, self.tect_builder.create_tr,
+            None, msr, smod, dlr)
