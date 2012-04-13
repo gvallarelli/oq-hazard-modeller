@@ -48,15 +48,22 @@ class SimpleFaultGeo(object):
     """
 
     def __init__(self, trace, upp_depth, low_depth, dip):
+        ensure(len(trace) >= 2,
+            'At least two points should be provided for a trace')
+
         for point in trace:
             ensure(-180 <= point[0] <= 180,
                 'Longitude should be between -180 and 180')
             ensure(-90 <= point[1] <= 90,
                 'Latitude should be between -90 and 90')
+
         ensure(upp_depth >= 0, 'Upper depth should be a positive float %d')
+
         ensure(low_depth > 0, 'Lower depth should be greater than zero')
+
         ensure(low_depth > upp_depth,
             'Lower depth should be greater than Upper depth')
+
         ensure(0 < dip <= 90,
             'Dip should be greater than zero and less or equal to 90')
 
