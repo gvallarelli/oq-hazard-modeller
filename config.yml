@@ -52,6 +52,7 @@ preprocessing_jobs:
 # order.
 processing_jobs:
 - Recurrence
+- MaximumMagnitude
 
 # =========================================================
 # Preprocessing jobs in detail
@@ -60,8 +61,9 @@ processing_jobs:
 # Declustering jobs
 
 GardnerKnopoff: {
-  # Possible values: GardnerKnopoff, Uhrhammer, Gruenthal.
-  time_dist_windows: no,
+  # Possible values: `GardnerKnopoff`, `Uhrhammer`, `Gruenthal`.
+  # `GardnerKnopoff` is the default choice.
+  time_dist_windows: GardnerKnopoff,
 
   # float >= 0 proportion of aftershock time windows 
   # to use to search for foreshock.
@@ -128,11 +130,10 @@ Stepp: {
 # Recurrence job
 
 Recurrence: {
-    
     # Width of magnitude window positive float
     magnitude_window: 0.2,
     
-    # Choose one among Weichert or MLE
+    # Choose one among `Weichert` or `MLE`
     recurrence_algorithm: Weichert,
 
     # A float
@@ -140,4 +141,28 @@ Recurrence: {
 
     # Greater than zero (float), used only with Wiechart
     time_window: 0.2
+}
+
+MaximumMagnitude: {
+    
+    # Chosose one among `Kijko_Npg`, `Cumulative_Moment`.
+    # default choice: Cumulative_Moment,
+    maxim_mag_algorithm: Kijko_Npg,
+
+    # float > 0, default value 1.0E-5
+    iteration_tolerance: 1.0E-5,
+
+    # int > 0, default value 1000
+    maximum_iterations: 1000,
+
+    # neq
+    neq: 100,
+
+    # Used in Kijko_Npg
+    # int > 0 default value 51
+    number_samples: 51,
+
+    # Used in Cumulative_Moment
+    # int > 0 default value 100
+    number_bootstraps: 100
 }
