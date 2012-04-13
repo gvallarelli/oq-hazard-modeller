@@ -64,46 +64,12 @@ class SimpleFaultGeo(object):
         self._upp_depth = upp_depth
         self._low_depth = low_depth
         self._dip = dip
-        self._length = None
-        self._width = None
-        self._area = None
 
     def get_length(self):
         """
         Returns the length of the simple fault geometry (in km).
-        """
-
-        if self._length:
-            return self._length
-        self._length = self._distance()
-        return self._length
-
-    def get_width(self):
-        """
-        Returns the width of the simple fault geometry (in km).
-        """
-
-        if self._width:
-            return self._width
-        self._width = (
-            (self._low_depth - self._upp_depth) / sin(radians(self._dip)))
-        return self._width
-
-    def get_area(self):
-        """
-        Returns the area of the simple fault geometry (in square km).
-        """
-
-        if self._area:
-            return self._area
-        self._area = self.get_length() * self.get_width()
-        return self._area
-
-    def _distance(self):
-        """
-        Calculate distance between points where distance
-        is defined as the sum of distances among consecutive
-        points. The distance between two points is calculated
+        The length is defined as the sum of distances among
+        consecutive points. The distance between two points is calculated
         using the Haversine formula.
         http://en.wikipedia.org/wiki/Haversine_formula
         """
@@ -132,3 +98,17 @@ class SimpleFaultGeo(object):
             distance += d
 
         return distance
+
+    def get_width(self):
+        """
+        Returns the width of the simple fault geometry (in km).
+        """
+
+        return (self._low_depth - self._upp_depth) / sin(radians(self._dip))
+
+    def get_area(self):
+        """
+        Returns the area of the simple fault geometry (in square km).
+        """
+
+        return self.get_length() * self.get_width()
