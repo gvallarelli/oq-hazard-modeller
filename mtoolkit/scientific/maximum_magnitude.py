@@ -26,9 +26,8 @@ from scipy.stats.mstats import mquantiles
 
 
 def maximum_magnitude_analysis(year_col, magnitude_col,
-    sigma_mw, bvalue, sigma_bvalue, maxim_mag_algorithm,
-    iteration_tolerance, maximum_iterations, max_observed_mag,
-    max_observed_mag_unc, neq, number_samples, number_bootstraps):
+    sigma_mw, maxim_mag_algorithm, iteration_tolerance,
+    maximum_iterations, neq, number_samples, number_bootstraps):
 
     max_mag = 0
     max_mag_sigma = 0

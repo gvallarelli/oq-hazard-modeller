@@ -345,13 +345,9 @@ def maximum_magnitude(context):
             CATALOG_COMPLETENESS_MATRIX_YEAR_INDEX],
         context.current_filtered_eq[:, CATALOG_MATRIX_MW_INDEX],
         context.current_filtered_eq[:, SIGMA_MW_INDEX],
-        context.cur_sm.rupture_rate_model.truncated_gutenberg_richter.b_value,
-        context.cur_sm.recurrence_sigb,
         context.config['MaximumMagnitude']['maxim_mag_algorithm'],
         context.config['MaximumMagnitude']['iteration_tolerance'],
         context.config['MaximumMagnitude']['maximum_iterations'],
-        context.config['MaximumMagnitude']['max_observed_mag'],
-        context.config['MaximumMagnitude']['max_observed_mag_unc'],
         context.config['MaximumMagnitude']['neq'],
         context.config['MaximumMagnitude']['number_samples'],
         context.config['MaximumMagnitude']['number_bootstraps'])

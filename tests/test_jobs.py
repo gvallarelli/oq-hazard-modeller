@@ -201,8 +201,6 @@ class JobsTestCase(unittest.TestCase):
         self.context_jobs.current_filtered_eq = np.array(
             [[1, 2, 3, 4, 5, 6, 7]])
         cur_sm = Mock()
-        cur_sm.rupture_rate_model.truncated_gutenberg_richter.b_value = 4.2
-        cur_sm.recurrence_sigb = 0.3
         self.context_jobs.cur_sm = cur_sm
         mocked_func = Mock(return_value=(0, 0))
         self.context_jobs.map_sc['maximum_magnitude'] = mocked_func
@@ -211,5 +209,5 @@ class JobsTestCase(unittest.TestCase):
         self.assertTrue(mocked_func.called)
 
         mocked_func.assert_called_with(
-            np.array([1]), np.array([6]), np.array([7]), 4.2, 0.3,
-            'Cumulative_Moment', 1.0E-5, 1000, 5.8, 0.3, 200, 51, 100)
+            np.array([1]), np.array([6]), np.array([7]),
+            'Cumulative_Moment', 1.0E-5, 1000, 200, 51, 100)

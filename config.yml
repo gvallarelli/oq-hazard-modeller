@@ -155,13 +155,6 @@ MaximumMagnitude: {
     # int > 0, default value 1000
     maximum_iterations: 1000,
 
-    # float > 0
-    # better to take from catalogue
-    max_observed_mag: 0.3,
-    
-    # float > 0
-    max_observed_mag_unc: 0.2,
-
     # neq
     neq: 100,
 
