@@ -32,3 +32,15 @@ The :mod:`Recurrence` Module
 .. autofunction:: b_maxlike_time
 .. autofunction:: weichert_prep
 .. autofunction:: weichert
+
+The :mod:`Maximum Magnitude` Module
+-------------------------------------------------------------
+.. currentmodule:: mtoolkit.scientific.maximum_magnitude
+.. automodule:: mtoolkit.scientific.maximum_magnitude
+.. autofunction:: kijko_nonparametric_gauss
+.. autofunction:: cum_mo_uncertainty
+.. autofunction:: h_smooth
+.. autofunction:: gauss_cdf_hastings
+.. autofunction:: kijko_npg_intfunc_simps
+.. autofunction:: exp_spaced_points
+.. autofunction:: cumulative_moment

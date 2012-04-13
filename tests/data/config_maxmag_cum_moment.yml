@@ -55,7 +55,7 @@ Recurrence: {
 
 MaximumMagnitude: {
     
-    # Chosose one among `Kijko_Npg`, `Cumulative_Moment`.
+    # Choose one among `Kijko_Npg`, `Cumulative_Moment`.
     maxim_mag_algorithm: Cumulative_Moment,
 
     # float > 0, default value 1.0E-5

@@ -16,8 +16,10 @@
 # along with OpenQuake. If not, see <http://www.gnu.org/licenses/>.
 
 
-"""Module to implement statistically interpreted maximum magnitude
-estimation algorithms"""
+"""
+Module to implement statistically interpreted maximum magnitude
+estimation algorithms.
+"""
 
 import numpy as np
 from scipy.stats.mstats import mquantiles
@@ -46,8 +48,10 @@ def maximum_magnitude_analysis(year_col, magnitude_col,
 
 
 def h_smooth(mag):
-    """Function to calculate smoothing coefficient (h) for Gaussian
-    Kernel estimation - based on Silverman (1986) formula
+    """
+    Function to calculate smoothing coefficient (h)
+    for Gaussian Kernel estimation - based on Silverman (1986) formula.
+
     :param mag: Magnitude vector
     :type mag: numpy.ndarray
     :return hfact: Smoothing coefficient (h)
@@ -66,8 +70,10 @@ def h_smooth(mag):
 
 
 def gauss_cdf_hastings(xval, barx=0.0, sigx=1.0):
-    """Function to implement Hasting's approximation of the normalised
-    cumulative normal function.
+    """
+    Function to implement Hasting's approximation
+    of the normalised cumulative normal function.
+
     :param xval: x variate
     :type xval: Float or numpy.ndarray
     :param barx: Mean of the distribution
@@ -97,8 +103,10 @@ def gauss_cdf_hastings(xval, barx=0.0, sigx=1.0):
 
 
 def kijko_npg_intfunc_simps(mval, mag, hfact, neq):
-    """Integral function for non-parametric Gaussuan assuming that
-    Simpson's rule has been invoked for exponentially spaced samples
+    """
+    Integral function for non-parametric Gaussuan assuming that
+    Simpson's rule has been invoked for exponentially spaced samples.
+
     :param mval: Target Magnitude
     :type mval: Float
     :param mag: Observed Magnitude values
@@ -135,8 +143,10 @@ def kijko_npg_intfunc_simps(mval, mag, hfact, neq):
 
 
 def exp_spaced_points(lower, upper, nsamp):
-    """Function to generate nsamp points exponentially spaced between a lower
-    and upper bound
+    """
+    Function to generate nsamp points
+    exponentially spaced between a lower and upper bound.
+
     :param lower: Lower bound
     :type lower: float
     :param upper: Upper bound
@@ -156,21 +166,26 @@ def exp_spaced_points(lower, upper, nsamp):
 def kijko_nonparametric_gauss(mag, mag_sig, neq,
         number_samples, iteration_tolerance,
         maximum_iterations, max_observed):
-    """Function to implement Kijko (2004) Nonparametric Gaussian method
-    for estimation of Mmax
+    """
+    Function to implement Kijko (2004) Nonparametric Gaussian method
+    for estimation of Mmax.
+
     :param mag: Observed magnitudes
     :type mag: numpy.ndarray
     :param mag_sig: Uncertainties on observed magnitudes
     :type mag_sig: numpy.ndarray
-    :keyword nsamp: Number of sampling points of integral function
-    :type nsamp: Integer
-    :keyword tol: Intergral tolerance
-    :type tol: Float
-    :keyword maxiter: Maximum number of Iterations
-    :type maxiter: Int
-    :keyword obsmax: Maximum Observed Magnitude (if not in magnitude array)
-                     and its corresponding uncertainty (sigma)
-    :type obsmax: Tuple (float) or Boolean
+    :param neq: Number of earthquakes
+    :type neq: Float
+    :param number_samples: Number of sampling points of integral function
+    :type number_samples: Integer
+    :param iteration_tolerance: Intergral tolerance
+    :type iteration_tolerance: Float
+    :param maximum_iterations: Maximum number of Iterations
+    :type maximum_iterations: Int
+    :param max_observed:
+        Maximum Observed Magnitude (if not in magnitude array)
+        and its corresponding uncertainty (sigma)
+    :type max_observed: Tuple (float) or Boolean
     :return: **mmax** Maximum magnitude and **mmax_sig** corresponding
              uncertainty
     :rtype: Float
@@ -223,14 +238,14 @@ def kijko_nonparametric_gauss(mag, mag_sig, neq,
 
 
 def cumulative_moment(year, mag):
-    """Calculation of Mmax using aCumulative Moment approach, adapeted from
-    the cumulative strain energy method of Makropoulos & Burton (1983)
+    """
+    Calculation of Mmax using aCumulative Moment approach, adapeted from
+    the cumulative strain energy method of Makropoulos & Burton (1983).
+
     :param year: Year of Earthquake
     :type year: numpy.ndarray
     :param mag: Magnitude of Earthquake
     :type mag: numpy.ndarray
-    :keyword iplot: Include cumulative moment plot
-    :type iplot: Boolean
     :return mmax: Returns Maximum Magnitude
     :rtype mmax: Float
     """
@@ -258,20 +273,25 @@ def cumulative_moment(year, mag):
 
 
 def cum_mo_uncertainty(year, mag, sigma_m, number_bootstraps, seed=None):
-    '''Function to calculate mmax wth uncertainty using the cumulative moment
-    formulation (adapted from Makropoulos & Burton, 1983) with bootstrapping
+    """
+    Function to calculate mmax wth uncertainty using the cumulative moment
+    formulation (adapted from Makropoulos & Burton, 1983) with bootstrapping.
+
     :param year: Year of earthquake
     :type year: numpy.ndarray
     :param mag: Magnitude of earthquake
     :type mag: numpy.ndarray
     :param sigma_m: Uncertainties on the magnitudes
     :type sigma_m: numpy.ndarray
-    :keyword nbootstrap: Number of samples for bootstrapping
+    :param nbootstrap: Number of samples for bootstrapping
     :type nbootstrap: Integer
+    :keyword seed: fixed seed number
+    :type seed: Integer
     :return: **mmax** Maximum magnitude and **mmax_sig** corresponding
              uncertainty
     :rtype: Float
-    '''
+    """
+
     if isinstance(seed, int):
         sampler = np.random.RandomState(seed)
     else:
