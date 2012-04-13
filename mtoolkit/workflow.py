@@ -35,7 +35,8 @@ from mtoolkit.jobs import (gardner_knopoff, afteran,
                             create_selected_eq_vector,
                             store_preprocessed_catalog,
                             store_completeness_table,
-                            retrieve_completeness_table)
+                            retrieve_completeness_table,
+                            maximum_magnitude)
 
 from mtoolkit.scientific.completeness import (stepp_analysis,
                                                 selected_eq_flag_vector)
@@ -44,6 +45,8 @@ from mtoolkit.scientific.declustering import (gardner_knopoff_decluster,
                                                 afteran_decluster)
 
 from mtoolkit.scientific.recurrence import recurrence_analysis
+
+from mtoolkit.scientific.maximum_magnitude import maximum_magnitude_analysis
 
 
 class PipeLine(object):
@@ -114,7 +117,9 @@ class PipeLineBuilder(object):
                                  'Store_completeness_table':
                                    store_completeness_table,
                                  'Retrieve_completeness_table':
-                                   retrieve_completeness_table}
+                                   retrieve_completeness_table,
+                                 'MaximumMagnitude':
+                                   maximum_magnitude}
 
     @abc.abstractmethod
     def build(self, config):
@@ -213,7 +218,8 @@ class Context(object):
                         'afteran': afteran_decluster,
                         'stepp': stepp_analysis,
                         'recurrence': recurrence_analysis,
-                        'select_eq_vector': selected_eq_flag_vector}
+                        'select_eq_vector': selected_eq_flag_vector,
+                        'maximum_magnitude': maximum_magnitude_analysis}
 
         if config_filename:
             config_file = open(config_filename, 'r')
