@@ -21,7 +21,7 @@ import unittest
 from mtoolkit.geo.simple_fault import SimpleFaultGeo
 
 
-class SimpleFaultGeoTestCase(unittest.TestCase):
+class SimpleFaultGeoShould(unittest.TestCase):
 
     def setUp(self):
 
@@ -37,20 +37,49 @@ class SimpleFaultGeoTestCase(unittest.TestCase):
 
         self.snd_fault = SimpleFaultGeo(self.trace_snd_fault, 0.0, 35.0, 10.0)
 
-    def test_sf_geo_length(self):
+    def test_provide_length(self):
         self.assertAlmostEqual(411.14582,
             self.fst_fault.get_length(), places=5)
         self.assertAlmostEqual(472.08545,
             self.snd_fault.get_length(), places=5)
 
-    def test_sf_geo_width(self):
+    def test_provide_width(self):
         self.assertAlmostEqual(355.68511,
             self.fst_fault.get_width(), places=5)
         self.assertAlmostEqual(201.55697,
             self.snd_fault.get_width(), places=5)
 
-    def test_sf_geo_area(self):
+    def test_provide_area(self):
         self.assertAlmostEqual(146238.4464,
             self.fst_fault.get_area(), places=4)
         self.assertAlmostEqual(95152.1118,
             self.snd_fault.get_area(), places=4)
+
+    def test_raises_value_error_invalid_params(self):
+        # Trace with one point
+        self.assertRaises(ValueError, SimpleFaultGeo, [(90, 24)],
+            4.0, 35.0, 5.0)
+
+        # Trace with invalid longitude value
+        self.assertRaises(ValueError, SimpleFaultGeo, [(-185, 54), (90, 23)],
+            4.0, 35.0, 5.0)
+
+        # Trace with invalid latitude value
+        self.assertRaises(ValueError, SimpleFaultGeo, [(90, -25), (90, 91)],
+            4.0, 35.0, 5.0)
+
+        # Negative upper depth
+        self.assertRaises(ValueError, SimpleFaultGeo, [(90, 24), (90, 21)],
+            -1, 35.0, 5.0)
+
+        # Non greater than zero lower depth
+        self.assertRaises(ValueError, SimpleFaultGeo, [(90, 24), (90, 21)],
+            1, 0, 5.0)
+
+        # Lower depth not greater than upper depth
+        self.assertRaises(ValueError, SimpleFaultGeo, [(90, 24), (90, 21)],
+            3, 2, 5.0)
+
+        # Invalid dip
+        self.assertRaises(ValueError, SimpleFaultGeo, [(90, 24), (90, 21)],
+            2, 3, 95)

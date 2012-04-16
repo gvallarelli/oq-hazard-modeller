@@ -1,0 +1,35 @@
+<?xml version='1.0' encoding='utf-8'?>
+<nrml xmlns:gml="http://www.opengis.net/gml" xmlns="http://openquake.org/xmlns/nrml/0.3" gml:id="n1">
+  <sourceModel gml:id="sm1">
+    <config/>
+    <areaSource gml:id="src01">
+      <gml:name>Sumatra_Megathrust</gml:name>
+      <tectonicRegion>Subduction Interface</tectonicRegion>
+      <areaBoundary>
+        <gml:Polygon>
+          <gml:exterior>
+            <gml:LinearRing srsName="urn:ogc:def:crs:EPSG::4326">
+              <gml:posList>94.2648763525411  6.07891859483269  95.7001902837642  6.67284160085604  96.8550405732541  5.51799131136619  99.4122090714102  3.48875437411975  102.299334795135  -1.52659545452187  104.460554622609  -3.35785805642720  106.407302253463  -5.91502655458329  105.417430576757  -7.25135331813583  103.536674391017  -5.93152441586172  102.794270633488  -5.35409927111679  101.952879708288  -4.16625325907009  98.9172732330574  0.00770564437178045  97.9933930014655  1.42652171431645  96.7065598217482  3.14229928727279  95.3867309194741  4.16516668653523  94.6938207457802  5.15503836324081  94.2978720750980  6.02942501099741  94.2648763525411  6.07891859483269</gml:posList>
+            </gml:LinearRing>
+          </gml:exterior>
+        </gml:Polygon>
+      </areaBoundary>
+      <ruptureRateModel>
+        <truncatedGutenbergRichter type="Mw">
+          <aValueCumulative>0.0</aValueCumulative>
+          <bValue>0.0</bValue>
+          <minMagnitude>0.0</minMagnitude>
+          <maxMagnitude>0.0</maxMagnitude>
+        </truncatedGutenbergRichter>
+        <strike>326.0</strike>
+        <dip>30.0</dip>
+        <rake>-90.0</rake>
+      </ruptureRateModel>
+      <ruptureDepthDistribution>
+        <magnitude type="ML">6.0 6.5 7.0</magnitude>
+        <depth>5000.0 3000.0 0.0</depth>
+      </ruptureDepthDistribution>
+      <hypocentralDepth>5000.0</hypocentralDepth>
+    </areaSource>
+  </sourceModel>
+</nrml>

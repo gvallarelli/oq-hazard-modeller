@@ -4,4 +4,4 @@
 
 find . -name "*.pyc" -delete
 
-nosetests tests/qa_tests/ --with-coverage --cover-package=qa_tests --with-xunit --xunit-file='nosetests_qa.xml'
+nosetests  `find tests/qa_tests/ -name 'test_*.py'` --with-coverage --cover-package=qa_tests --with-xunit --xunit-file='nosetests_qa.xml'

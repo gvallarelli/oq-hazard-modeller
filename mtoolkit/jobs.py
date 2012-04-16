@@ -36,6 +36,7 @@ CATALOG_MATRIX_MW_INDEX = 5
 CATALOG_MATRIX_FIXED_COLOUMNS = ['year', 'month', 'day',
                                 'longitude', 'latitude', 'Mw', 'sigmaMw']
 COMPLETENESS_TABLE_MW_INDEX = 1
+SIGMA_MW_INDEX = 6
 
 LOGGER = logging.getLogger('mt_logger')
 
@@ -288,7 +289,7 @@ def retrieve_completeness_table(context):
         in a pipeline
     """
 
-    context.completeness_table = np.loadtxt(
+    context.completeness_table = np.genfromtxt(
         context.config['completeness_table_file'], delimiter=',').reshape(
             (-1, 2))
 
@@ -328,3 +329,37 @@ def recurrence(context):
 
     LOGGER.debug("Bvalue: %3.3f, Sigma_b: %3.3f, Avalue: %3.3f, Sigma_a: %3.3f"
         % (bval, sigb, a_m, siga_m))
+
+
+@logged_job
+def maximum_magnitude(context):
+    """
+    Apply maximum magnitude algorithm to the filtered catalog
+    matrix, completeness table, bvalue and bvalue uncertainty,
+    this job should depends on value computed by recurrence.
+    :param context: shared datastore across different jobs
+        in a pipeline
+    """
+    max_mag, max_mag_sigma = context.map_sc['maximum_magnitude'](
+        context.current_filtered_eq[:,
+            CATALOG_COMPLETENESS_MATRIX_YEAR_INDEX],
+        context.current_filtered_eq[:, CATALOG_MATRIX_MW_INDEX],
+        context.current_filtered_eq[:, SIGMA_MW_INDEX],
+        context.config['MaximumMagnitude']['maxim_mag_algorithm'],
+        context.config['MaximumMagnitude']['iteration_tolerance'],
+        context.config['MaximumMagnitude']['maximum_iterations'],
+        context.config['MaximumMagnitude']['neq'],
+        context.config['MaximumMagnitude']['number_samples'],
+        context.config['MaximumMagnitude']['number_bootstraps'])
+
+    t = context.cur_sm.rupture_rate_model.truncated_gutenberg_richter._replace(
+        max_magnitude=max_mag)
+
+    context.cur_sm.rupture_rate_model = \
+        context.cur_sm.rupture_rate_model._replace(
+                                        truncated_gutenberg_richter=t)
+
+    context.cur_sm.max_mag_sigma = max_mag_sigma
+
+    LOGGER.debug("Max magnitude: %3.3f, Sigma: %3.3f"
+        % (max_mag, max_mag_sigma))

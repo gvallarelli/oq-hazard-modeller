@@ -1,0 +1,77 @@
+# *********************************************************
+# MT Workflow configuration file 
+# *********************************************************
+
+# =========================================================
+# Input/Output files
+# =========================================================
+
+eq_catalog_file: tests/data/completeness_input_test.csv 
+
+pprocessing_result_file:
+
+completeness_table_file:
+
+source_model_file: tests/data/area_source_model_processing.xml 
+
+result_file:
+
+apply_processing_jobs: yes
+
+# =========================================================
+# List of preprocessing jobs
+# =========================================================
+
+preprocessing_jobs:
+
+# =========================================================
+# List of processing jobs
+# =========================================================
+
+processing_jobs:
+- Recurrence
+- MaximumMagnitude
+
+# =========================================================
+# Processing jobs in detail
+# =========================================================
+
+# Recurrence job
+
+Recurrence: {
+    
+    # Width of magnitude window positive float
+    magnitude_window: 0.5,
+    
+    # Choose one among Weichert or MLE
+    recurrence_algorithm: MLE,
+
+    # A float
+    reference_magnitude: 1.1,
+
+    # Greater than zero (float), used only with Wiechart
+    time_window: 0.0
+}
+
+MaximumMagnitude: {
+    
+    # Choose one among `Kijko_Npg`, `Cumulative_Moment`.
+    maxim_mag_algorithm: Kijko_Npg,
+
+    # float > 0, default value 1.0E-5
+    iteration_tolerance: 1.45E-5,
+
+    # int > 0, default value 1000
+    maximum_iterations: 1000,
+
+    # neq
+    neq: 110,
+
+    # Used in Kijko_Npg
+    # int > 0 default value 51
+    number_samples: 78,
+
+    # Used in Cumulative_Moment
+    # int > 0 default value 100
+    number_bootstraps: 100 
+}
