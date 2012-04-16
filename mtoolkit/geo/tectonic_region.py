@@ -85,7 +85,7 @@ class TectonicRegion(object):
         :raises ValueError:
             if not every model has an associated weight.
         """
-        msg = 'Each model shold have a corresponding weight'
+        msg = 'Each model should have a corresponding weight'
 
         if not len(msr['model']) == len(msr['weight']):
             raise ValueError(msg)

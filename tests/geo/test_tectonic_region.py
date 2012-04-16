@@ -46,10 +46,46 @@ class ATectonicRegionShould(unittest.TestCase):
         self.assertEqual(sc, StableContinental())
         self.assertEqual(vol, Volcanic())
 
-    def test_given_invalid_msr_model_weight_raise_value_ex(self):
+    def test_given_an_incorrect_id_should_raise_value_ex(self):
+        self.assertRaises(ValueError, self.tect_builder.create_default_tr,
+            'GRAEME CRUST')
+
+    def test_given_inval_msr_weight_value_cardin_raise_ex(self):
         msr = {'model': ['WC1994', 'Peer'], 'weight': [0.7]}
+
         self.assertRaises(ValueError, self.tect_builder.create_tr,
             None, msr, None, None)
+
+    def test_given_inval_smod_weight_value_cardin_raise_ex(self):
+        msr = {'model': ['WC1994', 'Peer'], 'weight': [0.7, 0.3]}
+        smod = {'value': [4.5], 'weight': [5.0, 4.5]}
+
+        self.assertRaises(ValueError, self.tect_builder.create_tr,
+            None, msr, smod, None)
+
+    def test_given_inval_dlr_weight_value_cardin_raise_ex(self):
+        msr = {'model': ['WC1994', 'Peer'], 'weight': [0.7, 0.3]}
+        smod = {'value': [4.5, 87.0], 'weight': [5.0, 4.5]}
+        dlr = {'value': [4.5, 8.0, 87.0], 'weight': [5.0, 4.5]}
+
+        self.assertRaises(ValueError, self.tect_builder.create_tr,
+            None, msr, smod, dlr)
+
+    def test_given_invalid_smod_weight_raise_value_ex(self):
+        msr = {'model': ['WC1994', 'Peer'], 'weight': [0.7, 0.3]}
+        smod = {'value': [0.2, 0.4, 0.5], 'weight': [0.2, 0.6, 0.5]}
+        dlr = {'value': [30], 'weight': [1.0]}
+
+        self.assertRaises(ValueError, self.tect_builder.create_tr,
+            None, msr, smod, dlr)
+
+    def test_given_invalid_dlr_weight_raise_value_ex(self):
+        msr = {'model': ['WC1994', 'Peer'], 'weight': [0.7, 0.3]}
+        smod = {'value': [0.2, 0.4, 0.5], 'weight': [0.2, 0.3, 0.5]}
+        dlr = {'value': [30], 'weight': [6.0]}
+
+        self.assertRaises(ValueError, self.tect_builder.create_tr,
+            None, msr, smod, dlr)
 
     def test_given_unsupported_msr_raise_value_ex(self):
         msr = {'model': ['Graeme'], 'weight': [0.7]}
