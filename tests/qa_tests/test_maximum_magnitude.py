@@ -41,7 +41,7 @@ class MaximumMagnitudeTestCase(unittest.TestCase):
             sm.rupture_rate_model.truncated_gutenberg_richter.max_magnitude,
             self.decimal_places)
 
-        self.assertAlmostEqual(0.1, sm.max_mag_sigma, self.decimal_places)
+        self.assertAlmostEqual(0.05, sm.max_mag_sigma, self.decimal_places)
 
     def test_maximum_magnitude_kijko_npg(self):
         context = create_context('config_maxmag_kijko_npg.yml')
