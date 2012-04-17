@@ -155,47 +155,70 @@ class ActiveShallowCrust(TectonicRegion):
     """
     Active shallow crust tectonic region.
     """
-    def __init__(self):
+
+    def __init__(self, msr=None, smod=None, dlr=None):
+        msr_value = msr if msr else DEFAULT_MSR
+        smod_value = smod if smod else {'value': [30.0], 'weight': [1.0]}
+        dlr_value = dlr if dlr else DEFAULT_DLR
+
         super(ActiveShallowCrust, self).__init__(
-            '001', DEFAULT_MSR,
-            {'value': [30.0], 'weight': [1.0]}, DEFAULT_DLR)
+            '001', msr_value, smod_value, dlr_value)
 
 
 class SubductionInterface(TectonicRegion):
     """
     Subduction interface tectonic region.
     """
-    def __init__(self):
+
+    def __init__(self, msr=None, smod=None, dlr=None):
+        msr_value = msr if msr else DEFAULT_MSR
+        smod_value = smod if smod else SUBD_SMOD
+        dlr_value = dlr if dlr else DEFAULT_DLR
+
         super(SubductionInterface, self).__init__(
-            '002', DEFAULT_MSR, SUBD_SMOD, DEFAULT_DLR)
+            '002', msr_value, smod_value, dlr_value)
 
 
 class SubductionIntraslab(TectonicRegion):
     """
     Subduction intraslab tectonic region.
     """
-    def __init__(self):
+
+    def __init__(self, msr=None, smod=None, dlr=None):
+        msr_value = msr if msr else DEFAULT_MSR
+        smod_value = smod if smod else SUBD_SMOD
+        dlr_value = dlr if dlr else DEFAULT_DLR
+
         super(SubductionIntraslab, self).__init__(
-            '003', DEFAULT_MSR, SUBD_SMOD, DEFAULT_DLR)
+            '003', msr_value, smod_value, dlr_value)
 
 
 class StableContinental(TectonicRegion):
     """
     Stable continental tectonic region.
     """
-    def __init__(self):
+
+    def __init__(self, msr=None, smod=None, dlr=None):
+        msr_value = msr if msr else DEFAULT_MSR
+        smod_value = smod if smod else VOL_STCON_SMOD
+        dlr_value = dlr if dlr else {'value': [1.0E-4], 'weight': [1.0]}
+
         super(StableContinental, self).__init__(
-            '004', DEFAULT_MSR, VOL_STCON_SMOD,
-            {'value': [1.0E-4], 'weight': [1.0]})
+            '004', msr_value, smod_value, dlr_value)
 
 
 class Volcanic(TectonicRegion):
     """
     Volcanic tectonic region.
     """
-    def __init__(self):
+
+    def __init__(self, msr=None, smod=None, dlr=None):
+        msr_value = msr if msr else DEFAULT_MSR
+        smod_value = smod if smod else VOL_STCON_SMOD
+        dlr_value = dlr if dlr else DEFAULT_DLR
+
         super(Volcanic, self).__init__(
-            '005', DEFAULT_MSR, VOL_STCON_SMOD, DEFAULT_DLR)
+            '005', msr_value, smod_value, dlr_value)
 
 
 class TectonicRegionBuilder(object):
@@ -206,14 +229,18 @@ class TectonicRegionBuilder(object):
     subduction intraslab, stable continental, volcanic)
     or original ones by providing the needed parameters.
 
-    >>> asc = TectonicRegionBuilder.create_default_tr(
+    >>> asc = TectonicRegionBuilder.create_tect_region_by_name(
     ...     TectonicRegionBuilder.ACTIVE_SHALLOW_CRUST)
+    >>> vol = TectonicRegionBuilder.create_tect_region_by_name(
+    ...     TectonicRegionBuilder.VOLCANIC,
+    ...     smod={'value': [40.0], 'weight': [1.0]})
 
     >>> region_id = '006'
     >>> msr = {'model': ['WC1994', 'Peer'], 'weight':[0.7, 0.3]}
     >>> smod = {'value': [0.2, 0.4, 0.5], 'weight': [0.2, 0.3, 0.5]}
     >>> dlr = {'value': [30], 'weight': [1.0]}
-    >>> ntr = TectonicRegionBuilder.create_tr(region_id, msr, smod, dlr)
+    >>> ntr = TectonicRegionBuilder.create_new_tect_region(
+    ...     region_id, msr, smod, dlr)
     """
 
     ACTIVE_SHALLOW_CRUST = 'Active Shallow Crust'
@@ -222,14 +249,14 @@ class TectonicRegionBuilder(object):
     STABLE_CONTINENTAL = 'Stable Continental'
     VOLCANIC = 'Volcanic'
 
-    _region = {ACTIVE_SHALLOW_CRUST: ActiveShallowCrust(),
-                SUBDUCTION_INTERFACE: SubductionInterface(),
-                SUBDUCTION_INTRASLAB: SubductionIntraslab(),
-                STABLE_CONTINENTAL: StableContinental(),
-                VOLCANIC: Volcanic()}
+    _region = {ACTIVE_SHALLOW_CRUST: ActiveShallowCrust,
+                SUBDUCTION_INTERFACE: SubductionInterface,
+                SUBDUCTION_INTRASLAB: SubductionIntraslab,
+                STABLE_CONTINENTAL: StableContinental,
+                VOLCANIC: Volcanic}
 
     @staticmethod
-    def create_default_tr(type_name):
+    def create_tect_region_by_name(type_name, **kwargs):
         """
         Creates one of the default tectonic region.
         :raises ValueError:
@@ -239,13 +266,14 @@ class TectonicRegionBuilder(object):
 
         tr = None
         try:
-            tr = TectonicRegionBuilder._region[type_name]
+            tr = TectonicRegionBuilder._region[type_name](**kwargs)
+
         except KeyError:
-            raise ValueError('Invalid region type')
+            raise ValueError('Invalid tectonic region type')
         return tr
 
     @staticmethod
-    def create_tr(region_id, msr, smod, dlr):
+    def create_new_tect_region(region_id, msr, smod, dlr):
         """
         Creates an original tectonic region.
         """
