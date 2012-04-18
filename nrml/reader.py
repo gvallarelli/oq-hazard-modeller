@@ -26,13 +26,9 @@ from lxml import etree
 
 from nrml import nrml_xml
 
-from mtoolkit.source_model import AreaSource
-from mtoolkit.source_model import POINT
-from mtoolkit.source_model import AREA_BOUNDARY
-from mtoolkit.source_model import TRUNCATED_GUTEN_RICHTER
-from mtoolkit.source_model import RUPTURE_RATE_MODEL
-from mtoolkit.source_model import MAGNITUDE
-from mtoolkit.source_model import RUPTURE_DEPTH_DISTRIB
+from mtoolkit.source_model import (AreaSource, SimpleFaultSource, POINT,
+    AREA_BOUNDARY, TRUNCATED_GUTEN_RICHTER, RUPTURE_RATE_MODEL, MAGNITUDE,
+    RUPTURE_DEPTH_DISTRIB, EVENLY_DISC_MFD, FAULT_TRACE)
 
 XML_NODE = 1
 
@@ -57,7 +53,11 @@ class NRMLReader(object):
         self.filename = filename
         self.schema = etree.XMLSchema(etree.parse(schema))
 
-        self.tag_action = {nrml_xml.AREA_SOURCE: _parse_area_source}
+        self.tag_action = {
+            nrml_xml.AREA_SOURCE: _parse_area_source,
+            nrml_xml.SIMPLE_FAULT_SOURCE: _parse_simple_fault_source,
+            nrml_xml.COMPLEX_FAULT_SOURCE: _parse_complex_fault_source,
+            nrml_xml.SIMPLE_POINT_SOURCE: _parse_simple_point_source}
 
     def read(self):
         """
@@ -203,3 +203,47 @@ def _parse_rupture_depth_distrib(rdd_elem):
     rdd_elem.clear()
 
     return rupture_depth_distrib
+
+
+def _parse_simple_fault_source(sf_elem):
+    """
+    Creates an SimpleFaultSource object by
+    extracting data contained in an
+    simple fault source element.
+    :param sf_elem: simple fault source element
+    :type sf_elem: lxml.etree._Element
+    :returns: simple fault source object
+    :rtype: py:class::SimpleFaultSource
+    """
+    sf_source = SimpleFaultSource()
+
+    sf_source.nrml_id = sf_elem.getparent().getparent().get(
+            nrml_xml.GML_ID)
+
+    sf_source.source_model_id = sf_elem.getparent().get(
+            nrml_xml.GML_ID)
+
+    sf_source.simple_fault_source_id = sf_elem.get(
+        nrml_xml.GML_ID)
+
+    sf_source.name = sf_elem.find(
+        nrml_xml.GML_NAME).text
+
+    sf_source.tectonic_region = sf_elem.find(
+        nrml_xml.TECTONIC_REGION).text
+
+    sf_source.rake = sf_elem.find(
+        nrml_xml.RAKE).text
+
+    geo_id = sf_elem.find(
+        nrml_xml.SIMPLE_FAULT_GEOMETRY).get(nrml_xml.GML_ID)
+
+    return sf_source
+
+
+
+def _parse_complex_fault_source(cp_elem):
+    pass
+
+def _parse_simple_point_source(sp_elem):
+    pass

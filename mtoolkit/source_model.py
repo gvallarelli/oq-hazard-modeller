@@ -41,6 +41,11 @@ MAGNITUDE = namedtuple('Magnitude', 'type_mag, values')
 RUPTURE_DEPTH_DISTRIB = namedtuple(
     'RuptureDepthDistrib', 'magnitude, depth')
 
+EVENLY_DISC_MFD = namedtuple(
+    'EvenlyDiscMfd', 'min_val, bin_size, type, occurance_rates')
+
+FAULT_TRACE = namedtuple('FaultTrace', 'geo_id, srs_name, pos_list')
+
 
 class AreaSource(object):
     """
@@ -87,6 +92,60 @@ class AreaSource(object):
 
     def __ne__(self, other):
         return not self.__eq__(other)
+
+
+class SimpleFaultSource(object):
+    """
+    SimpleFaultSource value object
+    """
+
+    def __init__(self):
+        self.nrml_id = None
+        self.source_model_id = None
+        self.simple_fault_source_id = None
+        self.name = None
+        self.tectonic_region = None
+        self.rake = None
+        self.evenly_disc_mfd = None
+        self.trace = None
+        self.dip = None
+        self.upper_seism_depth = None
+        self.lower_seism_depth = None
+
+    def __str__(self):
+
+        simple_fault_source = ['Simple Fault Source Object',
+                    'nrml id: %s' % (self.nrml_id),
+                    'source model id: %s' % (self.source_model_id),
+                    ('simple fault source id: %s' %
+                        (self.simple_fault_source_id)),
+                    'name: %s' % (self.name),
+                    'tectonic region: %s' % (self.tectonic_region),
+                    'rake: %s' % (self.rake),
+                    '%s' % self.evenly_disc_mfd.__str__(),
+                    '%s' % self.trace.__str__(),
+                    'dip: %s' % self.dip,
+                    'upper seismogenic depth: %s' % self.upper_seism_depth,
+                    'lower seismogenic depth: %s' % self.lower_seism_depth]
+
+        return  '\n'.join(simple_fault_source)
+
+    def __eq__(self, oth):
+
+        return (self.nrml_id == oth.nrml_id
+                and self.source_model_id == oth.source_model_id
+                and self.simple_fault_source_id == oth.simple_fault_source_id
+                and self.name == oth.name
+                and self.tectonic_region == oth.tectonic_region
+                and self.rake == oth.rake
+                and self.evenly_disc_mfd == oth.evenly_disc_mfd
+                and self.trace == oth.trace
+                and self.dip == oth.dip
+                and self.upper_seism_depth == oth.upper_seism_depth
+                and self.lower_seism_depth == oth.lower_seism_depth)
+
+    def __ne__(self, oth):
+        return not self.__eq__(oth)
 
 
 def default_area_source():

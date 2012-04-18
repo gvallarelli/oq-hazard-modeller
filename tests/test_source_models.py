@@ -26,14 +26,15 @@ from nrml.reader import NRMLReader
 
 from nrml.writer import AreaSourceWriter
 
-from mtoolkit.source_model import (AreaSource, POINT, AREA_BOUNDARY,
-                                    TRUNCATED_GUTEN_RICHTER)
-
-from mtoolkit.source_model import (MAGNITUDE, RUPTURE_RATE_MODEL,
-                                    RUPTURE_DEPTH_DISTRIB)
+from mtoolkit.source_model import (AreaSource, SimpleFaultSource, POINT,
+                                    AREA_BOUNDARY, TRUNCATED_GUTEN_RICHTER,
+                                    MAGNITUDE, RUPTURE_RATE_MODEL,
+                                    RUPTURE_DEPTH_DISTRIB, EVENLY_DISC_MFD,
+                                    FAULT_TRACE)
 
 AREA_SOURCE = get_data_path('area_source_model.xml', DATA_DIR)
 AREA_SOURCES = get_data_path('area_sources.xml', DATA_DIR)
+SIMPLE_FAULT = get_data_path('simple_fault_source_model.xml', DATA_DIR)
 INCORRECT_NRML = get_data_path('incorrect_area_source_model.xml', DATA_DIR)
 SCHEMA = get_data_path('nrml.xsd', SCHEMA_DIR)
 
@@ -78,6 +79,28 @@ def create_area_source():
     return asource
 
 
+def create_simple_fault():
+
+    sf_source = SimpleFaultSource()
+    sf_source.nrml_id = 'n1'
+    sf_source.source_model_id = 'sm1'
+    sf_source.simple_fault_source_id = "src01"
+    sf_source.name = "Mount Diablo Thrust"
+    sf_source.tectonic_region = "Active Shallow Crust"
+    sf_source.rake = 90.0
+    sf_source.evenly_disc_mfd = EVENLY_DISC_MFD(6.55, 0.1, 'ML',
+        [0.0010614989, 8.8291627E-4, 7.3437777E-4, 6.108288E-4, 5.080653E-4])
+    sf_source.trace = FAULT_TRACE(
+        'sfg_1',
+        'urn:ogc:def:crs:EPSG::4326',
+        [-121.82290, 37.73010, -122.03880, 37.87710])
+    sf_source.dip = 50.0
+    sf_source.upper_seism_depth = 0.0
+    sf_source.lower_seism_depth = 19.5
+
+    return sf_source
+
+
 class NRMLReaderTestCase(unittest.TestCase):
 
     def setUp(self):
@@ -97,6 +120,15 @@ class NRMLReaderTestCase(unittest.TestCase):
         for num_area_sources, _ in enumerate(as_reader.read(), start=1):
             pass
         self.assertEqual(num_expected_area_sources, num_area_sources)
+
+    def test_read_simple_fault_source_model(self):
+        simple_fault_source = create_simple_fault()
+        sf_reader = NRMLReader(SIMPLE_FAULT, SCHEMA)
+        sf_reader_gen = sf_reader.read()
+        read_first_simple_fault_source = sf_reader_gen.next()
+
+        self.assertEqual(simple_fault_source, read_first_simple_fault_source)
+
 
 
 class AreaSourceWriterTestCase(unittest.TestCase):
