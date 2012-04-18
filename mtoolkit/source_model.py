@@ -137,12 +137,12 @@ class SimpleFaultSource(object):
                 and self.simple_fault_source_id == oth.simple_fault_source_id
                 and self.name == oth.name
                 and self.tectonic_region == oth.tectonic_region
-                and self.rake == oth.rake)
-                #and self.evenly_disc_mfd == oth.evenly_disc_mfd
-                #and self.trace == oth.trace
-                #and self.dip == oth.dip
-                #and self.upper_seism_depth == oth.upper_seism_depth
-                #and self.lower_seism_depth == oth.lower_seism_depth)
+                and self.rake == oth.rake
+                and self.evenly_disc_mfd == oth.evenly_disc_mfd
+                and self.trace == oth.trace
+                and self.dip == oth.dip
+                and self.upper_seism_depth == oth.upper_seism_depth
+                and self.lower_seism_depth == oth.lower_seism_depth)
 
     def __ne__(self, oth):
         return not self.__eq__(oth)
