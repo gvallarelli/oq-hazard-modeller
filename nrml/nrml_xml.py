@@ -56,6 +56,7 @@ TECTONIC_REGION = "%stectonicRegion" % NRML
 AREA_BOUNDARY = "%sareaBoundary" % NRML
 POLYGON = "%sPolygon" % GML
 EXTERIOR = "%sexterior" % GML
+LINE_STRING = "%sLineString" % GML
 LINEAR_RING = "%sLinearRing" % GML
 LINEAR_RING_NAME = "srsName"
 POS_LIST = "%sposList" % GML

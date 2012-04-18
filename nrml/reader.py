@@ -232,18 +232,51 @@ def _parse_simple_fault_source(sf_elem):
     sf_source.tectonic_region = sf_elem.find(
         nrml_xml.TECTONIC_REGION).text
 
-    sf_source.rake = sf_elem.find(
-        nrml_xml.RAKE).text
+    sf_source.rake = float(sf_elem.find(
+        nrml_xml.RAKE).text)
+
+    evenly_disc_elem = sf_elem.find(nrml_xml.EVENLY_DISCRETIZED_INC_MFD)
+
+    min_val = float(evenly_disc_elem.get(nrml_xml.MIN_VAL))
+
+    bin_size = float(evenly_disc_elem.get(nrml_xml.BIN_SIZE))
+
+    e_type = evenly_disc_elem.get(nrml_xml.TYPE)
+
+    occurance_rates = [float(value) for value in evenly_disc_elem.text.split()]
+
+    evenly_disc_elem.clear()
+
+    sf_source.evenly_disc_mfd = EVENLY_DISC_MFD(min_val, bin_size,
+            e_type, occurance_rates)
 
     geo_id = sf_elem.find(
         nrml_xml.SIMPLE_FAULT_GEOMETRY).get(nrml_xml.GML_ID)
 
-    return sf_source
+    srs_name = sf_elem.find('.//%s' %
+        nrml_xml.LINE_STRING).get(nrml_xml.LINEAR_RING_NAME)
 
+    pos_list = [float(value) for value in sf_elem.find('.//%s' %
+        nrml_xml.POS_LIST).text.split()]
+
+    sf_source.trace = FAULT_TRACE(geo_id, srs_name, pos_list)
+
+    sf_source.dip = float(sf_elem.find('.//%s' % nrml_xml.DIP).text)
+
+    sf_source.upper_seism_depth = float(sf_elem.find(
+        './/%s' % nrml_xml.UPPER_SEISMOGENIC_DEPTH).text)
+
+    sf_source.lower_seism_depth = float(sf_elem.find(
+        './/%s' % nrml_xml.LOWER_SEISMOGENIC_DEPTH).text)
+
+    sf_elem.clear()
+
+    return sf_source
 
 
 def _parse_complex_fault_source(cp_elem):
     pass
+
 
 def _parse_simple_point_source(sp_elem):
     pass

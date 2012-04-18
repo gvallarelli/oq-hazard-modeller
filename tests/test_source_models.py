@@ -129,6 +129,12 @@ class NRMLReaderTestCase(unittest.TestCase):
 
         self.assertEqual(simple_fault_source, read_first_simple_fault_source)
 
+    def test_generated_simple_fault_sources(self):
+        num_expected_fault_sources = 2
+        sf_reader = NRMLReader(SIMPLE_FAULT, SCHEMA)
+        for num_sf_sources, _ in enumerate(sf_reader.read(), start=1):
+            pass
+        self.assertEqual(num_expected_fault_sources, num_sf_sources)
 
 
 class AreaSourceWriterTestCase(unittest.TestCase):
