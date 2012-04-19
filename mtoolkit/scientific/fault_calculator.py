@@ -14,6 +14,10 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with OpenQuake. If not, see <http://www.gnu.org/licenses/>.
+"""
+Module :mod:`mtoolkit.scientific.fault_calculator`
+defines functions :function:`get_mfd`.
+"""
 
 import numpy as np
 
@@ -27,6 +31,9 @@ def get_mfd(slip, tectonic_region, sf_geo, b_value,
             moment_scaling=MOMENT_SCALING):
     """
     Calculates activity rate `Anderson & Luco (1983)` type one.
+    If maximum magnitude (max_mag) is not provided, then it's
+    computed by using the moment scaling relation (WC1994)
+    and the rake.
 
     :param slip:
         Rate of slip (mm/yr) on the fault
