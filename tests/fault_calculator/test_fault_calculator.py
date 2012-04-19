@@ -26,19 +26,20 @@ from mtoolkit.geo.simple_fault import SimpleFaultGeo
 
 class AFaultCalculatorShould(unittest.TestCase):
 
-    def setUp(self):
-        pass
 
     def _input_args(self):
         return {
         'slip' : 20.0,
-        'dlr' : 1.25E-5,
-        'smod' : 27.7,
-        'fault_width' : 355.685110616,
         'b_value' : 0.8,
         'min_mag' : 5.0,
         'bin_width' : 0.1,
-        'max_mag' : 8.5
+        'max_mag' : 8.5,
+        'tectonic_region': TectonicRegionBuilder.create_tect_region_by_name(
+            TectonicRegionBuilder.ACTIVE_SHALLOW_CRUST,
+            smod={'value': [27.70], 'weight': [1.0]}),
+        'sf_geo': SimpleFaultGeo([(90.5632, 24.9265), (90.5108, 23.8924),
+                                    (90.6156, 22.4002), (90.9952, 21.2876)],
+                                    4.00, 35.0, 5.0)
         }
 
     def test_calculate_occurance_rates(self):
@@ -70,12 +71,6 @@ class AFaultCalculatorShould(unittest.TestCase):
         args = self._input_args()
         args['max_mag'] = None
         args['rake'] = -90
-        args['tectonic_region'] = TectonicRegionBuilder.create_tect_region_by_name(
-                TectonicRegionBuilder.ACTIVE_SHALLOW_CRUST)
-
-
-        args['sf_geo'] = SimpleFaultGeo([(90.5632, 24.9265), (90.5108, 23.8924), (90.6156, 22.4002), (90.9952, 21.2876)],
-                                        4.00, 35.0, 5.0)
 
         exp_occ_rates = [0.780179383967, 0.648924946545, 0.539752260701, 0.448946375822,
                          0.373417330576, 0.310595007075, 0.258341674371, 0.214879245307,
@@ -92,5 +87,3 @@ class AFaultCalculatorShould(unittest.TestCase):
         a = get_mfd(**args)
         for i, x in enumerate(a):
             self.assertAlmostEqual(exp_occ_rates[i], a[i], places=5)
-
-

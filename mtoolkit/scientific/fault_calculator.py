@@ -19,32 +19,75 @@ import numpy as np
 
 from nhlib.scalerel.wc1994 import WC1994
 
-def get_mfd(slip, dlr, smod, fault_width, b_value,
-            min_mag, bin_width, max_mag=None, rake=None,
-            tectonic_region=None, sf_geo=None):
+MOMENT_SCALING = (16.05, 1.5)
 
-    print 'mmag %s' % max_mag
+
+def get_mfd(slip, tectonic_region, sf_geo, b_value,
+            min_mag, bin_width, max_mag=None, rake=None,
+            moment_scaling=MOMENT_SCALING):
+    """
+    Calculates activity rate `Anderson & Luco (1983)` type one.
+
+    :param slip:
+        Rate of slip (mm/yr) on the fault
+    :param tectonic_region:
+        An instance of :class:`~mtoolkit.geo.tectonic_region.TectonicRegion`.
+    :param sf_geo:
+        An instance of :class:`~mtoolkit.geo.simple_fault.SimpleFaultGeo`.
+    :param b_value:
+        Ratio between smaller and larger earthquakes.
+    :param min_mag:
+        Minimum magnitude.
+    :param bin_width:
+        Magnitude interval.
+    :keyword max_mag:
+        Maximum magnitude.
+    :keyword rake:
+        Rake.
+    :keyword moment_scaling:
+        Moment scaling relation.
+    :returns:
+    """
+
+    assert (slip > 0)
+
     if max_mag == None:
         wc = WC1994()
         max_mag = wc.get_median_mag(sf_geo.get_area(), rake)
 
     occurrence_rate = []
-    moment_scaling = [16.05, 1.5]
-    beta = np.sqrt((dlr * (10.0 ** moment_scaling[0])) / ((smod * 1.0E10) * (fault_width * 1E5)))
+    disp_length_ratio = tectonic_region.disp_length_ratio_first_value
+    shear_mod = tectonic_region.shear_mod_first_value
+
+    beta = np.sqrt(disp_length_ratio * (10.0 ** moment_scaling[0]) /
+        ((shear_mod * 1.0E10) * (sf_geo.get_width() * 1E5)))
+
     dbar = moment_scaling[1] * np.log(10.0)
-    bbar =  b_value * np.log(10.0)
-    mag = np.arange(min_mag - (bin_width / 2.), max_mag + (1.5 * bin_width), bin_width)
-    for ival in range(0, np.shape(mag)[0] - 2):
-        occurrence_rate.append(
-        _cumulative_value(slip, max_mag, mag[ival], bbar, dbar, beta) -
-        _cumulative_value(slip, max_mag, mag[ival + 1], bbar, dbar, beta))
+    bbar = b_value * np.log(10.0)
+    mag = np.arange(min_mag - (bin_width / 2.),
+            max_mag + (1.5 * bin_width), bin_width)
+
+    cumulative_values = [_cumulative_value(slip, max_mag, m, bbar, dbar, beta)
+                            for m in mag]
+    for i, c in enumerate(cumulative_values[0:-2]):
+        occurrence_rate.append(c - cumulative_values[i + 1])
 
     return occurrence_rate
 
+
 def _cumulative_value(slip, mmax, mag_value, bbar, dbar, beta):
-    # Calculate N(M > mag_value) using Anderson & Luco Type 1 formula
-    # Slip is input in mm/yr but needs to be converted to cm/yr - hence
-    # divide by 10.
+    """
+    Calculate N(M > mag_value) using Anderson & Luco Type 1 formula
+    Slip is input in mm/yr but needs to be converted to cm/yr - hence
+    divide by 10.
+
+    :param slip:
+    :param mmax:
+    :param mag_value:
+    :param bbar:
+    :param dbar:
+    :param beta:
+    """
     return (((dbar - bbar) / (bbar)) * ((slip / 10.) / beta) *
                 np.exp(bbar * (mmax - mag_value)) *
                 np.exp(-(dbar / 2.) * mmax))
