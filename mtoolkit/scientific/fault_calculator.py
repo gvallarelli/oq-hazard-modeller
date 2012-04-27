@@ -26,7 +26,7 @@ from nhlib.scalerel.wc1994 import WC1994
 MOMENT_SCALING = (16.05, 1.5)
 
 
-def get_mfd(slip, tectonic_region, sf_geo, b_value,
+def get_mfd(slip, aseismic_coef, tectonic_region, sf_geo, b_value,
             min_mag, bin_width, max_mag=None, rake=None,
             moment_scaling=MOMENT_SCALING):
     """
@@ -37,6 +37,8 @@ def get_mfd(slip, tectonic_region, sf_geo, b_value,
 
     :param slip:
         Rate of slip (mm/yr) on the fault
+    :param aseismic_coef:
+        The proportion of the fault slip that is not `used` by earthquakes.
     :param tectonic_region:
         An instance of :class:`~mtoolkit.geo.tectonic_region.TectonicRegion`.
     :param sf_geo:
@@ -57,6 +59,7 @@ def get_mfd(slip, tectonic_region, sf_geo, b_value,
     """
 
     assert (slip > 0)
+    assert (0.0 <= aseismic_coef <= 1.0)
 
     if max_mag == None:
         wc = WC1994()
@@ -74,8 +77,9 @@ def get_mfd(slip, tectonic_region, sf_geo, b_value,
     mag = np.arange(min_mag - (bin_width / 2.),
             max_mag + (1.5 * bin_width), bin_width)
 
-    cumulative_values = [_cumulative_value(slip, max_mag, m, bbar, dbar, beta)
-                            for m in mag]
+    seismic_slip = slip * (1.0 - aseismic_coef)
+    cumulative_values = [_cumulative_value(seismic_slip, max_mag, m,
+                         bbar, dbar, beta) for m in mag]
     for i, c in enumerate(cumulative_values[0:-2]):
         occurrence_rate.append(c - cumulative_values[i + 1])
 
