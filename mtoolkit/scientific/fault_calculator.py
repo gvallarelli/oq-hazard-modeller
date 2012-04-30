@@ -38,17 +38,18 @@ def get_mfd(slip, aseismic_coef, tectonic_region, sf_geo, b_value,
     :param slip:
         Rate of slip (mm/yr) on the fault
     :param aseismic_coef:
-        The proportion of the fault slip that is not `used` by earthquakes.
+        The proportion of the fault slip that is released aseismically.
     :param tectonic_region:
         An instance of :class:`~mtoolkit.geo.tectonic_region.TectonicRegion`.
     :param sf_geo:
         An instance of :class:`~mtoolkit.geo.simple_fault.SimpleFaultGeo`.
     :param b_value:
-        Ratio between smaller and larger earthquakes.
+        Parameter of the truncated gutenberg richter model.
     :param min_mag:
         Minimum magnitude.
     :param bin_width:
-        Magnitude interval.
+        Magnitude interval for evenly discretized magnitude frequency
+        distribution.
     :keyword max_mag:
         Maximum magnitude.
     :keyword rake:
@@ -56,10 +57,11 @@ def get_mfd(slip, aseismic_coef, tectonic_region, sf_geo, b_value,
     :keyword moment_scaling:
         Moment scaling relation.
     :returns:
+        Evenly discretized magnitude frequency distribution (occurrence rate).
     """
 
     assert (slip > 0)
-    assert (0.0 <= aseismic_coef <= 1.0)
+    assert (0.0 <= aseismic_coef < 1.0)
 
     if max_mag == None:
         wc = WC1994()
@@ -80,6 +82,7 @@ def get_mfd(slip, aseismic_coef, tectonic_region, sf_geo, b_value,
     seismic_slip = slip * (1.0 - aseismic_coef)
     cumulative_values = [_cumulative_value(seismic_slip, max_mag, m,
                          bbar, dbar, beta) for m in mag]
+
     for i, c in enumerate(cumulative_values[0:-2]):
         occurrence_rate.append(c - cumulative_values[i + 1])
 
@@ -88,17 +91,24 @@ def get_mfd(slip, aseismic_coef, tectonic_region, sf_geo, b_value,
 
 def _cumulative_value(slip, mmax, mag_value, bbar, dbar, beta):
     """
-    Calculate N(M > mag_value) using Anderson & Luco Type 1 formula
+    Calculate N(M > mag_value) using Anderson & Luco Type 1 formula.
     Slip is input in mm/yr but needs to be converted to cm/yr - hence
-    divide by 10.
+    is divided by 10.
 
     :param slip:
+        Rate of slip (mm/yr) on the fault.
     :param mmax:
+        Maximum magnitude of earthquake on the fault.
     :param mag_value:
+        Magnitude for calculating recurrence.
     :param bbar:
+        Adjusted bvalue.
     :param dbar:
+        Moment scaling factor.
     :param beta:
+        Moment slip parameter.
     """
+
     return (((dbar - bbar) / (bbar)) * ((slip / 10.) / beta) *
                 np.exp(bbar * (mmax - mag_value)) *
                 np.exp(-(dbar / 2.) * mmax))
