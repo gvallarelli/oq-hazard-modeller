@@ -77,6 +77,14 @@ class TectonicRegion(object):
     def __ne__(self, other):
         return not self.__eq__(other)
 
+    @property
+    def shear_mod_first_value(self):
+        return self._smod['value'][0]
+
+    @property
+    def disp_length_ratio_first_value(self):
+        return self._dlr['value'][0]
+
     @classmethod
     def check_msr_weight(cls, msr, smod, dlr):
         """
