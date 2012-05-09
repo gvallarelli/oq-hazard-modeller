@@ -65,8 +65,9 @@ def read_eq_catalog(context):
         in a pipeline
     """
 
-    reader = EqEntryReader(context.config['eq_catalog_file'])
-    context.eq_catalog = reader.read_eq_catalog()
+    with open(context.config['eq_catalog_file']) as eq_catalog:
+        reader = EqEntryReader(eq_catalog)
+        context.eq_catalog = reader.read_eq_catalog()
 
     LOGGER.debug("* Eq catalog length: %s" % len(context.eq_catalog))
 
