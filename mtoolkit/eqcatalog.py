@@ -37,6 +37,20 @@ FIELDNAMES = ['eventID', 'Agency', 'Identifier',
               'sigmaML']
 
 
+class MalformedCatalogError(Exception):
+    """
+    Malformed catalog error could be raised
+    because of an invalid csv earthquake
+    catalogue.
+    """
+
+    def __init__(self):
+        header = ','.join(FIELDNAMES)
+        msg = ('The fieldnames should be placed on top of the catalogue'
+            "file, the valid header is '%s' without quotes." % (header))
+        Exception.__init__(self, msg)
+
+
 class EqEntryReader(object):
     """
     EqEntryReader allows to read and create
@@ -119,9 +133,7 @@ class EqEntryReader(object):
         fieldnames = [elem.strip()
                       for elem in eq_entries_source.readline().split(',')]
         if fieldnames != FIELDNAMES:
-            raise ValueError("The fieldnames should be places on top of"
-                " the catalogue file, a valid header is"
-                " %s" % ','.join(FIELDNAMES))
+            raise MalformedCatalogError()
 
     def read(self):
         """

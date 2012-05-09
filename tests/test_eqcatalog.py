@@ -21,7 +21,7 @@ import filecmp
 from StringIO import StringIO
 
 from mtoolkit.eqcatalog import (EqEntryReader, EqEntryWriter,
-                                EqEntryValidationError)
+                                MalformedCatalogError, EqEntryValidationError)
 
 from nrml.nrml_xml import get_data_path, DATA_DIR
 
@@ -63,7 +63,7 @@ class EqEntryReaderTestCase(unittest.TestCase):
 
     def test_invalid_csv_file_raise_exc(self):
         invalid_cat = StringIO('1,2,3,4,5,6,7,8')
-        self.assertRaises(ValueError, EqEntryReader, invalid_cat)
+        self.assertRaises(MalformedCatalogError, EqEntryReader, invalid_cat)
 
     def test_generated_eq_entry(self):
         first_eq_entry = dict(zip(FIELDNAMES, self.first_data_row))
