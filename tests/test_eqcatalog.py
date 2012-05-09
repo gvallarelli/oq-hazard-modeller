@@ -18,12 +18,12 @@
 
 import unittest
 import filecmp
+from StringIO import StringIO
 
-from mtoolkit.eqcatalog import (CsvReader, EqEntryReader,
-                                EqEntryWriter,
-                                EqEntryValidationError)
+from mtoolkit.eqcatalog import (EqEntryReader, EqEntryWriter,
+                                MalformedCatalogError, EqEntryValidationError)
 
-from nrml.nrml_xml import get_data_path, DATA_DIR, FILE_NAME_ERROR
+from nrml.nrml_xml import get_data_path, DATA_DIR
 
 FIELDNAMES = ['eventID', 'Agency', 'Identifier',
               'year', 'month', 'day',
@@ -34,41 +34,6 @@ FIELDNAMES = ['eventID', 'Agency', 'Identifier',
               'sigmaMw', 'Ms', 'sigmaMs',
               'mb', 'sigmamb', 'ML',
               'sigmaML']
-
-
-class CsvReaderTestCase(unittest.TestCase):
-
-    def setUp(self):
-        self.correct_filename = get_data_path('ISC_small_data.csv', DATA_DIR)
-
-        self.csv_reader = CsvReader(self.correct_filename)
-
-        self.first_data_row = [
-        '1', 'AAA', '20000102034913',
-        '2000', '01', '02',
-        '03', '49', '13',
-        '0.02', '7.282', '44.368',
-        '2.43', '1.01', '298',
-        '9.3', '0.5', '1.71',
-        '0.355', '   ', '   ',
-        '   ', '   ', '1.7',
-        '0.1']
-
-    def test_an_incorrect_csv_filename_raise_exception(self):
-        self.assertRaises(IOError, CsvReader, FILE_NAME_ERROR)
-
-    def test_get_csv_fieldnames(self):
-        self.assertEqual(FIELDNAMES, self.csv_reader.fieldnames)
-
-    def test_number_read_lines(self):
-        expected_num_lines = 10
-        read_num_lines = 0
-        for _ in self.csv_reader.read():
-            read_num_lines += 1
-        self.assertEqual(expected_num_lines, read_num_lines)
-
-    def test_read_line(self):
-        self.assertEqual(self.first_data_row, self.csv_reader.read().next())
 
 
 class EqEntryReaderTestCase(unittest.TestCase):
@@ -93,8 +58,12 @@ class EqEntryReaderTestCase(unittest.TestCase):
                                     '0.199', '   ', '   ',
                                     '3.8', '0.1', '   ', '   ']
 
-        self.eq_reader = EqEntryReader(get_data_path('ISC_small_data.csv',
-                    DATA_DIR))
+        self.eq_reader = EqEntryReader(open(get_data_path('ISC_small_data.csv',
+                    DATA_DIR)))
+
+    def test_invalid_csv_file_raise_exc(self):
+        invalid_cat = StringIO('1,2,3,4,5,6,7,8')
+        self.assertRaises(MalformedCatalogError, EqEntryReader, invalid_cat)
 
     def test_generated_eq_entry(self):
         first_eq_entry = dict(zip(FIELDNAMES, self.first_data_row))

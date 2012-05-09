@@ -24,39 +24,31 @@ create eq entries.
 
 import os
 from datetime import datetime as time
-import csv
+from csv import DictReader, DictWriter
+
+FIELDNAMES = ['eventID', 'Agency', 'Identifier',
+              'year', 'month', 'day',
+              'hour', 'minute', 'second',
+              'timeError', 'longitude', 'latitude',
+              'SemiMajor90', 'SemiMinor90', 'ErrorStrike',
+              'depth', 'depthError', 'Mw',
+              'sigmaMw', 'Ms', 'sigmaMs',
+              'mb', 'sigmamb', 'ML',
+              'sigmaML']
 
 
-class CsvReader(object):
+class MalformedCatalogError(Exception):
     """
-    CsvReader allows to read csv file in
-    an iterative way, returning a line
-    for iteration.
+    Malformed catalog error could be raised
+    because of an invalid csv earthquake
+    catalogue.
     """
 
-    def __init__(self, filename):
-        file_exists = os.path.exists(filename)
-        if not file_exists:
-            raise IOError('File %s not found' % filename)
-        self.filename = filename
-
-    def read(self):
-        """
-        Return a generator that provides a list
-        of field values for each line of the file.
-        """
-        with open(self.filename, 'rb') as csv_file:
-            reader = csv.reader(csv_file)
-            reader.next()  # Skip fieldnames line
-            for line in reader:
-                yield line
-
-    @property
-    def fieldnames(self):
-        """Return the fieldnames inside the csv file."""
-        with open(self.filename, 'rb') as csv_file:
-            fieldnames = csv.reader(csv_file).next()
-        return fieldnames
+    def __init__(self):
+        header = ','.join(FIELDNAMES)
+        msg = ('The fieldnames should be placed on top of the catalogue'
+            "file, the valid header is '%s' without quotes." % (header))
+        Exception.__init__(self, msg)
 
 
 class EqEntryReader(object):
@@ -84,6 +76,7 @@ class EqEntryReader(object):
         check_map - associates each field with its own check
         current_line - denotes the line in use by the read method
         """
+        self.validate_csv_catalog(eq_entries_source)
 
         self.eq_entries_source = eq_entries_source
 
@@ -130,25 +123,34 @@ class EqEntryReader(object):
 
         self.current_line = 0
 
+    @classmethod
+    def validate_csv_catalog(cls, eq_entries_source):
+        """
+        Check if the earthquake catalogue
+        contains a valid header, constituted
+        by the denoted fieldnames.
+        """
+        fieldnames = [elem.strip()
+                      for elem in eq_entries_source.readline().split(',')]
+        if fieldnames != FIELDNAMES:
+            raise MalformedCatalogError()
+
     def read(self):
         """
         Return a generator that provides an eq
         entry in a dictionary for every line
         with valid values.
         """
-
-        csv_reader = CsvReader(self.eq_entries_source)
-        field_names = csv_reader.fieldnames
-        for self.current_line, eq_line in enumerate(
-            csv_reader.read(), start=2):  # eq definitions start at line 2
-            dict_fields_values = dict(zip(field_names, eq_line))
-            eq_entry = self.convert_values(dict_fields_values)
+        eq_reader = DictReader(self.eq_entries_source, fieldnames=FIELDNAMES)
+        # eq definitions start at line 2
+        for self.current_line, eq_line in enumerate(eq_reader, start=2):
+            eq_entry = self.convert_values(eq_line)
             for field in eq_entry.keys():
-                if not self.check_map[field](field, eq_entry)\
-                    and field in self.compulsory_fields:
+                if not self.check_map[field](field, eq_entry) and (field in
+                    self.compulsory_fields):
 
-                    raise EqEntryValidationError(field,
-                            eq_entry[field], self.current_line)
+                    raise EqEntryValidationError(field, eq_entry[field],
+                        self.current_line)
             yield eq_entry
 
     def read_eq_catalog(self):
@@ -333,12 +335,6 @@ class EqEntryWriter(object):
     eq entries in a csv file
     """
 
-    FIELDNAMES = ['eventID', 'Agency', 'Identifier', 'year', 'month',
-            'day', 'hour', 'minute', 'second', 'timeError', 'longitude',
-            'latitude', 'SemiMajor90', 'SemiMinor90', 'ErrorStrike',
-            'depth', 'depthError', 'Mw', 'sigmaMw', 'Ms', 'sigmaMs',
-            'mb', 'sigmamb', 'ML', 'sigmaML']
-
     def __init__(self, output_filename):
         output_dir = os.path.dirname(output_filename)
         if not os.path.exists(output_dir):
@@ -349,6 +345,6 @@ class EqEntryWriter(object):
         """Write rows in the csv file"""
 
         with open(self.output_filename, 'w') as output_file:
-            writer = csv.DictWriter(output_file, EqEntryWriter.FIELDNAMES)
+            writer = DictWriter(output_file, FIELDNAMES)
             writer.writeheader()
             writer.writerows(entries)
